@@ -2,7 +2,11 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { NextResponse } from 'next/server'
 import { sendTenantEmail } from '@/services/email'
-import { buildParticipantVariables, buildPartnerVariables, addCommonVariables } from '@/services/emailVariables'
+import {
+  buildParticipantVariables,
+  buildPartnerVariables,
+  addCommonVariables,
+} from '@/services/emailVariables'
 
 /**
  * API route for manual email sending from the dashboard
@@ -14,23 +18,37 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as {
       templateId: string
-      teamId: string
+      organizationId: string
       recipientEmails?: string[]
       participantIds?: string[] // Auto-populate variables from participants
       partnerIds?: string[] // Auto-populate variables from partners
       variables?: Record<string, any>
       userId?: string
     }
-    const { templateId, teamId, recipientEmails, participantIds, partnerIds, variables, userId } = body
+    const {
+      templateId,
+      organizationId,
+      recipientEmails,
+      participantIds,
+      partnerIds,
+      variables,
+      userId,
+    } = body
 
     // Validate required fields
     if (!templateId) {
-      return NextResponse.json({ success: false, error: 'Template ID is required' }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: 'Template ID is required' },
+        { status: 400 },
+      )
     }
 
     if (!recipientEmails && !participantIds && !partnerIds) {
       return NextResponse.json(
-        { success: false, error: 'Either recipientEmails, participantIds, or partnerIds is required' },
+        {
+          success: false,
+          error: 'Either recipientEmails, participantIds, or partnerIds is required',
+        },
         { status: 400 },
       )
     }
@@ -56,8 +74,11 @@ export async function POST(request: Request) {
       )
     }
 
-    if (!teamId) {
-      return NextResponse.json({ success: false, error: 'Organization ID is required' }, { status: 400 })
+    if (!organizationId) {
+      return NextResponse.json(
+        { success: false, error: 'Organization ID is required' },
+        { status: 400 },
+      )
     }
 
     // Fetch the template
@@ -72,8 +93,8 @@ export async function POST(request: Request) {
 
     // Verify organization matches
     const templateOrganizationId =
-      typeof template.team === 'object' ? template.team.id : template.team
-    if (String(templateOrganizationId) !== String(teamId)) {
+      typeof template.organization === 'object' ? template.organization.id : template.organization
+    if (String(templateOrganizationId) !== String(organizationId)) {
       return NextResponse.json(
         { success: false, error: 'Template does not belong to this organization' },
         { status: 403 },
@@ -83,7 +104,7 @@ export async function POST(request: Request) {
     // Fetch organization for common variables
     const organization = await payload.findByID({
       collection: 'organizations',
-      id: teamId,
+      id: organizationId,
     })
 
     // Prepare recipients list
@@ -102,17 +123,16 @@ export async function POST(request: Request) {
           // Get participant type name
           let participantTypeName = ''
           if (participant.participantType) {
-            participantTypeName = typeof participant.participantType === 'object'
-              ? participant.participantType.name || ''
-              : ''
+            participantTypeName =
+              typeof participant.participantType === 'object'
+                ? participant.participantType.name || ''
+                : ''
           }
 
           // Get event name
           let eventName = ''
           if (participant.event) {
-            eventName = typeof participant.event === 'object'
-              ? participant.event.name || ''
-              : ''
+            eventName = typeof participant.event === 'object' ? participant.event.name || '' : ''
           }
 
           // Build participant variables
@@ -162,17 +182,14 @@ export async function POST(request: Request) {
           // Get partner type name
           let partnerTypeName = ''
           if (partner.partnerType) {
-            partnerTypeName = typeof partner.partnerType === 'object'
-              ? partner.partnerType.name || ''
-              : ''
+            partnerTypeName =
+              typeof partner.partnerType === 'object' ? partner.partnerType.name || '' : ''
           }
 
           // Get partner tier name
           let partnerTierName = ''
           if (partner.tier) {
-            partnerTierName = typeof partner.tier === 'object'
-              ? partner.tier.name || ''
-              : ''
+            partnerTierName = typeof partner.tier === 'object' ? partner.tier.name || '' : ''
           }
 
           // Build partner variables
@@ -211,7 +228,7 @@ export async function POST(request: Request) {
     } else if (recipientEmails && recipientEmails.length > 0) {
       // Use provided email list with generic variables
       const commonVars = addCommonVariables(variables || {}, organization)
-      recipients = recipientEmails.map(email => ({
+      recipients = recipientEmails.map((email) => ({
         email,
         variables: commonVars,
       }))
@@ -230,7 +247,7 @@ export async function POST(request: Request) {
           try {
             const result = await sendTenantEmail({
               payload,
-              tenantId: teamId,
+              tenantId: organizationId,
               templateName: template.name,
               to: recipient.email,
               variables: recipient.variables,
@@ -248,7 +265,7 @@ export async function POST(request: Request) {
                 collection: 'email-logs',
                 data: {
                   template: Number(templateId),
-                  team: Number(teamId),
+                  organization: Number(organizationId),
                   recipientEmail: recipient.email,
                   triggerEvent: 'manual',
                   variables: JSON.stringify(recipient.variables),
@@ -263,7 +280,7 @@ export async function POST(request: Request) {
                 collection: 'email-logs',
                 data: {
                   template: Number(templateId),
-                  team: Number(teamId),
+                  organization: Number(organizationId),
                   recipientEmail: recipient.email,
                   triggerEvent: 'manual',
                   variables: JSON.stringify(recipient.variables),
@@ -296,7 +313,7 @@ export async function POST(request: Request) {
 
             // Add 500ms delay between emails (except after the last one)
             if (i < recipients.length - 1) {
-              await new Promise(resolve => setTimeout(resolve, 500))
+              await new Promise((resolve) => setTimeout(resolve, 500))
             }
           } catch (error) {
             const errorMsg = error instanceof Error ? error.message : 'Unknown error'
@@ -327,7 +344,7 @@ export async function POST(request: Request) {
 
             // Add 500ms delay between emails (except after the last one)
             if (i < recipients.length - 1) {
-              await new Promise(resolve => setTimeout(resolve, 500))
+              await new Promise((resolve) => setTimeout(resolve, 500))
             }
           }
         }
@@ -357,7 +374,7 @@ export async function POST(request: Request) {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
       },
     })
   } catch (error) {

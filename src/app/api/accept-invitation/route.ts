@@ -1,7 +1,10 @@
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { NextRequest, NextResponse } from 'next/server'
-import { acceptInvitation, declineInvitation } from '@/collections/Invitations/hooks/acceptInvitation'
+import {
+  acceptInvitation,
+  declineInvitation,
+} from '@/collections/Invitations/hooks/acceptInvitation'
 
 /**
  * POST /api/accept-invitation
@@ -10,7 +13,7 @@ import { acceptInvitation, declineInvitation } from '@/collections/Invitations/h
 export async function POST(req: NextRequest) {
   try {
     const payload = await getPayload({ config: configPromise })
-    const body = await req.json() as { token: string; action?: 'accept' | 'decline' }
+    const body = (await req.json()) as { token: string; action?: 'accept' | 'decline' }
     const { token, action } = body
 
     if (!token) {
@@ -41,7 +44,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result)
   } catch (error: any) {
     console.error('Error processing invitation:', error)
-    return NextResponse.json({ error: error.message || 'Failed to process invitation' }, { status: 400 })
+    return NextResponse.json(
+      { error: error.message || 'Failed to process invitation' },
+      { status: 400 },
+    )
   }
 }
 
@@ -83,7 +89,7 @@ export async function GET(req: NextRequest) {
 
     console.log('📋 Invitation data:', {
       email: invitation.email,
-      organization: invitation.team,
+      organization: invitation.organization,
       role: invitation.role,
       status: invitation.status,
       expiresAt: invitation.expiresAt,
@@ -101,7 +107,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       email: invitation.email,
-      tenant: invitation.team,  // Keep 'tenant' in response for backwards compatibility with frontend
+      tenant: invitation.organization, // Keep 'tenant' in response for backwards compatibility with frontend
       role: invitation.role,
       status: isExpired ? 'expired' : invitation.status,
       expiresAt: invitation.expiresAt,
@@ -111,6 +117,9 @@ export async function GET(req: NextRequest) {
     })
   } catch (error: any) {
     console.error('Error fetching invitation:', error)
-    return NextResponse.json({ error: error.message || 'Failed to fetch invitation' }, { status: 400 })
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch invitation' },
+      { status: 400 },
+    )
   }
 }

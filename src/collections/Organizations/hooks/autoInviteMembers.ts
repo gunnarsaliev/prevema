@@ -58,7 +58,7 @@ export const autoInviteMembers: CollectionAfterChangeHook<Organization> = async 
         collection: 'invitations',
         data: {
           email,
-          team: doc.id,
+          organization: doc.id,
           role,
           invitedBy: req.user?.id,
         },
@@ -76,7 +76,7 @@ export const autoInviteMembers: CollectionAfterChangeHook<Organization> = async 
     }
   }
 
-  // Remove email-only members from the team (they'll be added when they accept)
+  // Remove email-only members from the organization (they'll be added when they accept)
   const updatedMembers = currentMembers.filter((member: any) => {
     // Keep members that have a user relationship
     // Remove members that only have email (invitations sent)

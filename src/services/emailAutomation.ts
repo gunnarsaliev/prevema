@@ -17,7 +17,7 @@ export type TriggerEvent =
 
 export interface TriggerData {
   event: TriggerEvent
-  teamId: string | number
+  organizationId: string | number
   recipientEmail: string
   data: Record<string, any>
   previousData?: Record<string, any> // For update events
@@ -33,17 +33,17 @@ export async function triggerAutomatedEmails({
   payload: Payload
   triggerData: TriggerData
 }): Promise<{ sent: number; errors: string[] }> {
-  const { event, teamId, recipientEmail, data, previousData } = triggerData
+  const { event, organizationId, recipientEmail, data, previousData } = triggerData
 
   try {
-    // Find all active templates with matching trigger event for this team
+    // Find all active templates with matching trigger event for this organization
     const templates = await payload.find({
       collection: 'email-templates',
       where: {
         and: [
           {
-            team: {
-              equals: teamId,
+            organization: {
+              equals: organizationId,
             },
           },
           {
@@ -62,12 +62,14 @@ export async function triggerAutomatedEmails({
     })
 
     if (templates.docs.length === 0) {
-      console.log(`📭 No active templates found for event: ${event} (team: ${teamId})`)
+      console.log(
+        `📭 No active templates found for event: ${event} (organization: ${organizationId})`,
+      )
       return { sent: 0, errors: [] }
     }
 
     console.log(
-      `📧 Found ${templates.docs.length} template(s) for event: ${event} (team: ${teamId})`,
+      `📧 Found ${templates.docs.length} template(s) for event: ${event} (organization: ${organizationId})`,
     )
 
     let sent = 0
@@ -84,9 +86,7 @@ export async function triggerAutomatedEmails({
         })
 
         if (!shouldTrigger) {
-          console.log(
-            `⏭️  Skipping template "${template.name}" - conditions not met`,
-          )
+          console.log(`⏭️  Skipping template "${template.name}" - conditions not met`)
           continue
         }
 
@@ -100,7 +100,7 @@ export async function triggerAutomatedEmails({
           await scheduleDelayedEmail({
             payload,
             template,
-            teamId,
+            organizationId,
             recipientEmail,
             variables: data,
             delayMinutes,
@@ -110,7 +110,7 @@ export async function triggerAutomatedEmails({
           console.log(`📤 Sending template "${template.name}" immediately`)
           const result = await sendTenantEmail({
             payload,
-            tenantId: teamId,
+            tenantId: organizationId,
             templateName: template.name,
             to: recipientEmail,
             variables: data,
@@ -122,7 +122,7 @@ export async function triggerAutomatedEmails({
             await logEmailSent({
               payload,
               templateId: template.id,
-              teamId,
+              organizationId,
               recipientEmail,
               triggerEvent: event,
               variables: data,
@@ -163,16 +163,12 @@ async function evaluateTriggerConditions({
     // For update events, check if status changed TO one of the filtered statuses
     if (previousData && data.status !== previousData.status) {
       if (!statusFilter.includes(data.status)) {
-        console.log(
-          `Status "${data.status}" not in filter: ${statusFilter.join(', ')}`,
-        )
+        console.log(`Status "${data.status}" not in filter: ${statusFilter.join(', ')}`)
         return false
       }
     } else if (!statusFilter.includes(data.status)) {
       // For creation events, just check current status
-      console.log(
-        `Status "${data.status}" not in filter: ${statusFilter.join(', ')}`,
-      )
+      console.log(`Status "${data.status}" not in filter: ${statusFilter.join(', ')}`)
       return false
     }
   }
@@ -205,14 +201,14 @@ async function evaluateTriggerConditions({
 async function scheduleDelayedEmail({
   payload,
   template,
-  teamId,
+  organizationId,
   recipientEmail,
   variables,
   delayMinutes,
 }: {
   payload: Payload
   template: EmailTemplate
-  teamId: string | number
+  organizationId: string | number
   recipientEmail: string
   variables: Record<string, any>
   delayMinutes: number
@@ -228,30 +224,33 @@ async function scheduleDelayedEmail({
   // For now, just log it
 
   // Simple setTimeout approach (loses state on server restart)
-  setTimeout(async () => {
-    try {
-      const result = await sendTenantEmail({
-        payload,
-        tenantId: teamId,
-        templateName: template.name,
-        to: recipientEmail,
-        variables,
-      })
-
-      if (result.success) {
-        await logEmailSent({
+  setTimeout(
+    async () => {
+      try {
+        const result = await sendTenantEmail({
           payload,
-          templateId: template.id,
-          teamId,
-          recipientEmail,
-          triggerEvent: 'scheduled',
+          tenantId: organizationId,
+          templateName: template.name,
+          to: recipientEmail,
           variables,
         })
+
+        if (result.success) {
+          await logEmailSent({
+            payload,
+            templateId: template.id,
+            organizationId,
+            recipientEmail,
+            triggerEvent: 'scheduled',
+            variables,
+          })
+        }
+      } catch (error) {
+        console.error('❌ Error sending scheduled email:', error)
       }
-    } catch (error) {
-      console.error('❌ Error sending scheduled email:', error)
-    }
-  }, delayMinutes * 60 * 1000)
+    },
+    delayMinutes * 60 * 1000,
+  )
 }
 
 /**
@@ -260,14 +259,14 @@ async function scheduleDelayedEmail({
 async function logEmailSent({
   payload,
   templateId,
-  teamId,
+  organizationId,
   recipientEmail,
   triggerEvent,
   variables,
 }: {
   payload: Payload
   templateId: string | number
-  teamId: string | number
+  organizationId: string | number
   recipientEmail: string
   triggerEvent: string
   variables: Record<string, any>
@@ -277,7 +276,7 @@ async function logEmailSent({
       collection: 'email-logs',
       data: {
         template: templateId,
-        team: teamId,
+        organization: organizationId,
         recipientEmail,
         triggerEvent,
         variables: JSON.stringify(variables),

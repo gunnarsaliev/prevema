@@ -90,8 +90,8 @@ export const Users: CollectionConfig = {
           value: 'pro',
         },
         {
-          label: 'Teams',
-          value: 'teams',
+          label: 'Organizations',
+          value: 'organizations',
         },
         {
           label: 'Unlimited',
@@ -99,7 +99,7 @@ export const Users: CollectionConfig = {
         },
       ],
       admin: {
-        description: 'Free: 1 tenant. Pro: 3 tenants. Teams: 20 tenants.',
+        description: 'Free: 1 tenant. Pro: 3 tenants. Organizations: 20 tenants.',
         condition: (data) => {
           // Hide pricing plan selector for super-admins and admins
           const roles = data?.roles || []

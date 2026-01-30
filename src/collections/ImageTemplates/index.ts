@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { checkRole, getUserOrganizationIds } from '@/access/utilities'
-import { autoSelectTeam } from '@/hooks/autoSelectTeam'
-import { defaultTeamValue } from '@/fields/defaultTeamValue'
+import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
+import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import { formatSlugHook } from '@/utils/formatSlug'
 
 /**
@@ -12,7 +12,7 @@ import { formatSlugHook } from '@/utils/formatSlug'
 export const ImageTemplates: CollectionConfig = {
   slug: 'image-templates',
   hooks: {
-    beforeValidate: [autoSelectTeam],
+    beforeValidate: [autoSelectOrganization],
   },
   access: {
     admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),
@@ -34,12 +34,12 @@ export const ImageTemplates: CollectionConfig = {
       // Regular users can only read templates for their organizations
       if (!user) return false
 
-      const teamIds = await getUserOrganizationIds(payload, user)
+      const organizationIds = await getUserOrganizationIds(payload, user)
 
-      if (teamIds.length > 0) {
+      if (organizationIds.length > 0) {
         return {
-          team: {
-            in: teamIds,
+          organization: {
+            in: organizationIds,
           },
         }
       }
@@ -55,12 +55,12 @@ export const ImageTemplates: CollectionConfig = {
       // Regular users can only update templates for their organizations
       if (!user) return false
 
-      const teamIds = await getUserOrganizationIds(payload, user)
+      const organizationIds = await getUserOrganizationIds(payload, user)
 
-      if (teamIds.length > 0) {
+      if (organizationIds.length > 0) {
         return {
-          team: {
-            in: teamIds,
+          organization: {
+            in: organizationIds,
           },
         }
       }
@@ -76,12 +76,12 @@ export const ImageTemplates: CollectionConfig = {
       // Regular users can only delete templates for their organizations
       if (!user) return false
 
-      const teamIds = await getUserOrganizationIds(payload, user)
+      const organizationIds = await getUserOrganizationIds(payload, user)
 
-      if (teamIds.length > 0) {
+      if (organizationIds.length > 0) {
         return {
-          team: {
-            in: teamIds,
+          organization: {
+            in: organizationIds,
           },
         }
       }
@@ -92,7 +92,7 @@ export const ImageTemplates: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     group: 'System',
-    defaultColumns: ['name', 'team', 'usageType', 'updatedAt'],
+    defaultColumns: ['name', 'organization', 'usageType', 'updatedAt'],
     description: 'Saved canvas templates from the image generator for bulk image creation',
   },
   fields: [
@@ -117,11 +117,11 @@ export const ImageTemplates: CollectionConfig = {
       },
     },
     {
-      name: 'team',
+      name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
       required: false, // Make optional for API usage from frontend
-      defaultValue: defaultTeamValue,
+      defaultValue: defaultOrganizationValue,
       admin: {
         description: 'The organization this template belongs to',
       },

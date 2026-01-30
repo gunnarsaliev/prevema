@@ -56,10 +56,11 @@ export async function sendTestEmail({
       return { success: false, error: 'Template not found' }
     }
 
-    // Verify team matches
-    const templateTeamId = typeof template.team === 'object' ? template.team.id : template.team
-    if (String(templateTeamId) !== String(tenantId)) {
-      return { success: false, error: 'Template does not belong to this team' }
+    // Verify organization matches
+    const templateOrganizationId =
+      typeof template.organization === 'object' ? template.organization.id : template.organization
+    if (String(templateOrganizationId) !== String(tenantId)) {
+      return { success: false, error: 'Template does not belong to this organization' }
     }
 
     // Generate preview
@@ -73,18 +74,18 @@ export async function sendTestEmail({
       }
     }
 
-    // Fetch team to get email config
-    const team = await payload.findByID({
+    // Fetch organization to get email config
+    const organization = await payload.findByID({
       collection: 'organizations',
       id: tenantId,
     })
 
-    if (!team) {
-      return { success: false, error: 'Team not found' }
+    if (!organization) {
+      return { success: false, error: 'Organization not found' }
     }
 
     // Get email config
-    const emailConfig = (team as any).emailConfig as any
+    const emailConfig = (organization as any).emailConfig as any
 
     // Send test email
     await payload.sendEmail({
@@ -95,7 +96,7 @@ export async function sendTestEmail({
           <strong>⚠️ This is a test email</strong>
           <p style="margin: 0.5rem 0 0 0; font-size: 14px;">
             Template: ${template.name}<br/>
-            Team: ${typeof team === 'object' ? team.name : 'Unknown'}
+            Organization: ${typeof organization === 'object' ? organization.name : 'Unknown'}
           </p>
         </div>
         ${preview.html}
@@ -104,7 +105,8 @@ export async function sendTestEmail({
         emailConfig?.isActive && emailConfig?.fromEmail
           ? `${emailConfig.senderName || 'Test'} <${emailConfig.fromEmail}>`
           : undefined,
-      replyTo: emailConfig?.isActive && emailConfig?.replyToEmail ? emailConfig.replyToEmail : undefined,
+      replyTo:
+        emailConfig?.isActive && emailConfig?.replyToEmail ? emailConfig.replyToEmail : undefined,
     })
 
     return { success: true, preview }
@@ -168,13 +170,17 @@ export function generateSampleVariables(template: EmailTemplate): Record<string,
     } else if (lowerVar.includes('role')) {
       sampleData[variable] = 'Editor'
     } else if (variable === 'socialPostLinkedIn') {
-      sampleData[variable] = 'Excited to announce John Doe as our keynote speaker at Tech Conference 2024! Join us to hear insights on innovation and technology. #TechConference #Innovation'
+      sampleData[variable] =
+        'Excited to announce John Doe as our keynote speaker at Tech Conference 2024! Join us to hear insights on innovation and technology. #TechConference #Innovation'
     } else if (variable === 'socialPostTwitter') {
-      sampleData[variable] = '🎤 Keynote speaker alert! John Doe joins us at Tech Conference 2024. Don\'t miss out! Register now 👉 [link] #TechConf2024'
+      sampleData[variable] =
+        "🎤 Keynote speaker alert! John Doe joins us at Tech Conference 2024. Don't miss out! Register now 👉 [link] #TechConf2024"
     } else if (variable === 'socialPostFacebook') {
-      sampleData[variable] = '🎉 We\'re thrilled to announce John Doe as a featured speaker at Tech Conference 2024! With years of experience in technology and innovation, John will share valuable insights. Mark your calendars!'
+      sampleData[variable] =
+        "🎉 We're thrilled to announce John Doe as a featured speaker at Tech Conference 2024! With years of experience in technology and innovation, John will share valuable insights. Mark your calendars!"
     } else if (variable === 'socialPostInstagram') {
-      sampleData[variable] = '✨ Meet our speaker John Doe! 🎤 Industry expert joining Tech Conference 2024 📅 Don\'t miss it! Link in bio 🔗 #TechConf #SpeakerAnnouncement'
+      sampleData[variable] =
+        "✨ Meet our speaker John Doe! 🎤 Industry expert joining Tech Conference 2024 📅 Don't miss it! Link in bio 🔗 #TechConf #SpeakerAnnouncement"
     } else if (variable === 'socialPostGeneratedAt') {
       sampleData[variable] = new Date().toLocaleDateString()
     } else {

@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { checkRole, getOrganizationRole, getUserOrganizationIds } from '@/access/utilities'
-import { autoSelectTeam } from '@/hooks/autoSelectTeam'
-import { defaultTeamValue } from '@/fields/defaultTeamValue'
+import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
+import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import crypto from 'crypto'
 
 export const Invitations: CollectionConfig = {
@@ -9,7 +9,7 @@ export const Invitations: CollectionConfig = {
   admin: {
     useAsTitle: 'email',
     group: 'System',
-    defaultColumns: ['email', 'team', 'role', 'status', 'expiresAt'],
+    defaultColumns: ['email', 'organization', 'role', 'status', 'expiresAt'],
     hidden: ({ user }) => {
       // Hide from regular users and admins (only super-admins can see)
       return !checkRole(['super-admin'], user)
@@ -26,9 +26,10 @@ export const Invitations: CollectionConfig = {
       }
 
       // Organization owners can create invitations for their organizations
-      if (data?.team) {
-        const teamId = typeof data.team === 'object' ? data.team.id : data.team
-        const userRole = await getOrganizationRole(payload, user, teamId)
+      if (data?.organization) {
+        const organizationId =
+          typeof data.organization === 'object' ? data.organization.id : data.organization
+        const userRole = await getOrganizationRole(payload, user, organizationId)
 
         if (userRole === 'owner') {
           return true
@@ -60,7 +61,7 @@ export const Invitations: CollectionConfig = {
 
       if (ownedTenantIds.length > 0) {
         orConditions.push({
-          team: {
+          organization: {
             in: ownedTenantIds,
           },
         })
@@ -84,7 +85,7 @@ export const Invitations: CollectionConfig = {
 
       if (ownedTenantIds.length > 0) {
         return {
-          team: {
+          organization: {
             in: ownedTenantIds,
           },
         }
@@ -106,7 +107,7 @@ export const Invitations: CollectionConfig = {
 
       if (ownedTenantIds.length > 0) {
         return {
-          team: {
+          organization: {
             in: ownedTenantIds,
           },
         }
@@ -116,19 +117,19 @@ export const Invitations: CollectionConfig = {
     },
   },
   hooks: {
-    beforeValidate: [autoSelectTeam],
+    beforeValidate: [autoSelectOrganization],
     beforeChange: [
       ({ data, operation, req }) => {
         // Generate a unique token for new invitations
         if (operation === 'create') {
           data.token = crypto.randomBytes(32).toString('hex')
           data.status = 'pending'
-          
+
           // Set expiration to 7 days from now
           const expiresAt = new Date()
           expiresAt.setDate(expiresAt.getDate() + 7)
           data.expiresAt = expiresAt.toISOString()
-          
+
           // Set invitedBy to current user if not already set
           if (!data.invitedBy && req.user) {
             data.invitedBy = req.user.id
@@ -144,28 +145,33 @@ export const Invitations: CollectionConfig = {
           console.log('🔔 Invitation created, preparing to send email...')
           console.log('📧 Recipient:', doc.email)
           console.log('🔑 RESEND_API_KEY present:', !!process.env.RESEND_API_KEY)
-          
+
           const inviteUrl = `${process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}/accept-invitation?token=${doc.token}`
           console.log('🔗 Invitation URL:', inviteUrl)
-          
+
           try {
             // Fetch organization details to include in email
             let tenantName = 'an organization'
-            if (typeof doc.team === 'string') {
+            if (typeof doc.organization === 'string') {
               const tenant = await req.payload.findByID({
                 collection: 'organizations',
-                id: doc.team,
+                id: doc.organization,
               })
               tenantName = tenant.name || tenantName
-            } else if (doc.team && typeof doc.team === 'object' && 'name' in doc.team) {
-              tenantName = doc.team.name || tenantName
+            } else if (
+              doc.organization &&
+              typeof doc.organization === 'object' &&
+              'name' in doc.organization
+            ) {
+              tenantName = doc.organization.name || tenantName
             }
 
             // Get inviter details
             let inviterName = 'Someone'
             if (doc.invitedBy) {
               try {
-                const inviterId = typeof doc.invitedBy === 'string' ? doc.invitedBy : doc.invitedBy.id
+                const inviterId =
+                  typeof doc.invitedBy === 'string' ? doc.invitedBy : doc.invitedBy.id
                 if (inviterId) {
                   const inviter = await req.payload.findByID({
                     collection: 'users',
@@ -187,7 +193,7 @@ export const Invitations: CollectionConfig = {
 
             console.log('📤 Attempting to send email via Resend...')
             console.log('🔍 req.payload.sendEmail exists:', typeof req.payload.sendEmail)
-            
+
             const emailResult = await req.payload.sendEmail({
               to: doc.email,
               subject: `You've been invited to join ${tenantName}`,
@@ -211,11 +217,14 @@ export const Invitations: CollectionConfig = {
                     <p style="margin: 10px 0;">
                       <strong>Organization:</strong> ${tenantName}<br>
                       <strong>Role:</strong> ${roleLabel}<br>
-                      <strong>Expires:</strong> ${new Date(doc.expiresAt).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}
+                      <strong>Expires:</strong> ${new Date(doc.expiresAt).toLocaleDateString(
+                        'en-US',
+                        {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        },
+                      )}
                     </p>
                   </div>
 
@@ -239,7 +248,7 @@ export const Invitations: CollectionConfig = {
                 </html>
               `,
             })
-            
+
             console.log('📬 Email send result:', emailResult)
             console.log(`✅ Invitation email sent to ${doc.email} for organization: ${tenantName}`)
           } catch (error) {
@@ -260,11 +269,11 @@ export const Invitations: CollectionConfig = {
       },
     },
     {
-      name: 'team',
+      name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
       required: true,
-      defaultValue: defaultTeamValue,
+      defaultValue: defaultOrganizationValue,
       admin: {
         description: 'The organization this user is being invited to',
       },
@@ -289,7 +298,8 @@ export const Invitations: CollectionConfig = {
         },
       ],
       admin: {
-        description: 'The role this user will have in the organization (admin can manage, editor has edit access, viewer has read-only access)',
+        description:
+          'The role this user will have in the organization (admin can manage, editor has edit access, viewer has read-only access)',
       },
     },
     {

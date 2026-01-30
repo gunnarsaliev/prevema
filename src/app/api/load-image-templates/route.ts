@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
     // Get query parameters
     const { searchParams } = new URL(req.url)
-    const organizationFilter = searchParams.get('team')
+    const organizationFilter = searchParams.get('organization')
     const usageTypeFilter = searchParams.get('usageType')
 
     // Build query
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (organizationFilter) {
-      where.team = {
+      where.organization = {
         equals: organizationFilter,
       }
     }

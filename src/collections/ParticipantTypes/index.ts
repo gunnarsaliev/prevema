@@ -1,15 +1,15 @@
 import type { CollectionConfig } from 'payload'
 import {
-  teamAwareRead,
-  teamAwareCreate,
-  teamAwareUpdate,
-  teamAwareDelete,
+  organizationAwareRead,
+  organizationAwareCreate,
+  organizationAwareUpdate,
+  organizationAwareDelete,
 } from '../../access/organizationAwareAccess'
 import { generatePublicFormLink } from './hooks/generatePublicFormLink'
 import { syncOptionalFields } from './hooks/syncOptionalFields'
 import { validateParticipantFields } from './hooks/validateFields'
-import { autoSelectTeam } from '@/hooks/autoSelectTeam'
-import { defaultTeamValue } from '@/fields/defaultTeamValue'
+import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
+import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import { defaultEventValue } from '@/fields/defaultEventValue'
 import { formatSlugHook } from '@/utils/formatSlug'
 
@@ -35,18 +35,18 @@ export const ParticipantTypes: CollectionConfig = {
     group: 'Event Planning',
   },
   access: {
-    read: teamAwareRead,
-    create: teamAwareCreate,
-    update: teamAwareUpdate,
-    delete: teamAwareDelete,
+    read: organizationAwareRead,
+    create: organizationAwareCreate,
+    update: organizationAwareUpdate,
+    delete: organizationAwareDelete,
   },
   fields: [
     {
-      name: 'team',
+      name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
       required: true,
-      defaultValue: defaultTeamValue,
+      defaultValue: defaultOrganizationValue,
       admin: {
         description: 'The organization this participant type belongs to',
       },
@@ -157,7 +157,7 @@ export const ParticipantTypes: CollectionConfig = {
     },
   ],
   hooks: {
-    beforeValidate: [autoSelectTeam, validateParticipantFields, syncOptionalFields],
+    beforeValidate: [autoSelectOrganization, validateParticipantFields, syncOptionalFields],
     afterChange: [generatePublicFormLink],
   },
 }

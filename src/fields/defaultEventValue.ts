@@ -19,7 +19,7 @@ export const defaultEventValue = async ({ user, req }: any) => {
     const events = await req.payload.find({
       collection: 'events',
       where: {
-        team: {
+        organization: {
           in: organizationIds,
         },
       },

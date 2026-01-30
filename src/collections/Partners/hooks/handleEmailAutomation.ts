@@ -13,15 +13,16 @@ export const handleEmailAutomation: CollectionAfterChangeHook<Partner> = async (
   req: { payload },
 }) => {
   try {
-    // Skip if no team or email
-    if (!doc.team || !doc.email) {
-      console.log('⏭️  Skipping partner email automation: missing team or email')
+    // Skip if no organization or email
+    if (!doc.organization || !doc.email) {
+      console.log('⏭️  Skipping partner email automation: missing organization or email')
       return doc
     }
 
-    // Get team ID and object
-    const teamId = typeof doc.team === 'object' ? doc.team.id : doc.team
-    const team = typeof doc.team === 'object' ? doc.team : undefined
+    // Get organization ID and object
+    const organizationId =
+      typeof doc.organization === 'object' ? doc.organization.id : doc.organization
+    const organization = typeof doc.organization === 'object' ? doc.organization : undefined
 
     // Fetch relationship data if needed
     let partnerTypeName = ''
@@ -80,7 +81,7 @@ export const handleEmailAutomation: CollectionAfterChangeHook<Partner> = async (
     })
 
     // Add common variables (tenantName, currentYear, etc.)
-    const partnerData = addCommonVariables(partnerVariables, team)
+    const partnerData = addCommonVariables(partnerVariables, organization)
 
     // For partners, we primarily trigger on creation (invitation)
     const triggerEvent = 'partner.invited'
@@ -93,7 +94,7 @@ export const handleEmailAutomation: CollectionAfterChangeHook<Partner> = async (
         payload,
         triggerData: {
           event: triggerEvent,
-          teamId,
+          organizationId,
           recipientEmail: doc.email,
           data: partnerData,
         },

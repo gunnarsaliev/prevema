@@ -4,18 +4,18 @@ import React, { useState, useEffect } from 'react'
 
 interface BulkEmailModalProps {
   participantIds: string[]
-  teamId: string
+  organizationId: string
   onClose: () => void
   entityType?: 'participant' | 'partner'
 }
 
 export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
   participantIds,
-  teamId,
+  organizationId,
   onClose,
   entityType = 'participant',
 }) => {
-  console.log('📧 BulkEmailModal mounted with:', { participantIds, teamId, entityType })
+  console.log('📧 BulkEmailModal mounted with:', { participantIds, organizationId, entityType })
 
   const entityLabel = entityType === 'partner' ? 'Partner' : 'Participant'
   const entityLabelPlural = entityType === 'partner' ? 'Partners' : 'Participants'
@@ -34,13 +34,13 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
     failureCount: number
   } | null>(null)
 
-  // Fetch available email templates for this team
+  // Fetch available email templates for this organization
   useEffect(() => {
-    console.log('📡 Fetching templates for team:', teamId)
+    console.log('📡 Fetching templates for organization:', organizationId)
     const fetchTemplates = async () => {
       setLoading(true)
       try {
-        const url = `/api/email-templates?where[team][equals]=${teamId}&where[isActive][equals]=true&limit=100`
+        const url = `/api/email-templates?where[organization][equals]=${organizationId}&where[isActive][equals]=true&limit=100`
         console.log('📡 Fetch URL:', url)
         const response = await fetch(url)
         const data = (await response.json()) as { docs?: any[] }
@@ -54,7 +54,7 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
     }
 
     fetchTemplates()
-  }, [teamId])
+  }, [organizationId])
 
   const handleSendEmail = async () => {
     if (!selectedTemplateId) {
@@ -69,7 +69,7 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
     try {
       const requestBody: any = {
         templateId: selectedTemplateId,
-        teamId,
+        organizationId,
       }
 
       // Send appropriate IDs based on entity type
@@ -183,14 +183,15 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
       >
         <div style={{ padding: '2rem' }}>
           <h2 style={{ marginTop: 0, color: '#333' }}>
-            Send Email to {participantIds.length} {participantIds.length > 1 ? entityLabelPlural : entityLabel}
+            Send Email to {participantIds.length}{' '}
+            {participantIds.length > 1 ? entityLabelPlural : entityLabel}
           </h2>
 
           {loading && <p>Loading templates...</p>}
 
           {!loading && templates.length === 0 && (
             <p style={{ color: 'var(--theme-warning-500)' }}>
-              No active email templates found for this team.
+              No active email templates found for this organization.
             </p>
           )}
 
@@ -232,7 +233,9 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
             >
               <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--theme-elevation-700)' }}>
                 <strong>Note:</strong> Email variables will be automatically populated from each
-                {entityType === 'partner' ? " partner's data (company name, contact person, email, etc.)." : " participant's data (name, email, event, status, etc.)."}
+                {entityType === 'partner'
+                  ? " partner's data (company name, contact person, email, etc.)."
+                  : " participant's data (name, email, event, status, etc.)."}
               </p>
             </div>
           )}
@@ -248,7 +251,13 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
               }}
             >
               <div style={{ marginBottom: '0.75rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginBottom: '0.5rem',
+                  }}
+                >
                   <span style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>
                     Sending emails: {progress.sentCount} sent, {progress.leftCount} left
                   </span>
@@ -276,12 +285,24 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
                 </div>
               </div>
               {progress.successCount > 0 && (
-                <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: 'var(--theme-success-700)' }}>
+                <p
+                  style={{
+                    margin: '0.25rem 0',
+                    fontSize: '0.875rem',
+                    color: 'var(--theme-success-700)',
+                  }}
+                >
                   ✓ {progress.successCount} successful
                 </p>
               )}
               {progress.failureCount > 0 && (
-                <p style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: 'var(--theme-error-700)' }}>
+                <p
+                  style={{
+                    margin: '0.25rem 0',
+                    fontSize: '0.875rem',
+                    color: 'var(--theme-error-700)',
+                  }}
+                >
                   ✗ {progress.failureCount} failed
                 </p>
               )}
@@ -294,9 +315,7 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
                 padding: '1rem',
                 borderRadius: '4px',
                 marginBottom: '1.5rem',
-                background: result.success
-                  ? 'var(--theme-success-100)'
-                  : 'var(--theme-error-100)',
+                background: result.success ? 'var(--theme-success-100)' : 'var(--theme-error-100)',
                 border: `1px solid ${result.success ? 'var(--theme-success-500)' : 'var(--theme-error-500)'}`,
               }}
             >
@@ -304,7 +323,11 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
                 <>
                   <p style={{ margin: 0, fontWeight: 'bold', color: 'var(--theme-success-700)' }}>
                     Success! Emails sent to {result.summary?.successful || 0} of{' '}
-                    {result.summary?.total || 0} {result.summary?.total === 1 ? entityLabel.toLowerCase() : entityLabelPlural.toLowerCase()}.
+                    {result.summary?.total || 0}{' '}
+                    {result.summary?.total === 1
+                      ? entityLabel.toLowerCase()
+                      : entityLabelPlural.toLowerCase()}
+                    .
                   </p>
                   {result.summary?.failed > 0 && (
                     <p
@@ -349,12 +372,13 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
-                cursor:
-                  !selectedTemplateId || sending || loading ? 'not-allowed' : 'pointer',
+                cursor: !selectedTemplateId || sending || loading ? 'not-allowed' : 'pointer',
                 opacity: !selectedTemplateId || sending || loading ? 0.5 : 1,
               }}
             >
-              {sending ? 'Sending...' : `Send to ${participantIds.length} ${participantIds.length > 1 ? entityLabelPlural : entityLabel}`}
+              {sending
+                ? 'Sending...'
+                : `Send to ${participantIds.length} ${participantIds.length > 1 ? entityLabelPlural : entityLabel}`}
             </button>
           </div>
         </div>

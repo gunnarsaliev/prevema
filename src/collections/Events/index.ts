@@ -1,13 +1,13 @@
 import type { CollectionConfig } from 'payload'
 import {
-  teamAwareRead,
-  teamAwareCreate,
-  teamAwareUpdate,
-  teamAwareDelete,
+  organizationAwareRead,
+  organizationAwareCreate,
+  organizationAwareUpdate,
+  organizationAwareDelete,
 } from '../../access/organizationAwareAccess'
 import { populateCreatedBy } from './hooks/populateCreatedBy'
-import { autoSelectTeam } from '@/hooks/autoSelectTeam'
-import { defaultTeamValue } from '@/fields/defaultTeamValue'
+import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
+import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import { formatSlugHook } from '@/utils/formatSlug'
 
 export const Events: CollectionConfig = {
@@ -17,22 +17,22 @@ export const Events: CollectionConfig = {
     group: 'Event Planning',
   },
   access: {
-    read: teamAwareRead,
-    create: teamAwareCreate,
-    update: teamAwareUpdate,
-    delete: teamAwareDelete,
+    read: organizationAwareRead,
+    create: organizationAwareCreate,
+    update: organizationAwareUpdate,
+    delete: organizationAwareDelete,
   },
   hooks: {
-    beforeValidate: [autoSelectTeam],
+    beforeValidate: [autoSelectOrganization],
     beforeChange: [populateCreatedBy],
   },
   fields: [
     {
-      name: 'team',
+      name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
       required: true,
-      defaultValue: defaultTeamValue,
+      defaultValue: defaultOrganizationValue,
       admin: {
         description: 'The organization this event belongs to',
       },

@@ -179,7 +179,7 @@ const PARTNER_VARIABLES: VariableDefinition[] = [
 const COMMON_VARIABLES: VariableDefinition[] = [
   {
     key: 'tenantName',
-    description: 'Name of your organization/team',
+    description: 'Name of your organization',
     example: 'My Organization',
   },
   {
@@ -328,11 +328,11 @@ export function buildPartnerVariables(partner: {
  */
 export function addCommonVariables(
   variables: Record<string, any>,
-  team?: { name?: string },
+  organization?: { name?: string },
 ): Record<string, any> {
   return {
     ...variables,
-    tenantName: team?.name || 'Organization',
+    tenantName: organization?.name || 'Organization',
     currentYear: new Date().getFullYear().toString(),
   }
 }

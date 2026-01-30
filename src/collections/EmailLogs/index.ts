@@ -25,12 +25,12 @@ export const EmailLogs: CollectionConfig = {
       // Regular users can only read logs for their organizations
       if (!user) return false
 
-      const teamIds = await getUserOrganizationIds(payload, user)
+      const organizationIds = await getUserOrganizationIds(payload, user)
 
-      if (teamIds.length > 0) {
+      if (organizationIds.length > 0) {
         return {
-          team: {
-            in: teamIds,
+          organization: {
+            in: organizationIds,
           },
         }
       }
@@ -42,7 +42,7 @@ export const EmailLogs: CollectionConfig = {
   },
   fields: [
     {
-      name: 'team',
+      name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
       required: true,

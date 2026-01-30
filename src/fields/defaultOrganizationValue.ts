@@ -4,7 +4,7 @@ import { getUserOrganizationIds } from '@/access/utilities'
  * Default value function for organization fields
  * Automatically selects the organization if the user has exactly one organization
  */
-export const defaultTeamValue = async ({ user, req }: any) => {
+export const defaultOrganizationValue = async ({ user, req }: any) => {
   if (!user) return undefined
 
   try {
@@ -15,7 +15,7 @@ export const defaultTeamValue = async ({ user, req }: any) => {
       return organizationIds[0]
     }
   } catch (error) {
-    console.error('[defaultTeamValue] Error getting organization:', error)
+    console.error('[defaultOrganizationValue] Error getting organization:', error)
   }
 
   return undefined

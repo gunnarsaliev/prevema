@@ -8,7 +8,10 @@ import { checkRole, getOrganizationRole } from '@/access/utilities'
  * - Only organization owners can update this field
  * - Editors and viewers cannot update
  */
-export const teamOwnerFieldAccess: FieldAccess = async ({ req: { user, payload }, data }) => {
+export const organizationOwnerFieldAccess: FieldAccess = async ({
+  req: { user, payload },
+  data,
+}) => {
   if (!user) return false
 
   // Super-admins and admins can access everything
@@ -17,15 +20,15 @@ export const teamOwnerFieldAccess: FieldAccess = async ({ req: { user, payload }
   }
 
   // Get the organization ID from the document being edited
-  const teamId = data?.id || null
+  const organizationId = data?.id || null
 
-  if (!teamId) {
+  if (!organizationId) {
     // For new documents, allow access (will be checked at collection level)
     return true
   }
 
   // Check if user is owner of this organization
-  const userRole = await getOrganizationRole(payload, user, teamId)
+  const userRole = await getOrganizationRole(payload, user, organizationId)
 
   return userRole === 'owner'
 }

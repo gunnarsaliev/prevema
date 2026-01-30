@@ -1,5 +1,5 @@
 import type { Access } from 'payload'
-import { getUserTeamIds, getUserTeamIdsWithMinRole, checkRole } from './utilities'
+import { getUserOrganizationIds, getUserOrganizationIdsWithMinRole, checkRole } from './utilities'
 
 // Allow public (unauthenticated) users to create partners
 export const publicPartnerCreate: Access = async ({ req: { user, payload } }) => {
@@ -15,12 +15,12 @@ export const publicPartnerCreate: Access = async ({ req: { user, payload } }) =>
   }
 
   // Only editors and owners can create records (viewers cannot)
-  const teamIds = await getUserTeamIdsWithMinRole(payload, user, 'editor')
+  const organizationIds = await getUserOrganizationIdsWithMinRole(payload, user, 'editor')
 
-  if (teamIds.length > 0) {
+  if (organizationIds.length > 0) {
     return {
-      team: {
-        in: teamIds,
+      organization: {
+        in: organizationIds,
       },
     }
   }
@@ -41,12 +41,12 @@ export const publicPartnerRead: Access = async ({ req: { user, payload } }) => {
   }
 
   // Non-admin users can only read records from their organizations
-  const teamIds = await getUserTeamIds(payload, user)
+  const organizationIds = await getUserOrganizationIds(payload, user)
 
-  if (teamIds.length > 0) {
+  if (organizationIds.length > 0) {
     return {
-      team: {
-        in: teamIds,
+      organization: {
+        in: organizationIds,
       },
     }
   }

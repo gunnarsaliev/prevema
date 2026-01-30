@@ -7,7 +7,7 @@ import type { CanvasElement } from '@/components/canvas/types/canvas-element'
 interface SaveTemplateRequest {
   name: string
   usageType: 'participant' | 'partner' | 'both'
-  team: string
+  organization: string
   width: number
   height: number
   backgroundImage?: string // URL from existing media or base64
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     const {
       name,
       usageType,
-      team,
+      organization,
       width,
       height,
       backgroundImage,
@@ -85,11 +85,12 @@ export async function POST(req: NextRequest) {
     if (user) {
       // Try to get user's first organization
       try {
-        const organizations = (user as any).teams
+        const organizations = (user as any).organizations
         if (organizations && Array.isArray(organizations) && organizations.length > 0) {
           // Get first organization (could be string ID or populated object)
           const firstOrganization = organizations[0]
-          finalOrganization = typeof firstOrganization === 'string' ? firstOrganization : firstOrganization?.id
+          finalOrganization =
+            typeof firstOrganization === 'string' ? firstOrganization : firstOrganization?.id
         }
       } catch (error) {
         console.error('Error getting user organization:', error)
@@ -97,8 +98,8 @@ export async function POST(req: NextRequest) {
     }
 
     // If organization provided in request and it's valid, use it
-    if (team && team !== '' && team !== 'default') {
-      finalOrganization = team
+    if (organization && organization !== '' && organization !== 'default') {
+      finalOrganization = organization
     }
 
     // Upload preview image if provided
@@ -230,7 +231,7 @@ export async function POST(req: NextRequest) {
 
     // Only add optional fields if they exist
     if (finalOrganization) {
-      templateData.team = finalOrganization
+      templateData.organization = finalOrganization
     }
     if (backgroundImageId) {
       templateData.backgroundImage = backgroundImageId

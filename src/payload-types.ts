@@ -147,9 +147,9 @@ export interface User {
   name?: string | null;
   roles?: ('super-admin' | 'admin' | 'user')[] | null;
   /**
-   * Free: 1 organization. Pro: 3 organizations. organizations: 20 organizations.
+   * Free: 1 tenant. Pro: 3 tenants. Organizations: 20 tenants.
    */
-  pricingPlan?: ('free' | 'pro' | 'organizations' | 'unlimited') | null;  
+  pricingPlan?: ('free' | 'pro' | 'organizations' | 'unlimited') | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -256,7 +256,7 @@ export interface EmailLog {
   /**
    * The organization this email belongs to
    */
-  team: number | Organization;
+  organization: number | Organization;
   /**
    * The template used for this email
    */
@@ -320,7 +320,7 @@ export interface EmailTemplate {
   /**
    * The organization this template belongs to
    */
-  team: number | Organization;
+  organization: number | Organization;
   slug?: string | null;
   /**
    * Whether this template is active and can be used
@@ -395,7 +395,7 @@ export interface Event {
   /**
    * The organization this event belongs to
    */
-  team: number | Organization;
+  organization: number | Organization;
   name: string;
   slug?: string | null;
   createdBy?: (number | null) | User;
@@ -449,7 +449,7 @@ export interface ImageTemplate {
   /**
    * The organization this template belongs to
    */
-  team?: (number | null) | Organization;
+  organization?: (number | null) | Organization;
   /**
    * Who this template is designed for
    */
@@ -506,7 +506,7 @@ export interface Invitation {
   /**
    * The organization this user is being invited to
    */
-  team: number | Organization;
+  organization: number | Organization;
   /**
    * The role this user will have in the organization (admin can manage, editor has edit access, viewer has read-only access)
    */
@@ -536,7 +536,7 @@ export interface Participant {
   /**
    * The organization this participant belongs to (auto-populated from event)
    */
-  team?: (number | null) | Organization;
+  organization?: (number | null) | Organization;
   name: string;
   email: string;
   event: number | Event;
@@ -607,7 +607,7 @@ export interface ParticipantType {
   /**
    * The organization this participant type belongs to
    */
-  team: number | Organization;
+  organization: number | Organization;
   name: string;
   slug?: string | null;
   description?: string | null;
@@ -674,7 +674,7 @@ export interface Partner {
   /**
    * The organization this partner belongs to (auto-populated from event)
    */
-  team?: (number | null) | Organization;
+  organization?: (number | null) | Organization;
   companyName: string;
   event: number | Event;
   partnerType: number | PartnerType;
@@ -757,7 +757,7 @@ export interface PartnerType {
   /**
    * The organization this partner type belongs to
    */
-  team: number | Organization;
+  organization: number | Organization;
   name: string;
   slug?: string | null;
   description?: string | null;
@@ -820,7 +820,7 @@ export interface PartnerTier {
   /**
    * The organization this partner tier belongs to
    */
-  team: number | Organization;
+  organization: number | Organization;
   name: string;
   slug?: string | null;
   level?: number | null;
@@ -1020,7 +1020,7 @@ export interface OrganizationsSelect<T extends boolean = true> {
  * via the `definition` "email-logs_select".
  */
 export interface EmailLogsSelect<T extends boolean = true> {
-  team?: T;
+  organization?: T;
   template?: T;
   recipientEmail?: T;
   triggerEvent?: T;
@@ -1037,7 +1037,7 @@ export interface EmailLogsSelect<T extends boolean = true> {
  * via the `definition` "events_select".
  */
 export interface EventsSelect<T extends boolean = true> {
-  team?: T;
+  organization?: T;
   name?: T;
   slug?: T;
   createdBy?: T;
@@ -1064,7 +1064,7 @@ export interface EventsSelect<T extends boolean = true> {
 export interface ImageTemplatesSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
-  team?: T;
+  organization?: T;
   usageType?: T;
   isActive?: T;
   width?: T;
@@ -1082,7 +1082,7 @@ export interface ImageTemplatesSelect<T extends boolean = true> {
  */
 export interface InvitationsSelect<T extends boolean = true> {
   email?: T;
-  team?: T;
+  organization?: T;
   role?: T;
   status?: T;
   token?: T;
@@ -1096,7 +1096,7 @@ export interface InvitationsSelect<T extends boolean = true> {
  * via the `definition` "participants_select".
  */
 export interface ParticipantsSelect<T extends boolean = true> {
-  team?: T;
+  organization?: T;
   name?: T;
   email?: T;
   event?: T;
@@ -1136,7 +1136,7 @@ export interface ParticipantsSelect<T extends boolean = true> {
  * via the `definition` "participant-types_select".
  */
 export interface ParticipantTypesSelect<T extends boolean = true> {
-  team?: T;
+  organization?: T;
   name?: T;
   slug?: T;
   description?: T;
@@ -1154,7 +1154,7 @@ export interface ParticipantTypesSelect<T extends boolean = true> {
  * via the `definition` "partners_select".
  */
 export interface PartnersSelect<T extends boolean = true> {
-  team?: T;
+  organization?: T;
   companyName?: T;
   event?: T;
   partnerType?: T;
@@ -1194,7 +1194,7 @@ export interface PartnersSelect<T extends boolean = true> {
  * via the `definition` "partner-tiers_select".
  */
 export interface PartnerTiersSelect<T extends boolean = true> {
-  team?: T;
+  organization?: T;
   name?: T;
   slug?: T;
   level?: T;
@@ -1207,7 +1207,7 @@ export interface PartnerTiersSelect<T extends boolean = true> {
  * via the `definition` "partner-types_select".
  */
 export interface PartnerTypesSelect<T extends boolean = true> {
-  team?: T;
+  organization?: T;
   name?: T;
   slug?: T;
   description?: T;
@@ -1227,7 +1227,7 @@ export interface PartnerTypesSelect<T extends boolean = true> {
 export interface EmailTemplatesSelect<T extends boolean = true> {
   name?: T;
   description?: T;
-  team?: T;
+  organization?: T;
   slug?: T;
   isActive?: T;
   subject?: T;

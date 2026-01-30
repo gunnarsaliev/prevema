@@ -1,12 +1,23 @@
 import type { CollectionConfig } from 'payload'
-import { teamAwareUpdate, teamAwareDelete } from'../../access/teamAwareAccess'
+import {
+  organizationAwareUpdate,
+  organizationAwareDelete,
+} from '../../access/organizationAwareAccess'
 import { publicPartnerCreate, publicPartnerRead } from '../../access/publicPartnerAccess'
-import { populateTeamFromEvent } from './hooks/populateTeamFromEvent'
+import { populateOrganizationFromEvent } from './hooks/populateOrganizationFromEvent'
 import { handleEmailAutomation } from './hooks/handleEmailAutomation'
 import { handleSocialPostGeneration } from './hooks/handleSocialPostGeneration'
 import { defaultEventValue } from '@/fields/defaultEventValue'
 
-const setPartnerCreatedDate = ({ value, originalDoc, operation }: { value?: string; originalDoc?: any; operation?: string }) => {
+const setPartnerCreatedDate = ({
+  value,
+  originalDoc,
+  operation,
+}: {
+  value?: string
+  originalDoc?: any
+  operation?: string
+}) => {
   if (operation === 'create') {
     return new Date().toISOString()
   }
@@ -25,8 +36,8 @@ export const Partners: CollectionConfig = {
   access: {
     read: publicPartnerRead,
     create: publicPartnerCreate,
-    update: teamAwareUpdate,
-    delete: teamAwareDelete,
+    update: organizationAwareUpdate,
+    delete: organizationAwareDelete,
   },
   fields: [
     {
@@ -40,7 +51,7 @@ export const Partners: CollectionConfig = {
       },
     },
     {
-      name: 'team',
+      name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
       required: false,
@@ -96,7 +107,7 @@ export const Partners: CollectionConfig = {
       name: 'fieldOfExpertise',
       type: 'text',
       admin: {
-        description: 'Partner\'s primary field or area of expertise',
+        description: "Partner's primary field or area of expertise",
       },
     },
     {
@@ -249,7 +260,8 @@ export const Partners: CollectionConfig = {
       name: 'socialPostInstagram',
       type: 'textarea',
       admin: {
-        description: 'AI-generated Instagram post (125-150 characters, visual storytelling with emojis)',
+        description:
+          'AI-generated Instagram post (125-150 characters, visual storytelling with emojis)',
         readOnly: false,
       },
     },
@@ -263,7 +275,7 @@ export const Partners: CollectionConfig = {
     },
   ],
   hooks: {
-    beforeChange: [populateTeamFromEvent],
+    beforeChange: [populateOrganizationFromEvent],
     afterChange: [handleEmailAutomation, handleSocialPostGeneration],
   },
 }

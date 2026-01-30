@@ -173,7 +173,9 @@ export async function POST(req: NextRequest) {
     // Subtask 5.2: Validate user has access to template
     if (!isSuperAdmin) {
       const templateOrganizationId =
-        typeof template.team === 'object' ? template.team?.id : template.team
+        typeof template.organization === 'object'
+          ? template.organization?.id
+          : template.organization
 
       if (!templateOrganizationId || !authorizedOrganizationIds.includes(templateOrganizationId)) {
         return NextResponse.json(
@@ -234,9 +236,14 @@ export async function POST(req: NextRequest) {
     if (!isSuperAdmin) {
       const unauthorizedParticipants = participants.filter((participant) => {
         const participantOrganizationId =
-          typeof participant.team === 'object' ? participant.team?.id : participant.team
+          typeof participant.organization === 'object'
+            ? participant.organization?.id
+            : participant.organization
 
-        return !participantOrganizationId || !authorizedOrganizationIds.includes(participantOrganizationId)
+        return (
+          !participantOrganizationId ||
+          !authorizedOrganizationIds.includes(participantOrganizationId)
+        )
       })
 
       if (unauthorizedParticipants.length > 0) {

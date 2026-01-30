@@ -1,10 +1,13 @@
 import type { CollectionConfig } from 'payload'
-import { teamAwareUpdate, teamAwareDelete } from '../../access/organizationAwareAccess'
+import {
+  organizationAwareUpdate,
+  organizationAwareDelete,
+} from '../../access/organizationAwareAccess'
 import {
   publicParticipantCreate,
   publicParticipantRead,
 } from '../../access/publicParticipantAccess'
-import { populateTeamFromEvent } from './hooks/populateTeamFromEvent'
+import { populateOrganizationFromEvent } from './hooks/populateOrganizationFromEvent'
 import { setDefaultStatus } from './hooks/setDefaultStatus'
 import { handleEmailAutomation } from './hooks/handleEmailAutomation'
 import { handleSocialPostGeneration } from './hooks/handleSocialPostGeneration'
@@ -25,8 +28,8 @@ export const Participants: CollectionConfig = {
   access: {
     read: publicParticipantRead,
     create: publicParticipantCreate,
-    update: teamAwareUpdate,
-    delete: teamAwareDelete,
+    update: organizationAwareUpdate,
+    delete: organizationAwareDelete,
   },
   fields: [
     {
@@ -50,7 +53,7 @@ export const Participants: CollectionConfig = {
       },
     },
     {
-      name: 'team',
+      name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
       required: false,
@@ -227,7 +230,8 @@ export const Participants: CollectionConfig = {
       name: 'socialPostInstagram',
       type: 'textarea',
       admin: {
-        description: 'AI-generated Instagram post (125-150 characters, visual storytelling with emojis)',
+        description:
+          'AI-generated Instagram post (125-150 characters, visual storytelling with emojis)',
         readOnly: false,
       },
     },
@@ -241,7 +245,7 @@ export const Participants: CollectionConfig = {
     },
   ],
   hooks: {
-    beforeChange: [setDefaultStatus, populateTeamFromEvent],
+    beforeChange: [setDefaultStatus, populateOrganizationFromEvent],
     afterChange: [handleEmailAutomation, handleSocialPostGeneration],
   },
 }

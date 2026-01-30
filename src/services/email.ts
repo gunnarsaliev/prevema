@@ -1,5 +1,5 @@
 import type { Payload } from 'payload'
-import type { EmailTemplate, Team } from '@/payload-types'
+import type { EmailTemplate } from '@/payload-types'
 import { lexicalToHtml } from '@/utils/lexicalToHtml'
 import { compileTemplate } from '@/utils/templateEngine'
 
@@ -31,12 +31,12 @@ export async function sendTenantEmail({
 }: SendEmailOptions): Promise<{ success: boolean; error?: string }> {
   try {
     // Fetch the organization
-    const team = await payload.findByID({
+    const organization = await payload.findByID({
       collection: 'organizations',
       id: tenantId,
     })
 
-    if (!team) {
+    if (!organization) {
       throw new Error(`Organization not found: ${tenantId}`)
     }
 
@@ -46,7 +46,7 @@ export async function sendTenantEmail({
       where: {
         and: [
           {
-            team: {
+            organization: {
               equals: tenantId,
             },
           },
@@ -98,7 +98,7 @@ export async function sendTenantEmail({
     const html = compileTemplate(htmlBodyString, variables)
 
     // Get organization email config
-    const emailConfig = (team as any).emailConfig as TenantEmailConfig | undefined
+    const emailConfig = (organization as any).emailConfig as TenantEmailConfig | undefined
 
     // Determine which email configuration to use
     const useCustomConfig = emailConfig?.isActive && emailConfig?.resendApiKey
@@ -108,12 +108,11 @@ export async function sendTenantEmail({
       to,
       subject,
       html,
-      from: useCustomConfig && emailConfig.fromEmail
-        ? `${emailConfig.senderName || 'Notification'} <${emailConfig.fromEmail}>`
-        : undefined, // Falls back to default
-      replyTo: useCustomConfig && emailConfig.replyToEmail
-        ? emailConfig.replyToEmail
-        : undefined,
+      from:
+        useCustomConfig && emailConfig.fromEmail
+          ? `${emailConfig.senderName || 'Notification'} <${emailConfig.fromEmail}>`
+          : undefined, // Falls back to default
+      replyTo: useCustomConfig && emailConfig.replyToEmail ? emailConfig.replyToEmail : undefined,
     })
 
     console.log(`✅ Email sent successfully to ${to} using template: ${templateName}`)
@@ -144,17 +143,17 @@ export async function sendSimpleTenantEmail({
 }): Promise<{ success: boolean; error?: string }> {
   try {
     // Fetch the organization
-    const team = await payload.findByID({
+    const organization = await payload.findByID({
       collection: 'organizations',
       id: tenantId,
     })
 
-    if (!team) {
+    if (!organization) {
       throw new Error(`Organization not found: ${tenantId}`)
     }
 
     // Get organization email config
-    const emailConfig = (team as any).emailConfig as TenantEmailConfig | undefined
+    const emailConfig = (organization as any).emailConfig as TenantEmailConfig | undefined
     const useCustomConfig = emailConfig?.isActive && emailConfig?.resendApiKey
 
     // Send the email
@@ -162,12 +161,11 @@ export async function sendSimpleTenantEmail({
       to,
       subject,
       html,
-      from: useCustomConfig && emailConfig.fromEmail
-        ? `${emailConfig.senderName || 'Notification'} <${emailConfig.fromEmail}>`
-        : undefined,
-      replyTo: useCustomConfig && emailConfig.replyToEmail
-        ? emailConfig.replyToEmail
-        : undefined,
+      from:
+        useCustomConfig && emailConfig.fromEmail
+          ? `${emailConfig.senderName || 'Notification'} <${emailConfig.fromEmail}>`
+          : undefined,
+      replyTo: useCustomConfig && emailConfig.replyToEmail ? emailConfig.replyToEmail : undefined,
     })
 
     console.log(`✅ Email sent successfully to ${to}`)

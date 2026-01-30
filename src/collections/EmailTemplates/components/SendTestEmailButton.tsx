@@ -14,7 +14,7 @@ export const SendTestEmailButton: React.FC = () => {
 
   // Get form data
   const templateName = useFormFields(([fields]) => fields?.name?.value as string)
-  const team = useFormFields(([fields]) => fields?.team?.value as string)
+  const organization = useFormFields(([fields]) => fields?.organization?.value as string)
 
   const handleSendTest = async () => {
     if (!testEmail || !id) return
@@ -31,7 +31,7 @@ export const SendTestEmailButton: React.FC = () => {
         credentials: 'include',
         body: JSON.stringify({
           templateId: id,
-          tenantId: team,
+          tenantId: organization,
           testEmail,
         }),
       })
@@ -107,7 +107,12 @@ export const SendTestEmailButton: React.FC = () => {
           <div style={{ marginBottom: '1rem' }}>
             <label
               htmlFor="test-email"
-              style={{ display: 'block', marginBottom: '0.5rem', fontSize: '13px', fontWeight: 500 }}
+              style={{
+                display: 'block',
+                marginBottom: '0.5rem',
+                fontSize: '13px',
+                fontWeight: 500,
+              }}
             >
               Test Email Address
             </label>
@@ -129,7 +134,8 @@ export const SendTestEmailButton: React.FC = () => {
 
           <div style={{ marginBottom: '1rem' }}>
             <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>
-              <strong>Note:</strong> Test email will use sample data for variables defined in your template. Check the Variables tab to see all available variables.
+              <strong>Note:</strong> Test email will use sample data for variables defined in your
+              template. Check the Variables tab to see all available variables.
             </p>
           </div>
 
@@ -176,9 +182,7 @@ export const SendTestEmailButton: React.FC = () => {
                   </p>
                   {result.preview && (
                     <details style={{ marginTop: '0.5rem' }}>
-                      <summary
-                        style={{ fontSize: '12px', color: '#065f46', cursor: 'pointer' }}
-                      >
+                      <summary style={{ fontSize: '12px', color: '#065f46', cursor: 'pointer' }}>
                         View Preview
                       </summary>
                       <div

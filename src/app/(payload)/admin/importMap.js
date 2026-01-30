@@ -1,5 +1,5 @@
-import { EncryptedField as EncryptedField_818d47e85a4d2a05504071878a413bb3 } from '@/collections/Teams/components'
-import { EmailConfigStatus as EmailConfigStatus_818d47e85a4d2a05504071878a413bb3 } from '@/collections/Teams/components'
+import { EncryptedField as EncryptedField_6f95202a963a22eb4a198e7adec4c93a } from '@/collections/Organizations/components'
+import { EmailConfigStatus as EmailConfigStatus_6f95202a963a22eb4a198e7adec4c93a } from '@/collections/Organizations/components'
 import { GenerateImageButton as GenerateImageButton_6133bdc337fec5f228eba6825d5b6e05 } from '@/collections/Participants/components'
 import { GenerateSocialPostButton as GenerateSocialPostButton_6133bdc337fec5f228eba6825d5b6e05 } from '@/collections/Participants/components'
 import { BulkEmailAction as BulkEmailAction_6133bdc337fec5f228eba6825d5b6e05 } from '@/collections/Participants/components'
@@ -38,8 +38,8 @@ import { VariablesListField as VariablesListField_3de5f66409f7f23ffc262e660ffe81
 import { CollectionCards as CollectionCards_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
 
 export const importMap = {
-  "@/collections/Teams/components#EncryptedField": EncryptedField_818d47e85a4d2a05504071878a413bb3,
-  "@/collections/Teams/components#EmailConfigStatus": EmailConfigStatus_818d47e85a4d2a05504071878a413bb3,
+  "@/collections/Organizations/components#EncryptedField": EncryptedField_6f95202a963a22eb4a198e7adec4c93a,
+  "@/collections/Organizations/components#EmailConfigStatus": EmailConfigStatus_6f95202a963a22eb4a198e7adec4c93a,
   "@/collections/Participants/components#GenerateImageButton": GenerateImageButton_6133bdc337fec5f228eba6825d5b6e05,
   "@/collections/Participants/components#GenerateSocialPostButton": GenerateSocialPostButton_6133bdc337fec5f228eba6825d5b6e05,
   "@/collections/Participants/components#BulkEmailAction": BulkEmailAction_6133bdc337fec5f228eba6825d5b6e05,

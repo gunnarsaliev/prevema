@@ -1,6 +1,6 @@
 import { BeforeChangeHook } from 'payload/dist/collections/config/types'
 
-export const populateTeamFromEvent: BeforeChangeHook = async ({ req, data, operation }) => {
+export const populateOrganizationFromEvent: BeforeChangeHook = async ({ req, data, operation }) => {
   // Auto-populate organization from event
   if (data.event) {
     const eventId = typeof data.event === 'object' ? data.event.id : data.event
@@ -12,8 +12,8 @@ export const populateTeamFromEvent: BeforeChangeHook = async ({ req, data, opera
         depth: 0,
       })
 
-      if (event && event.team) {
-        data.team = typeof event.team === 'object' ? event.team.id : event.team
+      if (event && event.organization) {
+        data.organization = typeof event.organization === 'object' ? event.organization.id : event.organization
       }
     } catch (error) {
       console.error('Error fetching event for organization:', error)

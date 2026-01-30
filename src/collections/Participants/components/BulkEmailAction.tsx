@@ -15,7 +15,7 @@ export const BulkEmailAction: React.FC = () => {
   const config = useConfig()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [participantIds, setParticipantIds] = useState<string[]>([])
-  const [teamId, setTeamId] = useState<string>('')
+  const [organizationId, setOrganizationId] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
   const handleBulkEmail = async () => {
@@ -44,7 +44,7 @@ export const BulkEmailAction: React.FC = () => {
             console.log('  ✅ selected is a Map:', ids)
           } else {
             // Assume it's a plain object like { "1": true, "2": true }
-            ids = Object.keys(selected).filter(key => selected[key])
+            ids = Object.keys(selected).filter((key) => selected[key])
             console.log('  ✅ selected is an object, filtered keys:', ids)
           }
         }
@@ -70,21 +70,24 @@ export const BulkEmailAction: React.FC = () => {
       const participant = await response.json()
       console.log('👤 Participant data:', participant)
 
-      const participantTeamId = typeof participant.team === 'object'
-        ? participant.team.id
-        : participant.team
+      const participantOrganizationId =
+        typeof participant.organization === 'object'
+          ? participant.organization.id
+          : participant.organization
 
-      console.log('🏢 Team ID:', participantTeamId)
-      console.log('📧 Setting state - IDs:', ids, 'Team:', participantTeamId)
+      console.log('🏢 Organization ID:', participantOrganizationId)
+      console.log('📧 Setting state - IDs:', ids, 'Organization:', participantOrganizationId)
 
       setParticipantIds(ids)
-      setTeamId(String(participantTeamId))
+      setOrganizationId(String(participantOrganizationId))
       setIsModalOpen(true)
 
       console.log('✅ Modal should be opening now')
     } catch (error) {
       console.error('❌ Failed to prepare bulk email:', error)
-      alert(`Failed to prepare bulk email: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      alert(
+        `Failed to prepare bulk email: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     } finally {
       setLoading(false)
       console.log('🔄 Loading complete')
@@ -94,7 +97,7 @@ export const BulkEmailAction: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setParticipantIds([])
-    setTeamId('')
+    setOrganizationId('')
   }
 
   // Only show button if items are selected
@@ -102,34 +105,38 @@ export const BulkEmailAction: React.FC = () => {
     return null
   }
 
-  console.log('🎨 Render - isModalOpen:', isModalOpen, 'teamId:', teamId, 'participantIds:', participantIds)
+  console.log(
+    '🎨 Render - isModalOpen:',
+    isModalOpen,
+    'organizationId:',
+    organizationId,
+    'participantIds:',
+    participantIds,
+  )
 
   return (
     <>
       <div style={{ padding: '1rem', borderBottom: '1px solid var(--theme-elevation-150)' }}>
-        <Button
-          onClick={handleBulkEmail}
-          buttonStyle="primary"
-          size="small"
-          disabled={loading}
-        >
-          {loading ? 'Loading...' : `Send Email to ${count} Selected Participant${count > 1 ? 's' : ''}`}
+        <Button onClick={handleBulkEmail} buttonStyle="primary" size="small" disabled={loading}>
+          {loading
+            ? 'Loading...'
+            : `Send Email to ${count} Selected Participant${count > 1 ? 's' : ''}`}
         </Button>
       </div>
 
-      {isModalOpen && teamId && participantIds.length > 0 ? (
+      {isModalOpen && organizationId && participantIds.length > 0 ? (
         <>
-          {console.log('🎨 Rendering BulkEmailModal with:', { participantIds, teamId })}
+          {console.log('🎨 Rendering BulkEmailModal with:', { participantIds, organizationId })}
           <BulkEmailModal
             participantIds={participantIds}
-            teamId={teamId}
+            organizationId={organizationId}
             onClose={handleCloseModal}
           />
         </>
       ) : (
         console.log('❌ Modal NOT rendering. Conditions:', {
           isModalOpen,
-          teamId,
+          organizationId,
           participantIdsLength: participantIds.length,
         })
       )}

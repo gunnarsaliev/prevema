@@ -1,7 +1,7 @@
 import type { PayloadRequest } from 'payload'
 
 /**
- * Accept an invitation and add the user to the team
+ * Accept an invitation and add the user to the organization
  */
 export async function acceptInvitation(token: string, req: PayloadRequest) {
   const { payload, user } = req
@@ -53,16 +53,19 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
   }
 
   // Get the organization ID
-  const teamId = typeof invitation.team === 'object' ? invitation.team.id : invitation.team
+  const organizationId =
+    typeof invitation.organization === 'object'
+      ? invitation.organization.id
+      : invitation.organization
 
   // Fetch the organization
-  const team = await payload.findByID({
+  const organization = await payload.findByID({
     collection: 'organizations',
-    id: teamId,
+    id: organizationId,
   })
 
   // Update the organization to add the user as a member
-  const currentMembers = team.members || []
+  const currentMembers = organization.members || []
 
   // Check if user is already a member
   const existingMemberIndex = currentMembers.findIndex((m: any) => {
@@ -84,7 +87,7 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
   // Update the organization
   await payload.update({
     collection: 'organizations',
-    id: teamId,
+    id: organizationId,
     data: {
       members: currentMembers,
     },
@@ -102,7 +105,7 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
   return {
     success: true,
     message: 'Invitation accepted successfully',
-    team: invitation.team,
+    organization: invitation.organization,
     role: invitation.role,
   }
 }

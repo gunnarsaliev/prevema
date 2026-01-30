@@ -1,12 +1,12 @@
 import type { CollectionConfig } from 'payload'
 import {
-  teamAwareRead,
-  teamAwareCreate,
-  teamAwareUpdate,
-  teamAwareDelete,
-} from'../../access/teamAwareAccess'
-import { autoSelectTeam } from '@/hooks/autoSelectTeam'
-import { defaultTeamValue } from '@/fields/defaultTeamValue'
+  organizationAwareRead,
+  organizationAwareCreate,
+  organizationAwareUpdate,
+  organizationAwareDelete,
+} from '../../access/organizationAwareAccess'
+import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
+import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import { formatSlugHook } from '@/utils/formatSlug'
 
 export const PartnerTiers: CollectionConfig = {
@@ -16,21 +16,21 @@ export const PartnerTiers: CollectionConfig = {
     group: 'Event Planning',
   },
   access: {
-    read: teamAwareRead,
-    create: teamAwareCreate,
-    update: teamAwareUpdate,
-    delete: teamAwareDelete,
+    read: organizationAwareRead,
+    create: organizationAwareCreate,
+    update: organizationAwareUpdate,
+    delete: organizationAwareDelete,
   },
   hooks: {
-    beforeValidate: [autoSelectTeam],
+    beforeValidate: [autoSelectOrganization],
   },
   fields: [
     {
-      name: 'team',
+      name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
       required: true,
-      defaultValue: defaultTeamValue,
+      defaultValue: defaultOrganizationValue,
       admin: {
         description: 'The organization this partner tier belongs to',
       },

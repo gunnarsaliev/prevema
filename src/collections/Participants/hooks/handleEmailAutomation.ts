@@ -13,15 +13,16 @@ export const handleEmailAutomation: CollectionAfterChangeHook<Participant> = asy
   req: { payload },
 }) => {
   try {
-    // Skip if no team or email
-    if (!doc.team || !doc.email) {
-      console.log('⏭️  Skipping email automation: missing team or email')
+    // Skip if no organization or email
+    if (!doc.organization || !doc.email) {
+      console.log('⏭️  Skipping email automation: missing organization or email')
       return doc
     }
 
-    // Get team ID and object
-    const teamId = typeof doc.team === 'object' ? doc.team.id : doc.team
-    const team = typeof doc.team === 'object' ? doc.team : undefined
+    // Get organization ID and object
+    const organizationId =
+      typeof doc.organization === 'object' ? doc.organization.id : doc.organization
+    const organization = typeof doc.organization === 'object' ? doc.organization : undefined
 
     // Fetch the full participant with populated relationships
     const fullDoc = await payload.findByID({
@@ -88,7 +89,7 @@ export const handleEmailAutomation: CollectionAfterChangeHook<Participant> = asy
     })
 
     // Add common variables (tenantName, currentYear, etc.)
-    const participantData = addCommonVariables(participantVariables, team)
+    const participantData = addCommonVariables(participantVariables, organization)
 
     // Determine which event to trigger
     let triggerEvent: 'participant.created' | 'participant.updated'
@@ -109,9 +110,7 @@ export const handleEmailAutomation: CollectionAfterChangeHook<Participant> = asy
 
       // Only trigger if status actually changed
       if (previousData && previousData.status === doc.status) {
-        console.log(
-          `⏭️  Skipping email automation: status unchanged (${doc.status})`,
-        )
+        console.log(`⏭️  Skipping email automation: status unchanged (${doc.status})`)
         return doc
       }
     }
@@ -121,7 +120,7 @@ export const handleEmailAutomation: CollectionAfterChangeHook<Participant> = asy
       payload,
       triggerData: {
         event: triggerEvent,
-        teamId,
+        organizationId,
         recipientEmail: doc.email,
         data: participantData,
         previousData,
@@ -129,9 +128,7 @@ export const handleEmailAutomation: CollectionAfterChangeHook<Participant> = asy
     })
 
     if (result.sent > 0) {
-      console.log(
-        `✅ Sent ${result.sent} automated email(s) to ${doc.email}`,
-      )
+      console.log(`✅ Sent ${result.sent} automated email(s) to ${doc.email}`)
     }
 
     if (result.errors.length > 0) {

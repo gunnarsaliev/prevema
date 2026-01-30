@@ -1,7 +1,12 @@
 import type { CollectionConfig } from 'payload'
 
-import { teamOwnerFieldAccess } from '@/access/organizationOwnerFieldAccess'
-import { checkRole, canCreateOrganizations, getUserOrganizationIds, getOrganizationLimit } from '@/access/utilities'
+import { organizationOwnerFieldAccess } from '@/access/organizationOwnerFieldAccess'
+import {
+  checkRole,
+  canCreateOrganizations,
+  getUserOrganizationIds,
+  getOrganizationLimit,
+} from '@/access/utilities'
 import { validateEmailConfig } from '@/services/emailValidation'
 import { formatSlugHook } from '@/utils/formatSlug'
 import { autoInviteMembers } from './hooks/autoInviteMembers'
@@ -23,11 +28,11 @@ export const Organizations: CollectionConfig = {
 
       // Check if user has reached their plan's organization limit
       if (user) {
-        const teamLimit = getOrganizationLimit(user)
+        const organizationLimit = getOrganizationLimit(user)
 
         // null means unlimited
-        if (teamLimit !== null) {
-          const teamCount = await payload.count({
+        if (organizationLimit !== null) {
+          const organizationCount = await payload.count({
             collection: 'organizations',
             where: {
               owner: {
@@ -37,7 +42,7 @@ export const Organizations: CollectionConfig = {
           })
 
           // Check if user has reached their limit
-          if (teamCount.totalDocs >= teamLimit) {
+          if (organizationCount.totalDocs >= organizationLimit) {
             return false
           }
         }
@@ -54,12 +59,12 @@ export const Organizations: CollectionConfig = {
       // Regular users can only read organizations they are members of
       if (!user) return false
 
-      const teamIds = await getUserOrganizationIds(payload, user)
+      const organizationIds = await getUserOrganizationIds(payload, user)
 
-      if (teamIds.length > 0) {
+      if (organizationIds.length > 0) {
         return {
           id: {
-            in: teamIds,
+            in: organizationIds,
           },
         }
       }
@@ -85,12 +90,12 @@ export const Organizations: CollectionConfig = {
       // Organization owners can update their own organizations
       if (!user) return false
 
-      const ownedTeamIds = await getUserOrganizationIds(payload, user, 'owner')
+      const ownedOrganizationIds = await getUserOrganizationIds(payload, user, 'owner')
 
-      if (ownedTeamIds.length > 0) {
+      if (ownedOrganizationIds.length > 0) {
         return {
           id: {
-            in: ownedTeamIds,
+            in: ownedOrganizationIds,
           },
         }
       }
@@ -106,12 +111,12 @@ export const Organizations: CollectionConfig = {
       // Organization owners can delete their own organizations
       if (!user) return false
 
-      const ownedTeamIds = await getUserOrganizationIds(payload, user, 'owner')
+      const ownedOrganizationIds = await getUserOrganizationIds(payload, user, 'owner')
 
-      if (ownedTeamIds.length > 0) {
+      if (ownedOrganizationIds.length > 0) {
         return {
           id: {
-            in: ownedTeamIds,
+            in: ownedOrganizationIds,
           },
         }
       }
@@ -180,7 +185,7 @@ export const Organizations: CollectionConfig = {
       name: 'members',
       type: 'array',
       access: {
-        update: teamOwnerFieldAccess,
+        update: organizationOwnerFieldAccess,
       },
       admin: {
         description: 'Additional users who have access to this organization',
@@ -300,8 +305,8 @@ export const Organizations: CollectionConfig = {
       type: 'group',
       label: 'Custom Email Configuration',
       access: {
-        read: teamOwnerFieldAccess,
-        update: teamOwnerFieldAccess,
+        read: organizationOwnerFieldAccess,
+        update: organizationOwnerFieldAccess,
       },
       admin: {
         description: 'Configure custom Resend settings for this organization',

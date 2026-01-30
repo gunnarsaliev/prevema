@@ -13,7 +13,7 @@ export const BulkEmailAction: React.FC = () => {
   const { selected, count } = useSelection()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [partnerIds, setPartnerIds] = useState<string[]>([])
-  const [teamId, setTeamId] = useState<string>('')
+  const [organizationId, setOrganizationId] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
   const handleBulkEmail = async () => {
@@ -27,7 +27,7 @@ export const BulkEmailAction: React.FC = () => {
         if (selected instanceof Map) {
           ids = Array.from(selected.keys()).map(String)
         } else if (typeof selected === 'object') {
-          ids = Object.keys(selected).filter(key => selected[key])
+          ids = Object.keys(selected).filter((key) => selected[key])
         }
       }
 
@@ -37,16 +37,15 @@ export const BulkEmailAction: React.FC = () => {
         return
       }
 
-      // Fetch the first partner to get team ID
+      // Fetch the first partner to get organization ID
       const response = await fetch(`/api/partners/${ids[0]}`)
       const partner = await response.json()
 
-      const partnerTeamId = typeof partner.team === 'object'
-        ? partner.team.id
-        : partner.team
+      const partnerOrganizationId =
+        typeof partner.organization === 'object' ? partner.organization.id : partner.organization
 
       setPartnerIds(ids)
-      setTeamId(String(partnerTeamId))
+      setOrganizationId(String(partnerOrganizationId))
       setIsModalOpen(true)
     } catch (error) {
       console.error('Failed to prepare bulk email:', error)
@@ -59,7 +58,7 @@ export const BulkEmailAction: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setPartnerIds([])
-    setTeamId('')
+    setOrganizationId('')
   }
 
   // Only show button if items are selected
@@ -70,20 +69,17 @@ export const BulkEmailAction: React.FC = () => {
   return (
     <>
       <div style={{ padding: '1rem', borderBottom: '1px solid var(--theme-elevation-150)' }}>
-        <Button
-          onClick={handleBulkEmail}
-          buttonStyle="primary"
-          size="small"
-          disabled={loading}
-        >
-          {loading ? 'Loading...' : `Send Email to ${count} Selected Partner${count > 1 ? 's' : ''}`}
+        <Button onClick={handleBulkEmail} buttonStyle="primary" size="small" disabled={loading}>
+          {loading
+            ? 'Loading...'
+            : `Send Email to ${count} Selected Partner${count > 1 ? 's' : ''}`}
         </Button>
       </div>
 
-      {isModalOpen && teamId && partnerIds.length > 0 && (
+      {isModalOpen && organizationId && partnerIds.length > 0 && (
         <BulkEmailModal
           participantIds={partnerIds}
-          teamId={teamId}
+          organizationId={organizationId}
           onClose={handleCloseModal}
           entityType="partner"
         />
