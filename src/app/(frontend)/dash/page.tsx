@@ -1,24 +1,8 @@
-import { headers as getHeaders } from 'next/headers.js'
-import Image from 'next/image'
-import { getPayload } from 'payload'
-import React from 'react'
-import { fileURLToPath } from 'url'
-
-import config from '@/payload.config'
-import './styles.css'
-import { ApplicationShell8 } from '@/components/application-shell8'
-
-export default async function HomePage() {
-  const headers = await getHeaders()
-  const payloadConfig = await config
-  const payload = await getPayload({ config: payloadConfig })
-  const { user } = await payload.auth({ headers })
-
-  const fileURL = `vscode://file/${fileURLToPath(import.meta.url)}`
-
+export default function Dash() {
   return (
     <div>
-   <ApplicationShell8 />
+      <h1 className="text-2xl font-bold p-4">Dashboard</h1>
+      <p className="p-4 text-muted-foreground">Welcome to your dashboard!</p>
     </div>
   )
 }

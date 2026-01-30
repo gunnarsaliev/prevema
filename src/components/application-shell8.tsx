@@ -718,7 +718,7 @@ function MailSidebar({ activeItem, mails, selectedEmailId, onEmailSelect }: Mail
   )
 }
 
-export function ApplicationShell8() {
+export function ApplicationShell8({ children }: { children?: React.ReactNode }) {
   const [activeModule, setActiveModule] = React.useState('emails')
   const [activeFolder, setActiveFolder] = React.useState<FolderId>('inbox')
   const [mails, setMails] = React.useState<MailItem[]>(data.mails)
@@ -844,26 +844,28 @@ export function ApplicationShell8() {
           )}
           <SidebarInset className="hidden min-h-0 overflow-auto md:flex">
             <div className="flex flex-1 flex-col gap-4 p-4">
-              {activeModule === 'emails' ? (
-                Array.from({ length: 24 }).map((_, index) => (
-                  <div key={index} className="aspect-video h-12 w-full rounded-lg bg-muted/50" />
-                ))
-              ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground">
-                  <div className="text-center">
-                    {(() => {
-                      const moduleData = sidebarModules.find((m) => m.id === activeModule)
-                      if (!moduleData) return null
-                      const Icon = moduleData.icon
-                      return (
-                        <>
-                          <Icon className="mx-auto size-12 opacity-50" />
-                          <p className="mt-2 text-sm">{moduleData.label} content coming soon</p>
-                        </>
-                      )
-                    })()}
+              {children || (
+                activeModule === 'emails' ? (
+                  Array.from({ length: 24 }).map((_, index) => (
+                    <div key={index} className="aspect-video h-12 w-full rounded-lg bg-muted/50" />
+                  ))
+                ) : (
+                  <div className="flex h-full items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      {(() => {
+                        const moduleData = sidebarModules.find((m) => m.id === activeModule)
+                        if (!moduleData) return null
+                        const Icon = moduleData.icon
+                        return (
+                          <>
+                            <Icon className="mx-auto size-12 opacity-50" />
+                            <p className="mt-2 text-sm">{moduleData.label} content coming soon</p>
+                          </>
+                        )
+                      })()}
+                    </div>
                   </div>
-                </div>
+                )
               )}
             </div>
           </SidebarInset>
