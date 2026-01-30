@@ -69,6 +69,17 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    teams: Team;
+    'email-logs': EmailLog;
+    events: Event;
+    'image-templates': ImageTemplate;
+    invitations: Invitation;
+    participants: Participant;
+    'participant-types': ParticipantType;
+    partners: Partner;
+    'partner-tiers': PartnerTier;
+    'partner-types': PartnerType;
+    'email-templates': EmailTemplate;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +89,17 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    teams: TeamsSelect<false> | TeamsSelect<true>;
+    'email-logs': EmailLogsSelect<false> | EmailLogsSelect<true>;
+    events: EventsSelect<false> | EventsSelect<true>;
+    'image-templates': ImageTemplatesSelect<false> | ImageTemplatesSelect<true>;
+    invitations: InvitationsSelect<false> | InvitationsSelect<true>;
+    participants: ParticipantsSelect<false> | ParticipantsSelect<true>;
+    'participant-types': ParticipantTypesSelect<false> | ParticipantTypesSelect<true>;
+    partners: PartnersSelect<false> | PartnersSelect<true>;
+    'partner-tiers': PartnerTiersSelect<false> | PartnerTiersSelect<true>;
+    'partner-types': PartnerTypesSelect<false> | PartnerTypesSelect<true>;
+    'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -165,6 +187,649 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teams".
+ */
+export interface Team {
+  id: number;
+  name: string;
+  slug?: string | null;
+  /**
+   * The primary owner of this team (cannot be changed)
+   */
+  owner: number | User;
+  /**
+   * Additional users who have access to this team
+   */
+  members?:
+    | {
+        /**
+         * Select an existing user
+         */
+        user?: (number | null) | User;
+        /**
+         * Or invite a new user by email
+         */
+        email?: string | null;
+        /**
+         * Role within this team
+         */
+        role: 'admin' | 'editor' | 'viewer';
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Configure custom Resend settings for this team
+   */
+  emailConfig?: {
+    /**
+     * Enable custom email configuration for this team
+     */
+    isActive?: boolean | null;
+    /**
+     * Custom Resend API key (starts with re_). Leave empty to use default.
+     */
+    resendApiKey?: string | null;
+    /**
+     * From name for emails sent by this team
+     */
+    senderName?: string | null;
+    /**
+     * From email address for this team
+     */
+    fromEmail?: string | null;
+    /**
+     * Reply-to email address
+     */
+    replyToEmail?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Audit log of all sent emails
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-logs".
+ */
+export interface EmailLog {
+  id: number;
+  /**
+   * The team this email belongs to
+   */
+  team: number | Team;
+  /**
+   * The template used for this email
+   */
+  template: number | EmailTemplate;
+  /**
+   * Email address of the recipient
+   */
+  recipientEmail: string;
+  /**
+   * What triggered this email
+   */
+  triggerEvent:
+    | 'manual'
+    | 'scheduled'
+    | 'participant.created'
+    | 'participant.updated'
+    | 'partner.invited'
+    | 'event.published'
+    | 'form.submitted'
+    | 'custom'
+    | 'test';
+  /**
+   * Variables used in the email (JSON format)
+   */
+  variables?: string | null;
+  /**
+   * Status of the email
+   */
+  status: 'sent' | 'failed' | 'scheduled';
+  /**
+   * Error message if sending failed
+   */
+  errorMessage?: string | null;
+  /**
+   * When the email was sent
+   */
+  sentAt: string;
+  /**
+   * User who manually sent this email (if applicable)
+   */
+  sentBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Create and manage email templates with dynamic variables
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-templates".
+ */
+export interface EmailTemplate {
+  id: number;
+  /**
+   * Template identifier (e.g., "participant-welcome", "partner-invitation")
+   */
+  name: string;
+  /**
+   * What this template is used for
+   */
+  description?: string | null;
+  /**
+   * The team this template belongs to
+   */
+  team: number | Team;
+  slug?: string | null;
+  /**
+   * Whether this template is active and can be used
+   */
+  isActive?: boolean | null;
+  /**
+   * Email subject line. Use {{variable}} for dynamic content.
+   */
+  subject: string;
+  /**
+   * HTML email body. Use {{variable}} for dynamic content (Handlebars syntax).
+   */
+  htmlBody: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Configure when this template should be automatically sent
+   */
+  automationTriggers?: {
+    /**
+     * Select the event that triggers this email template
+     */
+    triggerEvent?:
+      | (
+          | 'none'
+          | 'participant.created'
+          | 'participant.updated'
+          | 'partner.invited'
+          | 'event.published'
+          | 'form.submitted'
+          | 'custom'
+        )
+      | null;
+    /**
+     * Only trigger for specific statuses (leave empty for all statuses)
+     */
+    statusFilter?: ('not-approved' | 'approved' | 'need-info' | 'cancelled')[] | null;
+    /**
+     * If "Custom Trigger" is selected, specify the trigger name
+     */
+    customTriggerName?: string | null;
+    /**
+     * Delay in minutes before sending (0 for immediate)
+     */
+    delayMinutes?: number | null;
+    /**
+     * Optional JSON conditions for when to send (e.g., {"fieldName": "value"})
+     */
+    conditions?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events".
+ */
+export interface Event {
+  id: number;
+  /**
+   * The team this event belongs to
+   */
+  team: number | Team;
+  name: string;
+  slug?: string | null;
+  createdBy?: (number | null) | User;
+  status?: ('planning' | 'open' | 'closed' | 'archived') | null;
+  startDate: string;
+  endDate?: string | null;
+  timezone?: string | null;
+  description?: string | null;
+  /**
+   * Image for the event.
+   */
+  image?: (number | null) | Media;
+  eventType?: ('physical' | 'online') | null;
+  address?: string | null;
+  /**
+   * Why this event is happening - its purpose and significance
+   */
+  why?: string | null;
+  /**
+   * What the event is about - main topics, activities, agenda
+   */
+  what?: string | null;
+  /**
+   * Where context - venue name, city, or online platform
+   */
+  where?: string | null;
+  /**
+   * Who should attend - target audience, ideal participants
+   */
+  who?: string | null;
+  /**
+   * Event theme or tagline
+   */
+  theme?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Saved canvas templates from the image generator for bulk image creation
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "image-templates".
+ */
+export interface ImageTemplate {
+  id: number;
+  /**
+   * Template name (e.g., "Business Card - Blue Theme")
+   */
+  name: string;
+  slug?: string | null;
+  /**
+   * The team this template belongs to
+   */
+  team?: (number | null) | Team;
+  /**
+   * Who this template is designed for
+   */
+  usageType: 'participant' | 'partner' | 'both';
+  /**
+   * Whether this template is active and can be used
+   */
+  isActive?: boolean | null;
+  /**
+   * Canvas width in pixels
+   */
+  width: number;
+  /**
+   * Canvas height in pixels
+   */
+  height: number;
+  /**
+   * Background image for the template
+   */
+  backgroundImage?: (number | null) | Media;
+  /**
+   * Background color (hex code) if no background image is set
+   */
+  backgroundColor?: string | null;
+  /**
+   * Canvas elements array with coordinates, text properties, and image URLs. Saved from image-generator tool.
+   */
+  elements:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Preview thumbnail of the template
+   */
+  previewImage?: (number | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invitations".
+ */
+export interface Invitation {
+  id: number;
+  /**
+   * Email address of the person being invited
+   */
+  email: string;
+  /**
+   * The tenant this user is being invited to
+   */
+  team: number | Team;
+  /**
+   * The role this user will have in the tenant (owner can manage, editor has edit access, viewer has read-only access)
+   */
+  role: 'owner' | 'editor' | 'viewer';
+  /**
+   * Current status of the invitation
+   */
+  status: 'pending' | 'accepted' | 'declined' | 'expired';
+  token: string;
+  /**
+   * When this invitation expires
+   */
+  expiresAt: string;
+  /**
+   * User who sent the invitation
+   */
+  invitedBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "participants".
+ */
+export interface Participant {
+  id: number;
+  /**
+   * The team this participant belongs to (auto-populated from event)
+   */
+  team?: (number | null) | Team;
+  name: string;
+  email: string;
+  event: number | Event;
+  participantType: number | ParticipantType;
+  status?: ('not-approved' | 'approved' | 'need-info' | 'cancelled') | null;
+  /**
+   * Profile photo or headshot
+   */
+  imageUrl?: (number | null) | Media;
+  biography?: string | null;
+  country?: string | null;
+  phoneNumber?: string | null;
+  /**
+   * Company logo
+   */
+  companyLogoUrl?: (number | null) | Media;
+  companyName?: string | null;
+  /**
+   * Job title or position
+   */
+  companyPosition?: string | null;
+  companyWebsite?: string | null;
+  socialLinks?:
+    | {
+        platform?: ('linkedin' | 'twitter' | 'facebook' | 'instagram' | 'youtube' | 'other') | null;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Internal notes (not visible to participant)
+   */
+  internalNotes?: string | null;
+  presentationTopic?: string | null;
+  presentationSummary?: string | null;
+  technicalRequirements?: string | null;
+  owner?: (number | null) | User;
+  registrationDate?: string | null;
+  /**
+   * AI-generated LinkedIn post (150-300 characters, professional tone)
+   */
+  socialPostLinkedIn?: string | null;
+  /**
+   * AI-generated Twitter/X post (max 280 characters, punchy and concise)
+   */
+  socialPostTwitter?: string | null;
+  /**
+   * AI-generated Facebook post (~250 characters, community-focused)
+   */
+  socialPostFacebook?: string | null;
+  /**
+   * AI-generated Instagram post (125-150 characters, visual storytelling with emojis)
+   */
+  socialPostInstagram?: string | null;
+  /**
+   * When the social posts were last generated
+   */
+  socialPostGeneratedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "participant-types".
+ */
+export interface ParticipantType {
+  id: number;
+  /**
+   * The team this participant type belongs to
+   */
+  team: number | Team;
+  name: string;
+  slug?: string | null;
+  description?: string | null;
+  /**
+   * Optional: Link this participant type to a specific event. If set, the public form will be for this event only.
+   */
+  event?: (number | null) | Event;
+  isActive?: boolean | null;
+  /**
+   * Select which fields are required in the public registration form
+   */
+  requiredFields?:
+    | (
+        | 'imageUrl'
+        | 'biography'
+        | 'country'
+        | 'phoneNumber'
+        | 'companyLogoUrl'
+        | 'companyName'
+        | 'companyPosition'
+        | 'companyWebsite'
+        | 'socialLinks'
+        | 'presentationTopic'
+        | 'presentationSummary'
+        | 'technicalRequirements'
+      )[]
+    | null;
+  /**
+   * Enable optional fields selection. When enabled, you can mark displayed fields as optional.
+   */
+  showOptionalFields?: boolean | null;
+  /**
+   * Select which fields are optional (shown but not required). Required fields are excluded automatically.
+   */
+  optionalFields?:
+    | (
+        | 'imageUrl'
+        | 'biography'
+        | 'country'
+        | 'phoneNumber'
+        | 'companyLogoUrl'
+        | 'companyName'
+        | 'companyPosition'
+        | 'companyWebsite'
+        | 'socialLinks'
+        | 'presentationTopic'
+        | 'presentationSummary'
+        | 'technicalRequirements'
+      )[]
+    | null;
+  /**
+   * Share this link with people to register as this participant type
+   */
+  publicFormLink?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "partners".
+ */
+export interface Partner {
+  id: number;
+  /**
+   * The team this partner belongs to (auto-populated from event)
+   */
+  team?: (number | null) | Team;
+  companyName: string;
+  event: number | Event;
+  partnerType: number | PartnerType;
+  contactPerson: string;
+  contactEmail: string;
+  /**
+   * General company email (different from contact person email)
+   */
+  email?: string | null;
+  /**
+   * Partner's primary field or area of expertise
+   */
+  fieldOfExpertise?: string | null;
+  /**
+   * Company website URL
+   */
+  companyWebsiteUrl?: string | null;
+  /**
+   * Upload company logo image
+   */
+  companyLogo?: (number | null) | Media;
+  /**
+   * Direct URL to company logo (alternative to upload)
+   */
+  companyLogoUrl?: string | null;
+  /**
+   * Company banner or cover image
+   */
+  companyBanner?: (number | null) | Media;
+  /**
+   * Description of the company and its services
+   */
+  companyDescription?: string | null;
+  /**
+   * Social media links for the company
+   */
+  socialLinks?:
+    | {
+        platform?: ('linkedin' | 'facebook' | 'instagram' | 'other') | null;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  sponsorshipLevel?: string | null;
+  additionalNotes?: string | null;
+  tier?: (number | null) | PartnerTier;
+  status?: ('default' | 'contacted' | 'confirmed' | 'declined') | null;
+  owner?: (number | null) | User;
+  createdDate?: string | null;
+  registrationDate?: string | null;
+  /**
+   * AI-generated LinkedIn post (150-300 characters, professional tone)
+   */
+  socialPostLinkedIn?: string | null;
+  /**
+   * AI-generated Twitter/X post (max 280 characters, punchy and concise)
+   */
+  socialPostTwitter?: string | null;
+  /**
+   * AI-generated Facebook post (~250 characters, community-focused)
+   */
+  socialPostFacebook?: string | null;
+  /**
+   * AI-generated Instagram post (125-150 characters, visual storytelling with emojis)
+   */
+  socialPostInstagram?: string | null;
+  /**
+   * When the social posts were last generated
+   */
+  socialPostGeneratedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "partner-types".
+ */
+export interface PartnerType {
+  id: number;
+  /**
+   * The team this partner type belongs to
+   */
+  team: number | Team;
+  name: string;
+  slug?: string | null;
+  description?: string | null;
+  /**
+   * Optional: Link this partner type to a specific event. If set, the public form will be for this event only.
+   */
+  event?: (number | null) | Event;
+  isActive?: boolean | null;
+  /**
+   * Select which fields are required in the public registration form
+   */
+  requiredFields?:
+    | (
+        | 'companyLogo'
+        | 'companyLogoUrl'
+        | 'companyBanner'
+        | 'companyDescription'
+        | 'companyWebsiteUrl'
+        | 'fieldOfExpertise'
+        | 'email'
+        | 'socialLinks'
+        | 'sponsorshipLevel'
+        | 'additionalNotes'
+      )[]
+    | null;
+  /**
+   * Enable optional fields selection. When enabled, you can mark displayed fields as optional.
+   */
+  showOptionalFields?: boolean | null;
+  /**
+   * Select which fields are optional (shown but not required). Required fields are excluded automatically.
+   */
+  optionalFields?:
+    | (
+        | 'companyLogo'
+        | 'companyLogoUrl'
+        | 'companyBanner'
+        | 'companyDescription'
+        | 'companyWebsiteUrl'
+        | 'fieldOfExpertise'
+        | 'email'
+        | 'socialLinks'
+        | 'sponsorshipLevel'
+        | 'additionalNotes'
+      )[]
+    | null;
+  /**
+   * Share this link with companies to register as this partner type
+   */
+  publicFormLink?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "partner-tiers".
+ */
+export interface PartnerTier {
+  id: number;
+  /**
+   * The team this partner tier belongs to
+   */
+  team: number | Team;
+  name: string;
+  slug?: string | null;
+  level?: number | null;
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -194,6 +859,50 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'teams';
+        value: number | Team;
+      } | null)
+    | ({
+        relationTo: 'email-logs';
+        value: number | EmailLog;
+      } | null)
+    | ({
+        relationTo: 'events';
+        value: number | Event;
+      } | null)
+    | ({
+        relationTo: 'image-templates';
+        value: number | ImageTemplate;
+      } | null)
+    | ({
+        relationTo: 'invitations';
+        value: number | Invitation;
+      } | null)
+    | ({
+        relationTo: 'participants';
+        value: number | Participant;
+      } | null)
+    | ({
+        relationTo: 'participant-types';
+        value: number | ParticipantType;
+      } | null)
+    | ({
+        relationTo: 'partners';
+        value: number | Partner;
+      } | null)
+    | ({
+        relationTo: 'partner-tiers';
+        value: number | PartnerTier;
+      } | null)
+    | ({
+        relationTo: 'partner-types';
+        value: number | PartnerType;
+      } | null)
+    | ({
+        relationTo: 'email-templates';
+        value: number | EmailTemplate;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -277,6 +986,263 @@ export interface MediaSelect<T extends boolean = true> {
   filesize?: T;
   width?: T;
   height?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teams_select".
+ */
+export interface TeamsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  owner?: T;
+  members?:
+    | T
+    | {
+        user?: T;
+        email?: T;
+        role?: T;
+        id?: T;
+      };
+  emailConfig?:
+    | T
+    | {
+        isActive?: T;
+        resendApiKey?: T;
+        senderName?: T;
+        fromEmail?: T;
+        replyToEmail?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-logs_select".
+ */
+export interface EmailLogsSelect<T extends boolean = true> {
+  team?: T;
+  template?: T;
+  recipientEmail?: T;
+  triggerEvent?: T;
+  variables?: T;
+  status?: T;
+  errorMessage?: T;
+  sentAt?: T;
+  sentBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events_select".
+ */
+export interface EventsSelect<T extends boolean = true> {
+  team?: T;
+  name?: T;
+  slug?: T;
+  createdBy?: T;
+  status?: T;
+  startDate?: T;
+  endDate?: T;
+  timezone?: T;
+  description?: T;
+  image?: T;
+  eventType?: T;
+  address?: T;
+  why?: T;
+  what?: T;
+  where?: T;
+  who?: T;
+  theme?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "image-templates_select".
+ */
+export interface ImageTemplatesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  team?: T;
+  usageType?: T;
+  isActive?: T;
+  width?: T;
+  height?: T;
+  backgroundImage?: T;
+  backgroundColor?: T;
+  elements?: T;
+  previewImage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invitations_select".
+ */
+export interface InvitationsSelect<T extends boolean = true> {
+  email?: T;
+  team?: T;
+  role?: T;
+  status?: T;
+  token?: T;
+  expiresAt?: T;
+  invitedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "participants_select".
+ */
+export interface ParticipantsSelect<T extends boolean = true> {
+  team?: T;
+  name?: T;
+  email?: T;
+  event?: T;
+  participantType?: T;
+  status?: T;
+  imageUrl?: T;
+  biography?: T;
+  country?: T;
+  phoneNumber?: T;
+  companyLogoUrl?: T;
+  companyName?: T;
+  companyPosition?: T;
+  companyWebsite?: T;
+  socialLinks?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
+  internalNotes?: T;
+  presentationTopic?: T;
+  presentationSummary?: T;
+  technicalRequirements?: T;
+  owner?: T;
+  registrationDate?: T;
+  socialPostLinkedIn?: T;
+  socialPostTwitter?: T;
+  socialPostFacebook?: T;
+  socialPostInstagram?: T;
+  socialPostGeneratedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "participant-types_select".
+ */
+export interface ParticipantTypesSelect<T extends boolean = true> {
+  team?: T;
+  name?: T;
+  slug?: T;
+  description?: T;
+  event?: T;
+  isActive?: T;
+  requiredFields?: T;
+  showOptionalFields?: T;
+  optionalFields?: T;
+  publicFormLink?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "partners_select".
+ */
+export interface PartnersSelect<T extends boolean = true> {
+  team?: T;
+  companyName?: T;
+  event?: T;
+  partnerType?: T;
+  contactPerson?: T;
+  contactEmail?: T;
+  email?: T;
+  fieldOfExpertise?: T;
+  companyWebsiteUrl?: T;
+  companyLogo?: T;
+  companyLogoUrl?: T;
+  companyBanner?: T;
+  companyDescription?: T;
+  socialLinks?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
+  sponsorshipLevel?: T;
+  additionalNotes?: T;
+  tier?: T;
+  status?: T;
+  owner?: T;
+  createdDate?: T;
+  registrationDate?: T;
+  socialPostLinkedIn?: T;
+  socialPostTwitter?: T;
+  socialPostFacebook?: T;
+  socialPostInstagram?: T;
+  socialPostGeneratedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "partner-tiers_select".
+ */
+export interface PartnerTiersSelect<T extends boolean = true> {
+  team?: T;
+  name?: T;
+  slug?: T;
+  level?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "partner-types_select".
+ */
+export interface PartnerTypesSelect<T extends boolean = true> {
+  team?: T;
+  name?: T;
+  slug?: T;
+  description?: T;
+  event?: T;
+  isActive?: T;
+  requiredFields?: T;
+  showOptionalFields?: T;
+  optionalFields?: T;
+  publicFormLink?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-templates_select".
+ */
+export interface EmailTemplatesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  team?: T;
+  slug?: T;
+  isActive?: T;
+  subject?: T;
+  htmlBody?: T;
+  automationTriggers?:
+    | T
+    | {
+        triggerEvent?: T;
+        statusFilter?: T;
+        customTriggerName?: T;
+        delayMinutes?: T;
+        conditions?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

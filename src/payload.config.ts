@@ -7,6 +7,17 @@ import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
+import { Teams } from './collections/Teams'
+import { EmailLogs } from './collections/EmailLogs'
+import { Events } from './collections/Events'
+import { ImageTemplates } from './collections/ImageTemplates'
+import { Invitations } from './collections/Invitations'
+import { Participants } from './collections/Participants'
+import { ParticipantTypes } from './collections/ParticipantTypes'
+import { Partners } from './collections/Partners'
+import { PartnerTiers } from './collections/PartnerTiers'
+import { PartnerTypes } from './collections/PartnerTypes'
+import { EmailTemplates } from './collections/EmailTemplates'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -18,7 +29,21 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media],
+  collections: [
+    Users,
+    Media,
+    Teams,
+    EmailLogs,
+    Events,
+    ImageTemplates,
+    Invitations,
+    Participants,
+    ParticipantTypes,
+    Partners,
+    PartnerTiers,
+    PartnerTypes,
+    EmailTemplates,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
