@@ -16,21 +16,37 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 
-import { userData } from './data'
+import { userData, sidebarModules } from './data'
 import { getInitials } from './utils'
+import { AppSidebar } from './app-sidebar'
 
 export interface ApplicationShell8Props {
   children?: React.ReactNode
 }
 
 export function ApplicationShell8({ children }: ApplicationShell8Props) {
+  const [activeModule, setActiveModule] = React.useState('dashboard')
+
+  const handleModuleChange = (moduleId: string) => {
+    setActiveModule(moduleId)
+  }
+
   return (
     <SidebarProvider className="h-svh overflow-hidden">
+      <AppSidebar activeModule={activeModule} onModuleChange={handleModuleChange} />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <header className="flex h-14 shrink-0 items-center justify-between border-b bg-background px-4">
           <div className="flex items-center gap-2">
-            <Mail className="size-5" />
-            <span className="text-base font-medium">Dashboard</span>
+            {(() => {
+              const moduleData = sidebarModules.find((m) => m.id === activeModule)
+              if (!moduleData) return null
+              return (
+                <>
+                  <moduleData.icon />
+                  <span className="text-base font-medium">{moduleData.label}</span>
+                </>
+              )
+            })()}
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -81,9 +97,7 @@ export function ApplicationShell8({ children }: ApplicationShell8Props) {
           </DropdownMenu>
         </header>
         <SidebarInset className="flex-1 overflow-auto">
-          <div className="flex flex-1 flex-col gap-4 p-4">
-            {children}
-          </div>
+          <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
         </SidebarInset>
       </div>
     </SidebarProvider>

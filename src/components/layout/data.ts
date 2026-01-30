@@ -1,68 +1,24 @@
-import React from 'react'
-import { Icon } from '@iconify/react'
-import type { Folder, FolderId, SidebarModule, NavItem, MailItem, UserData } from './types'
-
-export const folders: Folder[] = [
-  { id: 'inbox', label: 'Inbox', icon: () => React.createElement(Icon, { icon: 'lucide:inbox' }) },
-  { id: 'sent', label: 'Sent', icon: () => React.createElement(Icon, { icon: 'lucide:send' }) },
-  {
-    id: 'junk',
-    label: 'Junk',
-    icon: () => React.createElement(Icon, { icon: 'lucide:archive-x' }),
-  },
-  {
-    id: 'trash',
-    label: 'Trash',
-    icon: () => React.createElement(Icon, { icon: 'lucide:trash-2' }),
-  },
-]
-
-export const navTitleToFolderId: Record<string, FolderId> = {
-  Inbox: 'inbox',
-  Drafts: 'drafts',
-  Sent: 'sent',
-  Junk: 'junk',
-  Trash: 'trash',
-}
-
-export const sidebarModules: SidebarModule[] = [
-  {
-    id: 'emails',
-    label: 'Emails',
-    icon: () => React.createElement(Icon, { icon: 'twemoji:letter-p' }),
-  },
-  {
-    id: 'dashboard',
-    label: 'Dashboard',
-    icon: () => React.createElement(Icon, { icon: 'lucide:dashboard-view' }),
-  },
-  {
-    id: 'calendar',
-    label: 'Calendar',
-    icon: () => React.createElement(Icon, { icon: 'lucide:calendar' }),
-  },
-  {
-    id: 'contacts',
-    label: 'Contacts',
-    icon: () => React.createElement(Icon, { icon: 'lucide:users' }),
-  },
-  {
-    id: 'tasks',
-    label: 'Tasks',
-    icon: () => React.createElement(Icon, { icon: 'lucide:file-spreadsheet' }),
-  },
-  {
-    id: 'notes',
-    label: 'Notes',
-    icon: () => React.createElement(Icon, { icon: 'lucide:sticky-note' }),
-  },
-]
-
-export const userData: UserData = {
-  name: 'Jordan Lee',
-  email: 'jordan@acme.io',
-  avatar: 'https://deifkwefumgah.cloudfront.net/shadcnblocks/block/avatar/avatar1.webp',
-}
+import {
+  ArchiveX,
+  BadgeCheck,
+  Bell,
+  Calendar,
+  ChevronDown,
+  ChevronsUpDown,
+  CreditCard,
+  File,
+  FileSpreadsheet,
+  Inbox,
+  LogOut,
+  Mail,
+  MoreHorizontal,
+  Send,
+  Settings,
+  Sparkles,
+  StickyNote,
+  Trash2,
+  Users,
+} from 'lucide-react'
 
 export const data = {
   user: {
@@ -73,35 +29,35 @@ export const data = {
   navMain: [
     {
       title: 'Dashboard',
-      url: '/dash',
-      icon: () => React.createElement(Icon, { icon: 'lucide:inbox' }),
+      url: '/dashboard',
+      icon: Inbox,
       isActive: true,
     },
     {
-      title: 'Messages',
-      url: '/messages',
-      icon: () => React.createElement(Icon, { icon: 'lucide:file' }),
+      title: 'Drafts',
+      url: '#',
+      icon: File,
       isActive: false,
     },
     {
-      title: 'Analytics',
-      url: '/analytics',
-      icon: () => React.createElement(Icon, { icon: 'lucide:send' }),
+      title: 'Sent',
+      url: '#',
+      icon: Send,
       isActive: false,
     },
     {
-      title: 'Graphics',
-      url: '/graphics',
-      icon: () => React.createElement(Icon, { icon: 'lucide:archive-x' }),
+      title: 'Junk',
+      url: '#',
+      icon: ArchiveX,
       isActive: false,
     },
     {
-      title: 'Assets',
-      url: '/assets',
-      icon: () => React.createElement(Icon, { icon: 'lucide:trash-2' }),
+      title: 'Trash',
+      url: '#',
+      icon: Trash2,
       isActive: false,
     },
-  ] as NavItem[],
+  ],
   mails: [
     {
       id: '1',
@@ -207,5 +163,5 @@ export const data = {
       read: true,
       starred: false,
     },
-  ] as MailItem[],
+  ],
 }

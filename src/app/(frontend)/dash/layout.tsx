@@ -1,5 +1,10 @@
-import { ApplicationShell8 } from '@/components/application-shell8'
+import { ApplicationShell10 } from '@/components/application-shell10'
 
 export default function DashLayout({ children }: { children: React.ReactNode }) {
-  return <ApplicationShell8>{children}</ApplicationShell8>
+  return (
+    <>
+      <ApplicationShell10 />
+      {children}
+    </>
+  )
 }
