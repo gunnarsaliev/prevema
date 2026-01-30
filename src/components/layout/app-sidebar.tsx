@@ -31,39 +31,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { LogoDropdown } from './logo-dropdown'
-
-type NavItemId = 'inbox' | 'unassigned' | 'assigned' | 'drafts' | 'archived' | 'spam'
-
-type BucketId = 'support' | 'bugs' | 'features' | 'internal'
-
-type NavItem = {
-  id: NavItemId
-  label: string
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
-  count?: number
-}
-
-type Bucket = {
-  id: BucketId
-  label: string
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
-}
-
-const navItems: NavItem[] = [
-  { id: 'inbox', label: 'Inbox', icon: Inbox, count: 6 },
-  { id: 'unassigned', label: 'Unassigned', icon: MailOpen, count: 10 },
-  { id: 'assigned', label: 'Assigned', icon: UserCheck, count: 3 },
-  { id: 'drafts', label: 'Drafts', icon: File, count: 1 },
-  { id: 'archived', label: 'Archived', icon: Archive },
-  { id: 'spam', label: 'Spam', icon: Trash2 },
-]
-
-const buckets: Bucket[] = [
-  { id: 'support', label: 'Support requests', icon: MessageSquare },
-  { id: 'bugs', label: 'Bug reports', icon: Bug },
-  { id: 'features', label: 'Feature requests', icon: Lightbulb },
-  { id: 'internal', label: 'Internal', icon: Users },
-]
+import { navItems, buckets, type NavItemId, type BucketId } from './data'
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   activeNavItem: NavItemId
