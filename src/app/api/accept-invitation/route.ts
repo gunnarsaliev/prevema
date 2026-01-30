@@ -5,7 +5,7 @@ import { acceptInvitation, declineInvitation } from '@/collections/Invitations/h
 
 /**
  * POST /api/accept-invitation
- * Accept an invitation to join a tenant
+ * Accept an invitation to join an organization
  */
 export async function POST(req: NextRequest) {
   try {
@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
 
     console.log('📋 Invitation data:', {
       email: invitation.email,
-      team: invitation.team,
+      organization: invitation.team,
       role: invitation.role,
       status: invitation.status,
       expiresAt: invitation.expiresAt,

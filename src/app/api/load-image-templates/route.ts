@@ -5,7 +5,7 @@ import config from '@/payload.config'
 /**
  * GET /api/load-image-templates
  * Fetches user's image templates with optional filtering
- * Query params: team, usageType
+ * Query params: organization, usageType
  */
 export async function GET(req: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
     // Get query parameters
     const { searchParams } = new URL(req.url)
-    const teamFilter = searchParams.get('team')
+    const organizationFilter = searchParams.get('team')
     const usageTypeFilter = searchParams.get('usageType')
 
     // Build query
@@ -23,9 +23,9 @@ export async function GET(req: NextRequest) {
       },
     }
 
-    if (teamFilter) {
+    if (organizationFilter) {
       where.team = {
-        equals: teamFilter,
+        equals: organizationFilter,
       }
     }
 

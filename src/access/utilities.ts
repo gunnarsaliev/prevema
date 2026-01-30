@@ -28,23 +28,23 @@ export const checkPricingPlan = (
   return false
 }
 
-export const canCreateTeams = (user?: User | null): boolean => {
-  // Super-admins and admins can always create teams
+export const canCreateOrganizations = (user?: User | null): boolean => {
+  // Super-admins and admins can always create organizations
   if (checkRole(['super-admin', 'admin'], user)) {
     return true
   }
 
-  // All pricing plans can create teams (with different limits)
-  return user?.pricingPlan === 'free' || user?.pricingPlan === 'pro' || user?.pricingPlan === 'teams' || user?.pricingPlan === 'unlimited'
+  // All pricing plans can create organizations (with different limits)
+  return user?.pricingPlan === 'free' || user?.pricingPlan === 'pro' || user?.pricingPlan === 'organizations' || user?.pricingPlan === 'unlimited'
 }
 
 /**
- * Get the maximum number of teams a user can create based on their pricing plan
+ * Get the maximum number of organizations a user can create based on their pricing plan
  * @param user - The user object
- * @returns Maximum team count (null = unlimited)
+ * @returns Maximum organization count (null = unlimited)
  */
-export const getTeamLimit = (user?: User | null): number | null => {
-  // Super-admins and admins have unlimited teams
+export const getOrganizationLimit = (user?: User | null): number | null => {
+  // Super-admins and admins have unlimited organizations
   if (checkRole(['super-admin', 'admin'], user)) {
     return null
   }
@@ -55,7 +55,7 @@ export const getTeamLimit = (user?: User | null): number | null => {
       return 1
     case 'pro':
       return 3
-    case 'teams':
+    case 'organizations':
       return 20
     case 'unlimited':
       return null
@@ -64,77 +64,77 @@ export const getTeamLimit = (user?: User | null): number | null => {
   }
 }
 
-export const canParticipateInTeams = (user?: User | null): boolean => {
+export const canParticipateInOrganizations = (user?: User | null): boolean => {
   // Super-admins and admins can always participate
   if (checkRole(['super-admin', 'admin'], user)) {
     return true
   }
 
-  // All pricing plans can participate in teams
+  // All pricing plans can participate in organizations
   return true
 }
 
 /**
- * Get the user's role for a specific team
+ * Get the user's role for a specific organization
  * @param payload - The Payload instance
  * @param user - The user object
- * @param teamId - The team ID to check
- * @returns The role ('owner' | 'admin' | 'editor' | 'viewer') or null if user is not in the team
+ * @param organizationId - The organization ID to check
+ * @returns The role ('owner' | 'admin' | 'editor' | 'viewer') or null if user is not in the organization
  */
-export const getTeamRole = async (
+export const getOrganizationRole = async (
   payload: Payload,
   user?: User | null,
-  teamId?: number | string,
+  organizationId?: number | string,
 ): Promise<'owner' | 'admin' | 'editor' | 'viewer' | null> => {
-  if (!user || !teamId) return null
+  if (!user || !organizationId) return null
 
   try {
-    const team = await payload.findByID({
-      collection: 'teams',
-      id: String(teamId),
+    const organization = await payload.findByID({
+      collection: 'organizations',
+      id: String(organizationId),
       depth: 0,
     })
 
-    if (!team) return null
+    if (!organization) return null
 
     // Check if user is the owner
-    const ownerId = typeof team.owner === 'object' ? team.owner?.id : team.owner
+    const ownerId = typeof organization.owner === 'object' ? organization.owner?.id : organization.owner
     if (String(ownerId) === String(user.id)) {
       return 'owner'
     }
 
     // Check if user is in members array
-    if (!team.members) return null
+    if (!organization.members) return null
 
-    const memberEntry = team.members.find((m: any) => {
+    const memberEntry = organization.members.find((m: any) => {
       const userId = typeof m.user === 'object' ? m.user?.id : m.user
       return String(userId) === String(user.id)
     })
 
     return memberEntry?.role || null
   } catch (error) {
-    console.error('Error fetching team role:', error)
+    console.error('Error fetching organization role:', error)
     return null
   }
 }
 
 /**
- * Check if user has a specific role in a team
+ * Check if user has a specific role in an organization
  * @param payload - The Payload instance
  * @param user - The user object
- * @param teamId - The team ID to check
+ * @param organizationId - The organization ID to check
  * @param requiredRole - The role to check for ('owner' | 'admin' | 'editor' | 'viewer')
  * @returns True if user has the required role or higher
  */
-export const hasTeamRole = async (
+export const hasOrganizationRole = async (
   payload: Payload,
   user?: User | null,
-  teamId?: number | string,
+  organizationId?: number | string,
   requiredRole?: 'owner' | 'admin' | 'editor' | 'viewer',
 ): Promise<boolean> => {
-  if (!user || !teamId || !requiredRole) return false
+  if (!user || !organizationId || !requiredRole) return false
 
-  const userRole = await getTeamRole(payload, user, teamId)
+  const userRole = await getOrganizationRole(payload, user, organizationId)
   if (!userRole) return false
 
   // Role hierarchy: owner > admin > editor > viewer
@@ -144,28 +144,28 @@ export const hasTeamRole = async (
 }
 
 /**
- * Check if user is an owner of a specific team
+ * Check if user is an owner of a specific organization
  * @param payload - The Payload instance
  * @param user - The user object
- * @param teamId - The team ID to check
- * @returns True if user is an owner of the team
+ * @param organizationId - The organization ID to check
+ * @returns True if user is an owner of the organization
  */
-export const isTeamOwner = async (
+export const isOrganizationOwner = async (
   payload: Payload,
   user?: User | null,
-  teamId?: number | string,
+  organizationId?: number | string,
 ): Promise<boolean> => {
-  return hasTeamRole(payload, user, teamId, 'owner')
+  return hasOrganizationRole(payload, user, organizationId, 'owner')
 }
 
 /**
- * Get all team IDs where user has a specific role
+ * Get all organization IDs where user has a specific role
  * @param payload - The Payload instance
  * @param user - The user object
  * @param role - Optional role filter ('owner' | 'editor' | 'viewer')
- * @returns Array of team IDs
+ * @returns Array of organization IDs
  */
-export const getUserTeamIds = async (
+export const getUserOrganizationIds = async (
   payload: Payload,
   user?: User | null,
   role?: 'owner' | 'editor' | 'viewer',
@@ -173,9 +173,9 @@ export const getUserTeamIds = async (
   if (!user) return []
 
   try {
-    // Query all teams where this user is either the owner OR a member
-    const teams = await payload.find({
-      collection: 'teams',
+    // Query all organizations where this user is either the owner OR a member
+    const organizations = await payload.find({
+      collection: 'organizations',
       where: {
         or: [
           {
@@ -191,56 +191,56 @@ export const getUserTeamIds = async (
         ],
       },
       depth: 0,
-      limit: 1000, // Reasonable limit for user's teams
+      limit: 1000, // Reasonable limit for user's organizations
     })
 
-    if (!teams.docs || teams.docs.length === 0) return []
+    if (!organizations.docs || organizations.docs.length === 0) return []
 
     // Filter by role if specified
-    const teamIds: (number | string)[] = []
-    for (const team of teams.docs) {
+    const organizationIds: (number | string)[] = []
+    for (const organization of organizations.docs) {
       // Check if user is the owner
-      const ownerId = typeof team.owner === 'object' ? team.owner?.id : team.owner
+      const ownerId = typeof organization.owner === 'object' ? organization.owner?.id : organization.owner
       const isOwner = String(ownerId) === String(user.id)
 
       if (isOwner) {
         // If user is owner, always include (owners have implicit 'owner' role)
         if (!role || role === 'owner') {
-          teamIds.push(team.id)
+          organizationIds.push(organization.id)
         }
         continue
       }
 
       // Check if user is in members array
-      if (!team.members) continue
+      if (!organization.members) continue
 
-      const memberEntry = team.members.find((m: any) => {
+      const memberEntry = organization.members.find((m: any) => {
         const userId = typeof m.user === 'object' ? m.user?.id : m.user
         return String(userId) === String(user.id)
       })
 
       // If role filter is specified, only include if user has that role
       if (!role || memberEntry?.role === role) {
-        teamIds.push(team.id)
+        organizationIds.push(organization.id)
       }
     }
 
-    return teamIds
+    return organizationIds
   } catch (error) {
-    console.error('Error fetching user team IDs:', error)
+    console.error('Error fetching user organization IDs:', error)
     return []
   }
 }
 
 /**
- * Get all team IDs where user has at least the specified role level
+ * Get all organization IDs where user has at least the specified role level
  * Role hierarchy: owner > admin > editor > viewer
  * @param payload - The Payload instance
  * @param user - The user object
  * @param minRole - Minimum required role ('owner' | 'admin' | 'editor' | 'viewer')
- * @returns Array of team IDs
+ * @returns Array of organization IDs
  */
-export const getUserTeamIdsWithMinRole = async (
+export const getUserOrganizationIdsWithMinRole = async (
   payload: Payload,
   user?: User | null,
   minRole: 'owner' | 'admin' | 'editor' | 'viewer' = 'viewer',
@@ -248,9 +248,9 @@ export const getUserTeamIdsWithMinRole = async (
   if (!user) return []
 
   try {
-    // Query all teams where this user is either the owner OR a member
-    const teams = await payload.find({
-      collection: 'teams',
+    // Query all organizations where this user is either the owner OR a member
+    const organizations = await payload.find({
+      collection: 'organizations',
       where: {
         or: [
           {
@@ -266,47 +266,47 @@ export const getUserTeamIdsWithMinRole = async (
         ],
       },
       depth: 0,
-      limit: 1000, // Reasonable limit for user's teams
+      limit: 1000, // Reasonable limit for user's organizations
     })
 
-    if (!teams.docs || teams.docs.length === 0) return []
+    if (!organizations.docs || organizations.docs.length === 0) return []
 
     // Role hierarchy: owner (4) > admin (3) > editor (2) > viewer (1)
     const roleHierarchy = { owner: 4, admin: 3, editor: 2, viewer: 1 }
     const minRoleLevel = roleHierarchy[minRole]
 
     // Filter by role hierarchy
-    const teamIds: (number | string)[] = []
-    for (const team of teams.docs) {
+    const organizationIds: (number | string)[] = []
+    for (const organization of organizations.docs) {
       // Check if user is the owner
-      const ownerId = typeof team.owner === 'object' ? team.owner?.id : team.owner
+      const ownerId = typeof organization.owner === 'object' ? organization.owner?.id : organization.owner
       const isOwner = String(ownerId) === String(user.id)
 
       if (isOwner) {
         // Owner has the highest role level (4)
         if (roleHierarchy.owner >= minRoleLevel) {
-          teamIds.push(team.id)
+          organizationIds.push(organization.id)
         }
         continue
       }
 
       // Check if user is in members array
-      if (!team.members) continue
+      if (!organization.members) continue
 
-      const memberEntry = team.members.find((m: any) => {
+      const memberEntry = organization.members.find((m: any) => {
         const userId = typeof m.user === 'object' ? m.user?.id : m.user
         return String(userId) === String(user.id)
       })
 
       // Check if user has at least the minimum required role
       if (memberEntry?.role && roleHierarchy[memberEntry.role] >= minRoleLevel) {
-        teamIds.push(team.id)
+        organizationIds.push(organization.id)
       }
     }
 
-    return teamIds
+    return organizationIds
   } catch (error) {
-    console.error('Error fetching user team IDs with min role:', error)
+    console.error('Error fetching user organization IDs with min role:', error)
     return []
   }
 }

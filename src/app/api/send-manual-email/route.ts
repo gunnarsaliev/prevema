@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     }
 
     if (!teamId) {
-      return NextResponse.json({ success: false, error: 'Team ID is required' }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'Organization ID is required' }, { status: 400 })
     }
 
     // Fetch the template
@@ -70,19 +70,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Template not found' }, { status: 404 })
     }
 
-    // Verify team matches
-    const templateTeamId =
+    // Verify organization matches
+    const templateOrganizationId =
       typeof template.team === 'object' ? template.team.id : template.team
-    if (String(templateTeamId) !== String(teamId)) {
+    if (String(templateOrganizationId) !== String(teamId)) {
       return NextResponse.json(
-        { success: false, error: 'Template does not belong to this team' },
+        { success: false, error: 'Template does not belong to this organization' },
         { status: 403 },
       )
     }
 
-    // Fetch team for common variables
-    const team = await payload.findByID({
-      collection: 'teams',
+    // Fetch organization for common variables
+    const organization = await payload.findByID({
+      collection: 'organizations',
       id: teamId,
     })
 
@@ -135,7 +135,7 @@ export async function POST(request: Request) {
           })
 
           // Add common variables
-          const fullVariables = addCommonVariables(participantVars, team)
+          const fullVariables = addCommonVariables(participantVars, organization)
 
           // Merge with any custom variables provided
           const finalVariables = { ...fullVariables, ...(variables || {}) }
@@ -194,7 +194,7 @@ export async function POST(request: Request) {
           })
 
           // Add common variables
-          const fullVariables = addCommonVariables(partnerVars, team)
+          const fullVariables = addCommonVariables(partnerVars, organization)
 
           // Merge with any custom variables provided
           const finalVariables = { ...fullVariables, ...(variables || {}) }
@@ -210,7 +210,7 @@ export async function POST(request: Request) {
       }
     } else if (recipientEmails && recipientEmails.length > 0) {
       // Use provided email list with generic variables
-      const commonVars = addCommonVariables(variables || {}, team)
+      const commonVars = addCommonVariables(variables || {}, organization)
       recipients = recipientEmails.map(email => ({
         email,
         variables: commonVars,

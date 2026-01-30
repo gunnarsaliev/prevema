@@ -7,7 +7,7 @@ import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
-import { Teams } from './collections/Teams'
+import { Organizations } from './collections/Organizations'
 import { EmailLogs } from './collections/EmailLogs'
 import { Events } from './collections/Events'
 import { ImageTemplates } from './collections/ImageTemplates'
@@ -32,7 +32,7 @@ export default buildConfig({
   collections: [
     Users,
     Media,
-    Teams,
+    Organizations,
     EmailLogs,
     Events,
     ImageTemplates,

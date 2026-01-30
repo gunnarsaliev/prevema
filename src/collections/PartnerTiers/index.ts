@@ -28,11 +28,11 @@ export const PartnerTiers: CollectionConfig = {
     {
       name: 'team',
       type: 'relationship',
-      relationTo: 'teams',
+      relationTo: 'organizations',
       required: true,
       defaultValue: defaultTeamValue,
       admin: {
-        description: 'The team this partner tier belongs to',
+        description: 'The organization this partner tier belongs to',
       },
     },
     {

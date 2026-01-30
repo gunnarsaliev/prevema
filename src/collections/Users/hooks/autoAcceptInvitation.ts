@@ -72,16 +72,16 @@ export const autoAcceptInvitation: CollectionAfterChangeHook<User> = async ({
       return doc
     }
 
-    // Get the team ID
+    // Get the organization ID
     const teamId = typeof invitation.team === 'object' ? invitation.team.id : invitation.team
 
-    // Fetch the team
+    // Fetch the organization
     const team = await payload.findByID({
-      collection: 'teams',
+      collection: 'organizations',
       id: teamId,
     })
 
-    // Update the team to add the user as a member
+    // Update the organization to add the user as a member
     const currentMembers = team.members || []
 
     // Check if user is already a member (shouldn't happen, but just in case)
@@ -100,12 +100,12 @@ export const autoAcceptInvitation: CollectionAfterChangeHook<User> = async ({
         user: doc.id,
         role: invitation.role || 'editor',
       })
-      console.log('✅ Added user to team as new member')
+      console.log('✅ Added user to organization as new member')
     }
 
-    // Update the team
+    // Update the organization
     await payload.update({
-      collection: 'teams',
+      collection: 'organizations',
       id: teamId,
       data: {
         members: currentMembers,
@@ -121,7 +121,7 @@ export const autoAcceptInvitation: CollectionAfterChangeHook<User> = async ({
       },
     })
 
-    console.log(`✅ Successfully auto-accepted invitation for ${doc.email} to team ${teamId} with role ${invitation.role}`)
+    console.log(`✅ Successfully auto-accepted invitation for ${doc.email} to organization ${teamId} with role ${invitation.role}`)
   } catch (error) {
     console.error('❌ Error auto-accepting invitation:', error)
     // Don't throw - user creation should still succeed even if invitation acceptance fails

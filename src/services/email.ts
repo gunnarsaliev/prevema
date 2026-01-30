@@ -20,7 +20,7 @@ interface TenantEmailConfig {
 }
 
 /**
- * Send an email using a team's custom template and email configuration
+ * Send an email using an organization's custom template and email configuration
  */
 export async function sendTenantEmail({
   payload,
@@ -30,14 +30,14 @@ export async function sendTenantEmail({
   variables,
 }: SendEmailOptions): Promise<{ success: boolean; error?: string }> {
   try {
-    // Fetch the team
+    // Fetch the organization
     const team = await payload.findByID({
-      collection: 'teams',
+      collection: 'organizations',
       id: tenantId,
     })
 
     if (!team) {
-      throw new Error(`Team not found: ${tenantId}`)
+      throw new Error(`Organization not found: ${tenantId}`)
     }
 
     // Fetch the email template
@@ -66,7 +66,7 @@ export async function sendTenantEmail({
     })
 
     if (!templates.docs.length) {
-      throw new Error(`Active template not found: ${templateName} for team: ${tenantId}`)
+      throw new Error(`Active template not found: ${templateName} for organization: ${tenantId}`)
     }
 
     const template = templates.docs[0]
@@ -97,7 +97,7 @@ export async function sendTenantEmail({
     const subject = compileTemplate(template.subject, variables)
     const html = compileTemplate(htmlBodyString, variables)
 
-    // Get team email config
+    // Get organization email config
     const emailConfig = (team as any).emailConfig as TenantEmailConfig | undefined
 
     // Determine which email configuration to use
@@ -127,7 +127,7 @@ export async function sendTenantEmail({
 }
 
 /**
- * Send a simple email with team's custom configuration (without template)
+ * Send a simple email with organization's custom configuration (without template)
  */
 export async function sendSimpleTenantEmail({
   payload,
@@ -143,17 +143,17 @@ export async function sendSimpleTenantEmail({
   html: string
 }): Promise<{ success: boolean; error?: string }> {
   try {
-    // Fetch the team
+    // Fetch the organization
     const team = await payload.findByID({
-      collection: 'teams',
+      collection: 'organizations',
       id: tenantId,
     })
 
     if (!team) {
-      throw new Error(`Team not found: ${tenantId}`)
+      throw new Error(`Organization not found: ${tenantId}`)
     }
 
-    // Get team email config
+    // Get organization email config
     const emailConfig = (team as any).emailConfig as TenantEmailConfig | undefined
     const useCustomConfig = emailConfig?.isActive && emailConfig?.resendApiKey
 

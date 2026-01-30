@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { checkRole, getUserTeamIds } from '@/access/utilities'
+import { checkRole, getUserOrganizationIds } from '@/access/utilities'
 
 export const EmailLogs: CollectionConfig = {
   slug: 'email-logs',
@@ -22,10 +22,10 @@ export const EmailLogs: CollectionConfig = {
         return true
       }
 
-      // Regular users can only read logs for their teams
+      // Regular users can only read logs for their organizations
       if (!user) return false
 
-      const teamIds = await getUserTeamIds(payload, user)
+      const teamIds = await getUserOrganizationIds(payload, user)
 
       if (teamIds.length > 0) {
         return {
@@ -44,10 +44,10 @@ export const EmailLogs: CollectionConfig = {
     {
       name: 'team',
       type: 'relationship',
-      relationTo: 'teams',
+      relationTo: 'organizations',
       required: true,
       admin: {
-        description: 'The team this email belongs to',
+        description: 'The organization this email belongs to',
       },
     },
     {

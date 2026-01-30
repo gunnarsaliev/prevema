@@ -229,16 +229,16 @@ const orgScoped = createOrgScopedAccess() // Admins bypass
 const strictOrgScoped = createOrgScopedAccess(false) // Admins also scoped
 ```
 
-### createTeamBasedAccess
+### createOrganizationBasedAccess
 
 ```typescript
-export function createTeamBasedAccess(teamField = 'teamId'): Access {
+export function createOrganizationBasedAccess(organizationField = 'organizationId'): Access {
   return ({ req: { user } }) => {
     if (!user) return false
     if (user.roles?.includes('admin')) return true
 
     return {
-      [teamField]: { in: user.teamIds || [] },
+      [organizationField]: { in: user.organizationIds || [] },
     }
   }
 }
@@ -353,10 +353,10 @@ export const SelfServiceCollection: CollectionConfig = {
 // ❌ Slow: Multiple sequential async calls
 export const slowAccess: Access = async ({ req: { user } }) => {
   const org = await req.payload.findByID({ collection: 'orgs', id: user.orgId })
-  const team = await req.payload.findByID({ collection: 'teams', id: user.teamId })
+  const organization = await req.payload.findByID({ collection: 'organizations', id: user.organizationId })
   const subscription = await req.payload.findByID({ collection: 'subs', id: user.subId })
 
-  return org.active && team.active && subscription.active
+  return org.active && organization.active && subscription.active
 }
 
 // ✅ Fast: Use query constraints or cache in context

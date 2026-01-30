@@ -89,13 +89,13 @@ export const organizationScoped: Access = ({ req: { user } }) => {
   }
 }
 
-// Team-based access
-export const teamMemberAccess: Access = ({ req: { user } }) => {
+// Organization-based access
+export const organizationMemberAccess: Access = ({ req: { user } }) => {
   if (!user) return false
   if (user.roles?.includes('admin')) return true
 
   return {
-    'team.members': {
+    'organization.members': {
       contains: user.id,
     },
   }

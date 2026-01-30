@@ -80,25 +80,25 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Get team from user if available
-    let finalTeam: string | undefined = undefined
+    // Get organization from user if available
+    let finalOrganization: string | undefined = undefined
     if (user) {
-      // Try to get user's first team
+      // Try to get user's first organization
       try {
-        const teams = (user as any).teams
-        if (teams && Array.isArray(teams) && teams.length > 0) {
-          // Get first team (could be string ID or populated object)
-          const firstTeam = teams[0]
-          finalTeam = typeof firstTeam === 'string' ? firstTeam : firstTeam?.id
+        const organizations = (user as any).teams
+        if (organizations && Array.isArray(organizations) && organizations.length > 0) {
+          // Get first organization (could be string ID or populated object)
+          const firstOrganization = organizations[0]
+          finalOrganization = typeof firstOrganization === 'string' ? firstOrganization : firstOrganization?.id
         }
       } catch (error) {
-        console.error('Error getting user team:', error)
+        console.error('Error getting user organization:', error)
       }
     }
 
-    // If team provided in request and it's valid, use it
+    // If organization provided in request and it's valid, use it
     if (team && team !== '' && team !== 'default') {
-      finalTeam = team
+      finalOrganization = team
     }
 
     // Upload preview image if provided
@@ -229,8 +229,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Only add optional fields if they exist
-    if (finalTeam) {
-      templateData.team = finalTeam
+    if (finalOrganization) {
+      templateData.team = finalOrganization
     }
     if (backgroundImageId) {
       templateData.backgroundImage = backgroundImageId

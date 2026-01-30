@@ -52,16 +52,16 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
     throw new Error('This invitation was sent to a different email address')
   }
 
-  // Get the team ID
+  // Get the organization ID
   const teamId = typeof invitation.team === 'object' ? invitation.team.id : invitation.team
 
-  // Fetch the team
+  // Fetch the organization
   const team = await payload.findByID({
-    collection: 'teams',
+    collection: 'organizations',
     id: teamId,
   })
 
-  // Update the team to add the user as a member
+  // Update the organization to add the user as a member
   const currentMembers = team.members || []
 
   // Check if user is already a member
@@ -81,9 +81,9 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
     })
   }
 
-  // Update the team
+  // Update the organization
   await payload.update({
-    collection: 'teams',
+    collection: 'organizations',
     id: teamId,
     data: {
       members: currentMembers,

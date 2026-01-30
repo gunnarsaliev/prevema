@@ -4,7 +4,7 @@ import {
   teamAwareCreate,
   teamAwareUpdate,
   teamAwareDelete,
-} from '../../access/teamAwareAccess'
+} from '../../access/organizationAwareAccess'
 import { generatePublicFormLink } from './hooks/generatePublicFormLink'
 import { syncOptionalFields } from './hooks/syncOptionalFields'
 import { validateParticipantFields } from './hooks/validateFields'
@@ -44,11 +44,11 @@ export const ParticipantTypes: CollectionConfig = {
     {
       name: 'team',
       type: 'relationship',
-      relationTo: 'teams',
+      relationTo: 'organizations',
       required: true,
       defaultValue: defaultTeamValue,
       admin: {
-        description: 'The team this participant type belongs to',
+        description: 'The organization this participant type belongs to',
       },
     },
     {

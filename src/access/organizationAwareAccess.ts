@@ -1,5 +1,5 @@
 import type { Access } from 'payload'
-import { getUserTeamIds, getUserTeamIdsWithMinRole, checkRole } from './utilities'
+import { getUserOrganizationIds, getUserOrganizationIdsWithMinRole, checkRole } from './utilities'
 
 export const teamAwareRead: Access = async ({ req: { user, payload } }) => {
   // Super-admins and admins can read all records
@@ -7,8 +7,8 @@ export const teamAwareRead: Access = async ({ req: { user, payload } }) => {
     return true
   }
 
-  // Non-admin users can only read records from their teams
-  const teamIds = await getUserTeamIds(payload, user)
+  // Non-admin users can only read records from their organizations
+  const teamIds = await getUserOrganizationIds(payload, user)
 
   if (teamIds.length > 0) {
     return {
@@ -22,13 +22,13 @@ export const teamAwareRead: Access = async ({ req: { user, payload } }) => {
 }
 
 export const teamAwareCreate: Access = async ({ req: { user, payload } }) => {
-  // Super-admins and admins can create records in any team
+  // Super-admins and admins can create records in any organization
   if (checkRole(['super-admin', 'admin'], user)) {
     return true
   }
 
   // Only editors and owners can create records (viewers cannot)
-  const teamIds = await getUserTeamIdsWithMinRole(payload, user, 'editor')
+  const teamIds = await getUserOrganizationIdsWithMinRole(payload, user, 'editor')
 
   if (teamIds.length > 0) {
     return {
@@ -48,7 +48,7 @@ export const teamAwareUpdate: Access = async ({ req: { user, payload } }) => {
   }
 
   // Only editors and owners can update records (viewers cannot)
-  const teamIds = await getUserTeamIdsWithMinRole(payload, user, 'editor')
+  const teamIds = await getUserOrganizationIdsWithMinRole(payload, user, 'editor')
 
   if (teamIds.length > 0) {
     return {
@@ -68,7 +68,7 @@ export const teamAwareDelete: Access = async ({ req: { user, payload } }) => {
   }
 
   // Only editors and owners can delete records (viewers cannot)
-  const teamIds = await getUserTeamIdsWithMinRole(payload, user, 'editor')
+  const teamIds = await getUserOrganizationIdsWithMinRole(payload, user, 'editor')
 
   if (teamIds.length > 0) {
     return {

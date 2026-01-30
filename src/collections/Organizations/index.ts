@@ -1,34 +1,34 @@
 import type { CollectionConfig } from 'payload'
 
-import { teamOwnerFieldAccess } from '@/access/teamOwnerFieldAccess'
-import { checkRole, canCreateTeams, getUserTeamIds, getTeamLimit } from '@/access/utilities'
+import { teamOwnerFieldAccess } from '@/access/organizationOwnerFieldAccess'
+import { checkRole, canCreateOrganizations, getUserOrganizationIds, getOrganizationLimit } from '@/access/utilities'
 import { validateEmailConfig } from '@/services/emailValidation'
 import { formatSlugHook } from '@/utils/formatSlug'
 import { autoInviteMembers } from './hooks/autoInviteMembers'
 
-export const Teams: CollectionConfig = {
-  slug: 'teams',
+export const Organizations: CollectionConfig = {
+  slug: 'organizations',
   access: {
     admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),
     create: async ({ req: { user, payload } }) => {
-      // Super-admins and admins can always create teams (no limit)
+      // Super-admins and admins can always create organizations (no limit)
       if (checkRole(['super-admin', 'admin'], user)) {
         return true
       }
 
-      // Check if user's pricing plan allows team creation
-      if (!canCreateTeams(user)) {
+      // Check if user's pricing plan allows organization creation
+      if (!canCreateOrganizations(user)) {
         return false
       }
 
-      // Check if user has reached their plan's team limit
+      // Check if user has reached their plan's organization limit
       if (user) {
-        const teamLimit = getTeamLimit(user)
+        const teamLimit = getOrganizationLimit(user)
 
         // null means unlimited
         if (teamLimit !== null) {
           const teamCount = await payload.count({
-            collection: 'teams',
+            collection: 'organizations',
             where: {
               owner: {
                 equals: user.id,
@@ -46,15 +46,15 @@ export const Teams: CollectionConfig = {
       return true
     },
     read: async ({ req: { user, payload } }) => {
-      // Super-admins and admins can read all teams
+      // Super-admins and admins can read all organizations
       if (checkRole(['super-admin', 'admin'], user)) {
         return true
       }
 
-      // Regular users can only read teams they are members of
+      // Regular users can only read organizations they are members of
       if (!user) return false
 
-      const teamIds = await getUserTeamIds(payload, user)
+      const teamIds = await getUserOrganizationIds(payload, user)
 
       if (teamIds.length > 0) {
         return {
@@ -64,9 +64,9 @@ export const Teams: CollectionConfig = {
         }
       }
 
-      // Allow users who can create teams to access the collection
-      // even if they have no teams yet (enables creating first team)
-      if (canCreateTeams(user)) {
+      // Allow users who can create organizations to access the collection
+      // even if they have no organizations yet (enables creating first organization)
+      if (canCreateOrganizations(user)) {
         return {
           id: {
             in: [], // Empty array - shows collection UI but no results
@@ -77,15 +77,15 @@ export const Teams: CollectionConfig = {
       return false
     },
     update: async ({ req: { user, payload } }) => {
-      // Super-admins and admins can update any team
+      // Super-admins and admins can update any organization
       if (checkRole(['super-admin', 'admin'], user)) {
         return true
       }
 
-      // Team owners can update their own teams
+      // Organization owners can update their own organizations
       if (!user) return false
 
-      const ownedTeamIds = await getUserTeamIds(payload, user, 'owner')
+      const ownedTeamIds = await getUserOrganizationIds(payload, user, 'owner')
 
       if (ownedTeamIds.length > 0) {
         return {
@@ -98,15 +98,15 @@ export const Teams: CollectionConfig = {
       return false
     },
     delete: async ({ req: { user, payload } }) => {
-      // Super-admins and admins can delete any team
+      // Super-admins and admins can delete any organization
       if (checkRole(['super-admin', 'admin'], user)) {
         return true
       }
 
-      // Team owners can delete their own teams
+      // Organization owners can delete their own organizations
       if (!user) return false
 
-      const ownedTeamIds = await getUserTeamIds(payload, user, 'owner')
+      const ownedTeamIds = await getUserOrganizationIds(payload, user, 'owner')
 
       if (ownedTeamIds.length > 0) {
         return {
@@ -172,7 +172,7 @@ export const Teams: CollectionConfig = {
       required: true,
       defaultValue: ({ user }) => user?.id,
       admin: {
-        description: 'The primary owner of this team (cannot be changed)',
+        description: 'The primary owner of this organization (cannot be changed)',
         readOnly: true,
       },
     },
@@ -183,7 +183,7 @@ export const Teams: CollectionConfig = {
         update: teamOwnerFieldAccess,
       },
       admin: {
-        description: 'Additional users who have access to this team',
+        description: 'Additional users who have access to this organization',
       },
       fields: [
         {
@@ -290,7 +290,7 @@ export const Teams: CollectionConfig = {
             },
           ],
           admin: {
-            description: 'Role within this team',
+            description: 'Role within this organization (owner is set via the owner field)',
           },
         },
       ],
@@ -304,7 +304,7 @@ export const Teams: CollectionConfig = {
         update: teamOwnerFieldAccess,
       },
       admin: {
-        description: 'Configure custom Resend settings for this team',
+        description: 'Configure custom Resend settings for this organization',
         position: 'sidebar',
       },
       fields: [
@@ -313,7 +313,7 @@ export const Teams: CollectionConfig = {
           type: 'checkbox',
           defaultValue: false,
           admin: {
-            description: 'Enable custom email configuration for this team',
+            description: 'Enable custom email configuration for this organization',
           },
         },
         {
@@ -324,7 +324,7 @@ export const Teams: CollectionConfig = {
             condition: (data, siblingData) => siblingData?.isActive,
             components: {
               Field: {
-                path: '@/collections/Teams/components#EncryptedField',
+                path: '@/collections/Organizations/components#EncryptedField',
                 clientProps: {
                   placeholder: 're_••••••••••••••',
                 },
@@ -355,7 +355,7 @@ export const Teams: CollectionConfig = {
           name: 'senderName',
           type: 'text',
           admin: {
-            description: 'From name for emails sent by this team',
+            description: 'From name for emails sent by this organization',
             condition: (data, siblingData) => siblingData?.isActive,
           },
         },
@@ -363,7 +363,7 @@ export const Teams: CollectionConfig = {
           name: 'fromEmail',
           type: 'email',
           admin: {
-            description: 'From email address for this team',
+            description: 'From email address for this organization',
             condition: (data, siblingData) => siblingData?.isActive,
           },
         },
@@ -380,7 +380,7 @@ export const Teams: CollectionConfig = {
           type: 'ui',
           admin: {
             components: {
-              Field: '@/collections/Teams/components#EmailConfigStatus',
+              Field: '@/collections/Organizations/components#EmailConfigStatus',
             },
           },
         },

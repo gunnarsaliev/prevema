@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { teamAwareUpdate, teamAwareDelete } from '../../access/teamAwareAccess'
+import { teamAwareUpdate, teamAwareDelete } from '../../access/organizationAwareAccess'
 import {
   publicParticipantCreate,
   publicParticipantRead,
@@ -52,10 +52,10 @@ export const Participants: CollectionConfig = {
     {
       name: 'team',
       type: 'relationship',
-      relationTo: 'teams',
+      relationTo: 'organizations',
       required: false,
       admin: {
-        description: 'The team this participant belongs to (auto-populated from event)',
+        description: 'The organization this participant belongs to (auto-populated from event)',
         readOnly: true,
       },
     },

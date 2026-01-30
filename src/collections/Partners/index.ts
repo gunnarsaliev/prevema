@@ -42,10 +42,10 @@ export const Partners: CollectionConfig = {
     {
       name: 'team',
       type: 'relationship',
-      relationTo: 'teams',
+      relationTo: 'organizations',
       required: false,
       admin: {
-        description: 'The team this partner belongs to (auto-populated from event)',
+        description: 'The organization this partner belongs to (auto-populated from event)',
         readOnly: true,
       },
     },

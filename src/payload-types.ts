@@ -69,7 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
-    teams: Team;
+    organizations: Organization;
     'email-logs': EmailLog;
     events: Event;
     'image-templates': ImageTemplate;
@@ -89,7 +89,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
-    teams: TeamsSelect<false> | TeamsSelect<true>;
+    organizations: OrganizationsSelect<false> | OrganizationsSelect<true>;
     'email-logs': EmailLogsSelect<false> | EmailLogsSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
     'image-templates': ImageTemplatesSelect<false> | ImageTemplatesSelect<true>;
@@ -147,9 +147,9 @@ export interface User {
   name?: string | null;
   roles?: ('super-admin' | 'admin' | 'user')[] | null;
   /**
-   * Free: 1 tenant. Pro: 3 tenants. Teams: 20 tenants.
+   * Free: 1 organization. Pro: 3 organizations. organizations: 20 organizations.
    */
-  pricingPlan?: ('free' | 'pro' | 'teams' | 'unlimited') | null;
+  pricingPlan?: ('free' | 'pro' | 'organizations' | 'unlimited') | null;  
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -187,18 +187,18 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "teams".
+ * via the `definition` "organizations".
  */
-export interface Team {
+export interface Organization {
   id: number;
   name: string;
   slug?: string | null;
   /**
-   * The primary owner of this team (cannot be changed)
+   * The primary owner of this organization (cannot be changed)
    */
   owner: number | User;
   /**
-   * Additional users who have access to this team
+   * Additional users who have access to this organization
    */
   members?:
     | {
@@ -211,18 +211,18 @@ export interface Team {
          */
         email?: string | null;
         /**
-         * Role within this team
+         * Role within this organization (owner is set via the owner field)
          */
         role: 'admin' | 'editor' | 'viewer';
         id?: string | null;
       }[]
     | null;
   /**
-   * Configure custom Resend settings for this team
+   * Configure custom Resend settings for this organization
    */
   emailConfig?: {
     /**
-     * Enable custom email configuration for this team
+     * Enable custom email configuration for this organization
      */
     isActive?: boolean | null;
     /**
@@ -230,11 +230,11 @@ export interface Team {
      */
     resendApiKey?: string | null;
     /**
-     * From name for emails sent by this team
+     * From name for emails sent by this organization
      */
     senderName?: string | null;
     /**
-     * From email address for this team
+     * From email address for this organization
      */
     fromEmail?: string | null;
     /**
@@ -254,9 +254,9 @@ export interface Team {
 export interface EmailLog {
   id: number;
   /**
-   * The team this email belongs to
+   * The organization this email belongs to
    */
-  team: number | Team;
+  team: number | Organization;
   /**
    * The template used for this email
    */
@@ -318,9 +318,9 @@ export interface EmailTemplate {
    */
   description?: string | null;
   /**
-   * The team this template belongs to
+   * The organization this template belongs to
    */
-  team: number | Team;
+  team: number | Organization;
   slug?: string | null;
   /**
    * Whether this template is active and can be used
@@ -393,9 +393,9 @@ export interface EmailTemplate {
 export interface Event {
   id: number;
   /**
-   * The team this event belongs to
+   * The organization this event belongs to
    */
-  team: number | Team;
+  team: number | Organization;
   name: string;
   slug?: string | null;
   createdBy?: (number | null) | User;
@@ -447,9 +447,9 @@ export interface ImageTemplate {
   name: string;
   slug?: string | null;
   /**
-   * The team this template belongs to
+   * The organization this template belongs to
    */
-  team?: (number | null) | Team;
+  team?: (number | null) | Organization;
   /**
    * Who this template is designed for
    */
@@ -504,13 +504,13 @@ export interface Invitation {
    */
   email: string;
   /**
-   * The tenant this user is being invited to
+   * The organization this user is being invited to
    */
-  team: number | Team;
+  team: number | Organization;
   /**
-   * The role this user will have in the tenant (owner can manage, editor has edit access, viewer has read-only access)
+   * The role this user will have in the organization (admin can manage, editor has edit access, viewer has read-only access)
    */
-  role: 'owner' | 'editor' | 'viewer';
+  role: 'admin' | 'editor' | 'viewer';
   /**
    * Current status of the invitation
    */
@@ -534,9 +534,9 @@ export interface Invitation {
 export interface Participant {
   id: number;
   /**
-   * The team this participant belongs to (auto-populated from event)
+   * The organization this participant belongs to (auto-populated from event)
    */
-  team?: (number | null) | Team;
+  team?: (number | null) | Organization;
   name: string;
   email: string;
   event: number | Event;
@@ -605,9 +605,9 @@ export interface Participant {
 export interface ParticipantType {
   id: number;
   /**
-   * The team this participant type belongs to
+   * The organization this participant type belongs to
    */
-  team: number | Team;
+  team: number | Organization;
   name: string;
   slug?: string | null;
   description?: string | null;
@@ -672,9 +672,9 @@ export interface ParticipantType {
 export interface Partner {
   id: number;
   /**
-   * The team this partner belongs to (auto-populated from event)
+   * The organization this partner belongs to (auto-populated from event)
    */
-  team?: (number | null) | Team;
+  team?: (number | null) | Organization;
   companyName: string;
   event: number | Event;
   partnerType: number | PartnerType;
@@ -755,9 +755,9 @@ export interface Partner {
 export interface PartnerType {
   id: number;
   /**
-   * The team this partner type belongs to
+   * The organization this partner type belongs to
    */
-  team: number | Team;
+  team: number | Organization;
   name: string;
   slug?: string | null;
   description?: string | null;
@@ -818,9 +818,9 @@ export interface PartnerType {
 export interface PartnerTier {
   id: number;
   /**
-   * The team this partner tier belongs to
+   * The organization this partner tier belongs to
    */
-  team: number | Team;
+  team: number | Organization;
   name: string;
   slug?: string | null;
   level?: number | null;
@@ -861,8 +861,8 @@ export interface PayloadLockedDocument {
         value: number | Media;
       } | null)
     | ({
-        relationTo: 'teams';
-        value: number | Team;
+        relationTo: 'organizations';
+        value: number | Organization;
       } | null)
     | ({
         relationTo: 'email-logs';
@@ -989,9 +989,9 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "teams_select".
+ * via the `definition` "organizations_select".
  */
-export interface TeamsSelect<T extends boolean = true> {
+export interface OrganizationsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   owner?: T;

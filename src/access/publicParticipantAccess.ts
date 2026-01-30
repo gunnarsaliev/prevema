@@ -1,5 +1,5 @@
 import type { Access } from 'payload'
-import { getUserTeamIds, getUserTeamIdsWithMinRole, checkRole } from './utilities'
+import { getUserOrganizationIds, getUserOrganizationIdsWithMinRole, checkRole } from './utilities'
 
 // Allow public (unauthenticated) users to create participants
 export const publicParticipantCreate: Access = async ({ req: { user, payload } }) => {
@@ -8,19 +8,19 @@ export const publicParticipantCreate: Access = async ({ req: { user, payload } }
     return true
   }
 
-  // If user is authenticated, use same logic as team-aware create
-  // Super-admins and admins can create records in any team
+  // If user is authenticated, use same logic as organization-aware create
+  // Super-admins and admins can create records in any organization
   if (checkRole(['super-admin', 'admin'], user)) {
     return true
   }
 
   // Only editors and owners can create records (viewers cannot)
-  const teamIds = await getUserTeamIdsWithMinRole(payload, user, 'editor')
+  const organizationIds = await getUserOrganizationIdsWithMinRole(payload, user, 'editor')
 
-  if (teamIds.length > 0) {
+  if (organizationIds.length > 0) {
     return {
-      team: {
-        in: teamIds,
+      organization: {
+        in: organizationIds,
       },
     }
   }
@@ -28,7 +28,7 @@ export const publicParticipantCreate: Access = async ({ req: { user, payload } }
   return false
 }
 
-// Read access - team aware for authenticated users only
+// Read access - organization aware for authenticated users only
 export const publicParticipantRead: Access = async ({ req: { user, payload } }) => {
   // No public read access
   if (!user) {
@@ -40,13 +40,13 @@ export const publicParticipantRead: Access = async ({ req: { user, payload } }) 
     return true
   }
 
-  // Non-admin users can only read records from their teams
-  const teamIds = await getUserTeamIds(payload, user)
+  // Non-admin users can only read records from their organizations
+  const organizationIds = await getUserOrganizationIds(payload, user)
 
-  if (teamIds.length > 0) {
+  if (organizationIds.length > 0) {
     return {
-      team: {
-        in: teamIds,
+      organization: {
+        in: organizationIds,
       },
     }
   }

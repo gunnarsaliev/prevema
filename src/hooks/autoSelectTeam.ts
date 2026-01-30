@@ -1,24 +1,24 @@
 import type { CollectionBeforeValidateHook } from 'payload'
-import { getUserTeamIds } from '@/access/utilities'
+import { getUserOrganizationIds } from '@/access/utilities'
 
 /**
- * Automatically selects the team when:
+ * Automatically selects the organization when:
  * - A new record is being created
- * - No team has been manually selected yet
- * - The user has exactly one team available
+ * - No organization has been manually selected yet
+ * - The user has exactly one organization available
  */
 export const autoSelectTeam: CollectionBeforeValidateHook = async ({ req, data, operation }) => {
   if (operation === 'create' && !data?.team && req.user) {
     try {
-      // Get user's teams
-      const teamIds = await getUserTeamIds(req.payload, req.user)
+      // Get user's organizations
+      const organizationIds = await getUserOrganizationIds(req.payload, req.user)
 
-      // If user has exactly one team, auto-populate it
-      if (teamIds.length === 1) {
-        data.team = teamIds[0]
+      // If user has exactly one organization, auto-populate it
+      if (organizationIds.length === 1) {
+        data.team = organizationIds[0]
       }
     } catch (error) {
-      console.error('[autoSelectTeam] Error auto-selecting team:', error)
+      console.error('[autoSelectTeam] Error auto-selecting organization:', error)
     }
   }
 

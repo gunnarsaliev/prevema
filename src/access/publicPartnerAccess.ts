@@ -8,8 +8,8 @@ export const publicPartnerCreate: Access = async ({ req: { user, payload } }) =>
     return true
   }
 
-  // If user is authenticated, use same logic as tenant-aware create
-  // Super-admins and admins can create records in any team
+  // If user is authenticated, use same logic as organization-aware create
+  // Super-admins and admins can create records in any organization
   if (checkRole(['super-admin', 'admin'], user)) {
     return true
   }
@@ -28,7 +28,7 @@ export const publicPartnerCreate: Access = async ({ req: { user, payload } }) =>
   return false
 }
 
-// Read access - tenant aware for authenticated users only
+// Read access - organization aware for authenticated users only
 export const publicPartnerRead: Access = async ({ req: { user, payload } }) => {
   // No public read access
   if (!user) {
@@ -40,7 +40,7 @@ export const publicPartnerRead: Access = async ({ req: { user, payload } }) => {
     return true
   }
 
-  // Non-admin users can only read records from their teams
+  // Non-admin users can only read records from their organizations
   const teamIds = await getUserTeamIds(payload, user)
 
   if (teamIds.length > 0) {

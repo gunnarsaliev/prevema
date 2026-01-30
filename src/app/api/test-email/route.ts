@@ -25,18 +25,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user has access to this team
-    const team = await payload.findByID({
-      collection: 'teams',
+    // Check if user has access to this organization
+    const organization = await payload.findByID({
+      collection: 'organizations',
       id: tenantId,
     })
 
-    if (!team) {
-      return NextResponse.json({ success: false, error: 'Team not found' }, { status: 404 })
+    if (!organization) {
+      return NextResponse.json({ success: false, error: 'Organization not found' }, { status: 404 })
     }
 
-    // Check if user is a member of this team
-    const members = (team as any).members || []
+    // Check if user is a member of this organization
+    const members = (organization as any).members || []
     const isMember = members.some((member: any) => {
       const userId = typeof member.user === 'object' ? member.user?.id : member.user
       return userId === user.id
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     if (!isMember && !user.roles?.includes('super-admin') && !user.roles?.includes('admin')) {
       return NextResponse.json(
-        { success: false, error: 'You do not have access to this team' },
+        { success: false, error: 'You do not have access to this organization' },
         { status: 403 },
       )
     }
@@ -67,9 +67,9 @@ export async function POST(request: NextRequest) {
       sampleVariables.email = testEmail
     }
 
-    // Override team name if available
-    if (sampleVariables.tenantName && typeof team === 'object') {
-      sampleVariables.tenantName = team.name
+    // Override organization name if available
+    if (sampleVariables.tenantName && typeof organization === 'object') {
+      sampleVariables.tenantName = organization.name
     }
 
     // Send test email

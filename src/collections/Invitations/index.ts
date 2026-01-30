@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { checkRole, getTeamRole, getUserTeamIds } from '@/access/utilities'
+import { checkRole, getOrganizationRole, getUserOrganizationIds } from '@/access/utilities'
 import { autoSelectTeam } from '@/hooks/autoSelectTeam'
 import { defaultTeamValue } from '@/fields/defaultTeamValue'
 import crypto from 'crypto'
@@ -25,10 +25,10 @@ export const Invitations: CollectionConfig = {
         return true
       }
 
-      // Tenant owners can create invitations for their tenants
+      // Organization owners can create invitations for their organizations
       if (data?.team) {
         const teamId = typeof data.team === 'object' ? data.team.id : data.team
-        const userRole = await getTeamRole(payload, user, teamId)
+        const userRole = await getOrganizationRole(payload, user, teamId)
 
         if (userRole === 'owner') {
           return true
@@ -37,7 +37,7 @@ export const Invitations: CollectionConfig = {
 
       return false
     },
-    // Super-admins and admins can read all invitations, tenant owners can see invitations for their tenants, users can see invitations sent to their email
+    // Super-admins and admins can read all invitations, organization owners can see invitations for their organizations, users can see invitations sent to their email
     read: async ({ req: { user, payload } }) => {
       if (!user) return false
 
@@ -46,10 +46,10 @@ export const Invitations: CollectionConfig = {
         return true
       }
 
-      // Get tenants where user is an owner
-      const ownedTenantIds = await getUserTeamIds(payload, user, 'owner')
+      // Get organizations where user is an owner
+      const ownedTenantIds = await getUserOrganizationIds(payload, user, 'owner')
 
-      // Build query: user's email OR tenant they own
+      // Build query: user's email OR organization they own
       const orConditions: any[] = [
         {
           email: {
@@ -70,7 +70,7 @@ export const Invitations: CollectionConfig = {
         or: orConditions,
       }
     },
-    // Super-admins, admins, and tenant owners can update invitations
+    // Super-admins, admins, and organization owners can update invitations
     update: async ({ req: { user, payload } }) => {
       if (!user) return false
 
@@ -79,8 +79,8 @@ export const Invitations: CollectionConfig = {
         return true
       }
 
-      // Tenant owners can update invitations for their tenants
-      const ownedTenantIds = await getUserTeamIds(payload, user, 'owner')
+      // Organization owners can update invitations for their organizations
+      const ownedTenantIds = await getUserOrganizationIds(payload, user, 'owner')
 
       if (ownedTenantIds.length > 0) {
         return {
@@ -92,7 +92,7 @@ export const Invitations: CollectionConfig = {
 
       return false
     },
-    // Super-admins, admins, and tenant owners can delete invitations
+    // Super-admins, admins, and organization owners can delete invitations
     delete: async ({ req: { user, payload } }) => {
       if (!user) return false
 
@@ -101,8 +101,8 @@ export const Invitations: CollectionConfig = {
         return true
       }
 
-      // Tenant owners can delete invitations for their tenants
-      const ownedTenantIds = await getUserTeamIds(payload, user, 'owner')
+      // Organization owners can delete invitations for their organizations
+      const ownedTenantIds = await getUserOrganizationIds(payload, user, 'owner')
 
       if (ownedTenantIds.length > 0) {
         return {
@@ -149,11 +149,11 @@ export const Invitations: CollectionConfig = {
           console.log('🔗 Invitation URL:', inviteUrl)
           
           try {
-            // Fetch tenant details to include in email
-            let tenantName = 'a tenant'
+            // Fetch organization details to include in email
+            let tenantName = 'an organization'
             if (typeof doc.team === 'string') {
               const tenant = await req.payload.findByID({
-                collection: 'teams',
+                collection: 'organizations',
                 id: doc.team,
               })
               tenantName = tenant.name || tenantName
@@ -209,7 +209,7 @@ export const Invitations: CollectionConfig = {
                   <div style="background-color: #fff; border: 1px solid #e1e4e8; border-radius: 8px; padding: 25px; margin-bottom: 20px;">
                     <h2 style="color: #2c3e50; font-size: 18px; margin-top: 0;">Invitation Details</h2>
                     <p style="margin: 10px 0;">
-                      <strong>Tenant:</strong> ${tenantName}<br>
+                      <strong>Organization:</strong> ${tenantName}<br>
                       <strong>Role:</strong> ${roleLabel}<br>
                       <strong>Expires:</strong> ${new Date(doc.expiresAt).toLocaleDateString('en-US', { 
                         year: 'numeric', 
@@ -241,7 +241,7 @@ export const Invitations: CollectionConfig = {
             })
             
             console.log('📬 Email send result:', emailResult)
-            console.log(`✅ Invitation email sent to ${doc.email} for team: ${tenantName}`)
+            console.log(`✅ Invitation email sent to ${doc.email} for organization: ${tenantName}`)
           } catch (error) {
             console.error('❌ Failed to send invitation email:', error)
             // Don't throw error - we still want the invitation to be created
@@ -262,11 +262,11 @@ export const Invitations: CollectionConfig = {
     {
       name: 'team',
       type: 'relationship',
-      relationTo: 'teams',
+      relationTo: 'organizations',
       required: true,
       defaultValue: defaultTeamValue,
       admin: {
-        description: 'The tenant this user is being invited to',
+        description: 'The organization this user is being invited to',
       },
     },
     {
@@ -276,8 +276,8 @@ export const Invitations: CollectionConfig = {
       defaultValue: 'editor',
       options: [
         {
-          label: 'Owner',
-          value: 'owner',
+          label: 'Admin',
+          value: 'admin',
         },
         {
           label: 'Editor',
@@ -289,7 +289,7 @@ export const Invitations: CollectionConfig = {
         },
       ],
       admin: {
-        description: 'The role this user will have in the tenant (owner can manage, editor has edit access, viewer has read-only access)',
+        description: 'The role this user will have in the organization (admin can manage, editor has edit access, viewer has read-only access)',
       },
     },
     {

@@ -1,21 +1,21 @@
-import { getUserTeamIds } from '@/access/utilities'
+import { getUserOrganizationIds } from '@/access/utilities'
 
 /**
- * Default value function for team fields
- * Automatically selects the team if the user has exactly one team
+ * Default value function for organization fields
+ * Automatically selects the organization if the user has exactly one organization
  */
 export const defaultTeamValue = async ({ user, req }: any) => {
   if (!user) return undefined
 
   try {
-    const teamIds = await getUserTeamIds(req.payload, user)
+    const organizationIds = await getUserOrganizationIds(req.payload, user)
 
-    // If user has exactly one team, return it as default
-    if (teamIds.length === 1) {
-      return teamIds[0]
+    // If user has exactly one organization, return it as default
+    if (organizationIds.length === 1) {
+      return organizationIds[0]
     }
   } catch (error) {
-    console.error('[defaultTeamValue] Error getting team:', error)
+    console.error('[defaultTeamValue] Error getting organization:', error)
   }
 
   return undefined

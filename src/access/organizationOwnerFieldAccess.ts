@@ -1,11 +1,11 @@
 import type { FieldAccess } from 'payload'
 
-import { checkRole, getTeamRole } from '@/access/utilities'
+import { checkRole, getOrganizationRole } from '@/access/utilities'
 
 /**
- * Field access control for team owner operations:
+ * Field access control for organization owner operations:
  * - Super-admins and admins can always access
- * - Only team owners can update this field
+ * - Only organization owners can update this field
  * - Editors and viewers cannot update
  */
 export const teamOwnerFieldAccess: FieldAccess = async ({ req: { user, payload }, data }) => {
@@ -16,7 +16,7 @@ export const teamOwnerFieldAccess: FieldAccess = async ({ req: { user, payload }
     return true
   }
 
-  // Get the team ID from the document being edited
+  // Get the organization ID from the document being edited
   const teamId = data?.id || null
 
   if (!teamId) {
@@ -24,8 +24,8 @@ export const teamOwnerFieldAccess: FieldAccess = async ({ req: { user, payload }
     return true
   }
 
-  // Check if user is owner of this team
-  const userRole = await getTeamRole(payload, user, teamId)
+  // Check if user is owner of this organization
+  const userRole = await getOrganizationRole(payload, user, teamId)
 
   return userRole === 'owner'
 }

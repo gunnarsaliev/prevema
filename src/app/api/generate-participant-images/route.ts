@@ -3,7 +3,7 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { ImageGenerationService } from '@/services/imageGeneration'
 import { ZipArchiveService } from '@/services/zipArchive'
-import { checkRole, getUserTeamIdsWithMinRole } from '@/access/utilities'
+import { checkRole, getUserOrganizationIdsWithMinRole } from '@/access/utilities'
 import type { Participant, ImageTemplate } from '@/payload-types'
 
 /**
@@ -65,9 +65,9 @@ interface ErrorResponse {
  * - GENERATION_FAILED: All image generations failed
  * - INTERNAL_ERROR: Unexpected server error
  *
- * **Team Isolation**:
- * - Non-admin users can only access templates and participants from their authorized teams
- * - Super-admins can access all teams
+ * **Organization Isolation**:
+ * - Non-admin users can only access templates and participants from their authorized organizations
+ * - Super-admins can access all organizations
  *
  * @param req - Next.js request object
  * @returns NextResponse with image/ZIP buffer or error JSON
@@ -131,18 +131,18 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Subtask 5.2: Get user's authorized team IDs
+    // Subtask 5.2: Get user's authorized organization IDs
     const isSuperAdmin = checkRole(['super-admin'], user)
-    let authorizedTeamIds: (string | number)[] = []
+    let authorizedOrganizationIds: (string | number)[] = []
 
     if (!isSuperAdmin) {
-      authorizedTeamIds = await getUserTeamIdsWithMinRole(payload, user, 'viewer')
+      authorizedOrganizationIds = await getUserOrganizationIdsWithMinRole(payload, user, 'viewer')
 
-      if (authorizedTeamIds.length === 0) {
+      if (authorizedOrganizationIds.length === 0) {
         return NextResponse.json(
           {
             success: false,
-            error: 'User has no authorized teams',
+            error: 'User has no authorized organizations',
             code: 'FORBIDDEN',
           } as ErrorResponse,
           { status: 403 },
@@ -172,10 +172,10 @@ export async function POST(req: NextRequest) {
 
     // Subtask 5.2: Validate user has access to template
     if (!isSuperAdmin) {
-      const templateTeamId =
+      const templateOrganizationId =
         typeof template.team === 'object' ? template.team?.id : template.team
 
-      if (!templateTeamId || !authorizedTeamIds.includes(templateTeamId)) {
+      if (!templateOrganizationId || !authorizedOrganizationIds.includes(templateOrganizationId)) {
         return NextResponse.json(
           {
             success: false,
@@ -233,10 +233,10 @@ export async function POST(req: NextRequest) {
     // Subtask 5.2: Validate user has access to all participants
     if (!isSuperAdmin) {
       const unauthorizedParticipants = participants.filter((participant) => {
-        const participantTeamId =
+        const participantOrganizationId =
           typeof participant.team === 'object' ? participant.team?.id : participant.team
 
-        return !participantTeamId || !authorizedTeamIds.includes(participantTeamId)
+        return !participantOrganizationId || !authorizedOrganizationIds.includes(participantOrganizationId)
       })
 
       if (unauthorizedParticipants.length > 0) {

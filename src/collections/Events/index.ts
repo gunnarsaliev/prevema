@@ -4,7 +4,7 @@ import {
   teamAwareCreate,
   teamAwareUpdate,
   teamAwareDelete,
-} from '../../access/teamAwareAccess'
+} from '../../access/organizationAwareAccess'
 import { populateCreatedBy } from './hooks/populateCreatedBy'
 import { autoSelectTeam } from '@/hooks/autoSelectTeam'
 import { defaultTeamValue } from '@/fields/defaultTeamValue'
@@ -30,11 +30,11 @@ export const Events: CollectionConfig = {
     {
       name: 'team',
       type: 'relationship',
-      relationTo: 'teams',
+      relationTo: 'organizations',
       required: true,
       defaultValue: defaultTeamValue,
       admin: {
-        description: 'The team this event belongs to',
+        description: 'The organization this event belongs to',
       },
     },
     {

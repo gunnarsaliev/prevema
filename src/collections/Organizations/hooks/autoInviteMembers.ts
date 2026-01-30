@@ -1,10 +1,10 @@
 import type { CollectionAfterChangeHook } from 'payload'
-import type { Team } from '@/payload-types'
+import type { Organization } from '@/payload-types'
 
 /**
- * Automatically send invitations when team members are added with email addresses
+ * Automatically send invitations when organization members are added with email addresses
  */
-export const autoInviteMembers: CollectionAfterChangeHook<Team> = async ({
+export const autoInviteMembers: CollectionAfterChangeHook<Organization> = async ({
   doc,
   previousDoc,
   operation,
@@ -83,20 +83,20 @@ export const autoInviteMembers: CollectionAfterChangeHook<Team> = async ({
     return member.user !== null && member.user !== undefined
   })
 
-  // Update the team to remove email-only members
+  // Update the organization to remove email-only members
   try {
     await payload.update({
-      collection: 'teams',
+      collection: 'organizations',
       id: doc.id,
       data: {
         members: updatedMembers,
       },
     })
 
-    console.log(`✅ Removed ${newEmailMembers.length} email-only member(s) from team`)
+    console.log(`✅ Removed ${newEmailMembers.length} email-only member(s) from organization`)
     console.log('📬 Invitations sent. Users will be added when they accept.')
   } catch (error) {
-    console.error('❌ Failed to update team members:', error)
+    console.error('❌ Failed to update organization members:', error)
   }
 
   // Add success/error messages to admin UI

@@ -1,26 +1,26 @@
-import { getUserTeamIds } from '@/access/utilities'
+import { getUserOrganizationIds } from '@/access/utilities'
 
 /**
  * Default value function for event fields
- * Automatically selects the event if there's exactly one event available for the user's team(s)
+ * Automatically selects the event if there's exactly one event available for the user's organization(s)
  */
 export const defaultEventValue = async ({ user, req }: any) => {
   if (!user) return undefined
 
   try {
-    // Get user's teams
-    const teamIds = await getUserTeamIds(req.payload, user)
+    // Get user's organizations
+    const organizationIds = await getUserOrganizationIds(req.payload, user)
 
-    if (teamIds.length === 0) {
+    if (organizationIds.length === 0) {
       return undefined
     }
 
-    // Query events for the user's teams
+    // Query events for the user's organizations
     const events = await req.payload.find({
       collection: 'events',
       where: {
         team: {
-          in: teamIds,
+          in: organizationIds,
         },
       },
       limit: 2, // Only need to check if there's 1 or more

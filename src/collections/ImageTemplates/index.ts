@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { checkRole, getUserTeamIds } from '@/access/utilities'
+import { checkRole, getUserOrganizationIds } from '@/access/utilities'
 import { autoSelectTeam } from '@/hooks/autoSelectTeam'
 import { defaultTeamValue } from '@/fields/defaultTeamValue'
 import { formatSlugHook } from '@/utils/formatSlug'
@@ -17,12 +17,12 @@ export const ImageTemplates: CollectionConfig = {
   access: {
     admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),
     create: async ({ req: { user } }) => {
-      // Super-admins and admins can create templates for any team
+      // Super-admins and admins can create templates for any organization
       if (checkRole(['super-admin', 'admin'], user)) {
         return true
       }
 
-      // Regular users can only create templates for their teams
+      // Regular users can only create templates for their organizations
       return !!user
     },
     read: async ({ req: { user, payload } }) => {
@@ -31,10 +31,10 @@ export const ImageTemplates: CollectionConfig = {
         return true
       }
 
-      // Regular users can only read templates for their teams
+      // Regular users can only read templates for their organizations
       if (!user) return false
 
-      const teamIds = await getUserTeamIds(payload, user)
+      const teamIds = await getUserOrganizationIds(payload, user)
 
       if (teamIds.length > 0) {
         return {
@@ -52,10 +52,10 @@ export const ImageTemplates: CollectionConfig = {
         return true
       }
 
-      // Regular users can only update templates for their teams
+      // Regular users can only update templates for their organizations
       if (!user) return false
 
-      const teamIds = await getUserTeamIds(payload, user)
+      const teamIds = await getUserOrganizationIds(payload, user)
 
       if (teamIds.length > 0) {
         return {
@@ -73,10 +73,10 @@ export const ImageTemplates: CollectionConfig = {
         return true
       }
 
-      // Regular users can only delete templates for their teams
+      // Regular users can only delete templates for their organizations
       if (!user) return false
 
-      const teamIds = await getUserTeamIds(payload, user)
+      const teamIds = await getUserOrganizationIds(payload, user)
 
       if (teamIds.length > 0) {
         return {
@@ -119,11 +119,11 @@ export const ImageTemplates: CollectionConfig = {
     {
       name: 'team',
       type: 'relationship',
-      relationTo: 'teams',
+      relationTo: 'organizations',
       required: false, // Make optional for API usage from frontend
       defaultValue: defaultTeamValue,
       admin: {
-        description: 'The team this template belongs to',
+        description: 'The organization this template belongs to',
       },
     },
     {

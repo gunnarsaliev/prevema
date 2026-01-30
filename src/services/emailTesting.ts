@@ -75,7 +75,7 @@ export async function sendTestEmail({
 
     // Fetch team to get email config
     const team = await payload.findByID({
-      collection: 'teams',
+      collection: 'organizations',
       id: tenantId,
     })
 
