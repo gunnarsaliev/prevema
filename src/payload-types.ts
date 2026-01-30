@@ -122,6 +122,12 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
+  name?: string | null;
+  roles?: ('super-admin' | 'admin' | 'user')[] | null;
+  /**
+   * Free: 1 tenant. Pro: 3 tenants. Teams: 20 tenants.
+   */
+  pricingPlan?: ('free' | 'pro' | 'teams' | 'unlimited') | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -146,7 +152,7 @@ export interface User {
  */
 export interface Media {
   id: number;
-  alt: string;
+  alt?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -156,8 +162,6 @@ export interface Media {
   filesize?: number | null;
   width?: number | null;
   height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -238,6 +242,9 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  roles?: T;
+  pricingPlan?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -270,8 +277,6 @@ export interface MediaSelect<T extends boolean = true> {
   filesize?: T;
   width?: T;
   height?: T;
-  focalX?: T;
-  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
