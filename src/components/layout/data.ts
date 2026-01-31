@@ -35,6 +35,20 @@ export type Bucket = {
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
 }
 
+export type Guest = {
+  id: string
+  name: string
+  email: string
+  avatar: string
+}
+
+export type Partner = {
+  id: string
+  name: string
+  email: string
+  avatar: string
+}
+
 export type User = {
   id: string
   name: string
@@ -81,6 +95,13 @@ export type PreviousConversation = {
   timestamp: string
 }
 
+export const buckets: Bucket[] = [
+  { id: 'support', label: 'Support', icon: UserCheck },
+  { id: 'bugs', label: 'Bug Reports', icon: Bug },
+  { id: 'features', label: 'Features', icon: Lightbulb },
+  { id: 'internal', label: 'Internal', icon: Archive },
+]
+
 export const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', url: '/dash', icon: Inbox, count: 6 },
   { id: 'messages', label: 'Messages', url: '/dash/messages', icon: MailOpen, count: 10 },
@@ -88,13 +109,17 @@ export const navItems: NavItem[] = [
   { id: 'graphics', label: 'Graphics', url: '/dash/graphics', icon: Palette },
 ]
 
-export const buckets: Bucket[] = [
-  { id: 'support', label: 'Support requests', icon: MessageSquare },
-  { id: 'bugs', label: 'Bug reports', icon: Bug },
-  { id: 'features', label: 'Feature requests', icon: Lightbulb },
-  { id: 'internal', label: 'Internal', icon: Users },
+export const guests: Guest[] = [
+  { id: 'speackers', name: 'Speackers', email: '', avatar: '' },
+  { id: 'brand-ambassadors', name: 'Brand Ambassadors', email: '', avatar: '' },
+  { id: 'moderators', name: 'Moderators', email: '', avatar: '' },
 ]
 
+export const partners: Partner[] = [
+  { id: 'brands', name: 'Brands', email: '', avatar: '' },
+  { id: 'influencers', name: 'Influencers', email: '', avatar: '' },
+  { id: 'media', name: 'Media', email: '', avatar: '' },
+]
 export const staffUsers: User[] = [
   {
     id: 'peter',

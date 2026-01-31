@@ -1,4 +1,4 @@
-import { CommandIcon, MoreHorizontal, Search } from 'lucide-react'
+import { CommandIcon, MoreHorizontal, Search, Users, UserCheck } from 'lucide-react'
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -20,7 +20,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { LogoDropdown } from './logo-dropdown'
-import { navItems, buckets, type NavItemId, type BucketId } from './data'
+import { navItems, partners, guests, buckets, type NavItemId, type BucketId } from './data'
 import { NavUser, type UserData } from './avatar-menu'
 
 // Sample user data - replace with actual user data from your auth system
@@ -124,6 +124,38 @@ export function AppSidebar({
                   </SidebarMenuItem>
                 )
               })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Guests</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {guests.map((guest) => (
+                <SidebarMenuItem key={guest.id}>
+                  <SidebarMenuButton className="px-2">
+                    <Users className="size-4" />
+                    <span>{guest.name}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Partners</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {partners.map((partner) => (
+                <SidebarMenuItem key={partner.id}>
+                  <SidebarMenuButton className="px-2">
+                    <UserCheck className="size-4" />
+                    <span>{partner.name}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
