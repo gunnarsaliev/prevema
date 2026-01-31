@@ -30,7 +30,7 @@ export function DesktopLayout({
   onAgentPanelToggle,
 }: DesktopLayoutProps) {
   return (
-    <SidebarInset className="hidden min-h-0 overflow-hidden md:flex">
+    <SidebarInset className="hidden min-h-0 overflow-hidden md:flex h-full">
       <div className="flex h-full w-full">
         <TicketListPanel
           tickets={tickets}
@@ -39,7 +39,11 @@ export function DesktopLayout({
           activeNavItem={activeNavItem}
         />
 
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <div
+          className={`flex min-w-0 flex-col overflow-hidden transition-all duration-200 ${
+            isAgentPanelOpen ? 'flex-1' : 'flex-1'
+          }`}
+        >
           {selectedTicket ? (
             <>
               <header className="flex h-14 shrink-0 items-center justify-between border-b bg-background px-4">
@@ -61,8 +65,16 @@ export function DesktopLayout({
               </header>
 
               <ScrollArea className="min-h-0 flex-1">
-                <div className="px-6 py-6 lg:px-10">
-                  <div className="mx-auto max-w-3xl space-y-8">
+                <div
+                  className={`px-6 py-6 transition-all duration-200 ${
+                    isAgentPanelOpen ? 'lg:px-10' : 'lg:px-10 xl:px-16'
+                  }`}
+                >
+                  <div
+                    className={`mx-auto space-y-8 transition-all duration-200 ${
+                      isAgentPanelOpen ? 'max-w-3xl' : 'max-w-4xl xl:max-w-5xl'
+                    }`}
+                  >
                     {selectedTicket.messages.map((message: any) => (
                       <MessageBubble key={message.id} message={message} />
                     ))}
@@ -73,6 +85,7 @@ export function DesktopLayout({
               <ReplyComposer
                 recipientEmail={selectedTicket.customer.email}
                 respondingUser={selectedTicket.respondingUser}
+                isAgentPanelOpen={isAgentPanelOpen}
               />
             </>
           ) : (

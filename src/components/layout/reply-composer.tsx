@@ -13,6 +13,7 @@ import { type User } from './data'
 interface ReplyComposerProps {
   recipientEmail: string
   respondingUser?: User
+  isAgentPanelOpen?: boolean
 }
 
 function getInitials(name: string) {
@@ -26,10 +27,22 @@ function getInitials(name: string) {
   )
 }
 
-export function ReplyComposer({ recipientEmail, respondingUser }: ReplyComposerProps) {
+export function ReplyComposer({
+  recipientEmail,
+  respondingUser,
+  isAgentPanelOpen = true,
+}: ReplyComposerProps) {
   return (
-    <div className="shrink-0 border-t bg-background px-6 py-4 lg:px-10">
-      <div className="mx-auto max-w-3xl rounded-lg border bg-muted/30">
+    <div
+      className={`shrink-0 border-t bg-background px-6 py-4 transition-all duration-200 ${
+        isAgentPanelOpen ? 'lg:px-10' : 'lg:px-10 xl:px-16'
+      }`}
+    >
+      <div
+        className={`mx-auto rounded-lg border bg-muted/30 transition-all duration-200 ${
+          isAgentPanelOpen ? 'max-w-3xl' : 'max-w-4xl xl:max-w-5xl'
+        }`}
+      >
         <div className="flex items-center gap-2 border-b px-3 py-2">
           <ArrowLeft className="size-4 shrink-0 rotate-[135deg] text-muted-foreground" />
           <span className="truncate text-sm text-muted-foreground">{recipientEmail}</span>
