@@ -36,10 +36,10 @@ export function MobileDashLayout({ children, showTicketList = false }: MobileDas
   } = useApplicationState()
 
   return (
-    <>
+    <div className="w-screen md:hidden">
       {/* Mobile Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b px-4 md:hidden">
-        <div className="flex items-center gap-2">
+      <div className="flex h-14 shrink-0 items-center justify-between border-b w-screen">
+        <div className="flex items-center gap-2 px-4">
           <LogoImage
             src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/block-1.svg"
             alt="Shadcnblocks"
@@ -49,17 +49,19 @@ export function MobileDashLayout({ children, showTicketList = false }: MobileDas
             {navItems.find((item) => item.id === activeNavItem)?.label ?? 'Dashboard'}
           </span>
         </div>
-        <MobileNavUser
-          user={{
-            name: 'John Doe',
-            email: 'john@example.com',
-            avatar: 'https://deifkwefumgah.cloudfront.net/shadcnblocks/block/avatar-1.webp',
-          }}
-        />
+        <div className="px-4">
+          <MobileNavUser
+            user={{
+              name: 'John Doe',
+              email: 'john@example.com',
+              avatar: 'https://deifkwefumgah.cloudfront.net/shadcnblocks/block/avatar-1.webp',
+            }}
+          />
+        </div>
       </div>
 
       {/* Mobile Content */}
-      <div className="flex flex-1 flex-col overflow-hidden pb-16 md:hidden">
+      <div className="flex flex-1 flex-col overflow-hidden pb-16">
         {showTicketList ? (
           <MobileTicketList
             tickets={tickets}
@@ -82,7 +84,7 @@ export function MobileDashLayout({ children, showTicketList = false }: MobileDas
 
       {/* Mobile Drawers */}
       <Drawer open={isMobileTicketListOpen} onOpenChange={setIsMobileTicketListOpen} dismissible>
-        <DrawerContent className="h-[85vh] md:hidden">
+        <DrawerContent className="h-[85vh]">
           <DrawerHeader>
             <DrawerTitle>Tickets</DrawerTitle>
           </DrawerHeader>
@@ -118,6 +120,6 @@ export function MobileDashLayout({ children, showTicketList = false }: MobileDas
           setActiveNavItem(navItemId)
         }}
       />
-    </>
+    </div>
   )
 }
