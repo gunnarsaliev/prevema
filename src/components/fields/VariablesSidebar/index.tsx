@@ -15,7 +15,7 @@ export const VariablesSidebarField: React.FC = () => {
 
   // Get the trigger event from the form
   const triggerEvent = useFormFields(
-    ([fields]) => fields?.automationTriggers?.triggerEvent?.value as TriggerEvent | 'none',
+    ([fields]) => (fields as any)?.automationTriggers?.triggerEvent?.value as TriggerEvent | 'none',
   )
 
   // Get all variables
@@ -111,8 +111,12 @@ export const VariablesSidebarField: React.FC = () => {
                         title={variable.description}
                         style={{
                           padding: '0.4rem 0.5rem',
-                          backgroundColor: isCopied ? 'var(--theme-success-100)' : 'var(--theme-elevation-0)',
-                          border: isCopied ? '1px solid var(--theme-success-500)' : '1px solid var(--theme-elevation-300)',
+                          backgroundColor: isCopied
+                            ? 'var(--theme-success-100)'
+                            : 'var(--theme-elevation-0)',
+                          border: isCopied
+                            ? '1px solid var(--theme-success-500)'
+                            : '1px solid var(--theme-elevation-300)',
                           borderRadius: '4px',
                           fontSize: '11px',
                           fontFamily: 'monospace',
@@ -139,7 +143,9 @@ export const VariablesSidebarField: React.FC = () => {
                       >
                         <span>{'{{' + variable.key + '}}'}</span>
                         {isCopied && (
-                          <span style={{ fontSize: '10px', color: 'var(--theme-success-700)' }}>✓</span>
+                          <span style={{ fontSize: '10px', color: 'var(--theme-success-700)' }}>
+                            ✓
+                          </span>
                         )}
                       </button>
                     )

@@ -139,7 +139,7 @@ export async function POST(request: Request) {
           const participantVars = buildParticipantVariables({
             name: participant.name,
             email: participant.email,
-            status: participant.status,
+            status: participant.status || undefined,
             participantType: participantTypeName,
             event: eventName,
             companyName: participant.companyName,
@@ -195,14 +195,14 @@ export async function POST(request: Request) {
           // Build partner variables
           const partnerVars = buildPartnerVariables({
             name: partner.contactPerson,
-            email: partner.contactEmail || partner.email,
-            status: partner.status,
+            email: partner.contactEmail || partner.email || undefined,
+            status: partner.status || undefined,
             partnerType: partnerTypeName,
             partnerTier: partnerTierName,
             companyName: partner.companyName,
             companyWebsite: partner.companyWebsiteUrl,
             contactPerson: partner.contactPerson,
-            createdAt: partner.createdDate,
+            createdAt: partner.createdDate || undefined,
             socialPostLinkedIn: partner.socialPostLinkedIn,
             socialPostTwitter: partner.socialPostTwitter,
             socialPostFacebook: partner.socialPostFacebook,

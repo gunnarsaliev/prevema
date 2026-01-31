@@ -1,10 +1,10 @@
 import type { User } from '@/payload-types'
 import type { Payload } from 'payload'
 
-export const checkRole = (allRoles: User['roles'] = [], user?: User | null): boolean => {
+export const checkRole = (allRoles: User['roles'] = [], user?: User | null | any): boolean => {
   if (user && allRoles) {
     return allRoles.some((role) => {
-      return user?.roles?.some((individualRole) => {
+      return user?.roles?.some((individualRole: any) => {
         return individualRole === role
       })
     })
@@ -35,7 +35,12 @@ export const canCreateOrganizations = (user?: User | null): boolean => {
   }
 
   // All pricing plans can create organizations (with different limits)
-  return user?.pricingPlan === 'free' || user?.pricingPlan === 'pro' || user?.pricingPlan === 'organizations' || user?.pricingPlan === 'unlimited'
+  return (
+    user?.pricingPlan === 'free' ||
+    user?.pricingPlan === 'pro' ||
+    user?.pricingPlan === 'organizations' ||
+    user?.pricingPlan === 'unlimited'
+  )
 }
 
 /**
@@ -98,7 +103,8 @@ export const getOrganizationRole = async (
     if (!organization) return null
 
     // Check if user is the owner
-    const ownerId = typeof organization.owner === 'object' ? organization.owner?.id : organization.owner
+    const ownerId =
+      typeof organization.owner === 'object' ? organization.owner?.id : organization.owner
     if (String(ownerId) === String(user.id)) {
       return 'owner'
     }
@@ -200,7 +206,8 @@ export const getUserOrganizationIds = async (
     const organizationIds: (number | string)[] = []
     for (const organization of organizations.docs) {
       // Check if user is the owner
-      const ownerId = typeof organization.owner === 'object' ? organization.owner?.id : organization.owner
+      const ownerId =
+        typeof organization.owner === 'object' ? organization.owner?.id : organization.owner
       const isOwner = String(ownerId) === String(user.id)
 
       if (isOwner) {
@@ -279,7 +286,8 @@ export const getUserOrganizationIdsWithMinRole = async (
     const organizationIds: (number | string)[] = []
     for (const organization of organizations.docs) {
       // Check if user is the owner
-      const ownerId = typeof organization.owner === 'object' ? organization.owner?.id : organization.owner
+      const ownerId =
+        typeof organization.owner === 'object' ? organization.owner?.id : organization.owner
       const isOwner = String(ownerId) === String(user.id)
 
       if (isOwner) {

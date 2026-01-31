@@ -66,7 +66,7 @@ export const handleEmailAutomation: CollectionAfterChangeHook<Partner> = async (
     const partnerVariables = buildPartnerVariables({
       name: doc.contactPerson,
       email: doc.email,
-      status: doc.status,
+      status: doc.status || undefined,
       partnerType: partnerTypeName,
       partnerTier: partnerTierName,
       companyName: doc.companyName,

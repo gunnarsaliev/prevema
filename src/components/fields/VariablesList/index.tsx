@@ -14,7 +14,7 @@ export const VariablesListField: React.FC = () => {
 
   // Get the trigger event from the form (for display purposes)
   const triggerEvent = useFormFields(
-    ([fields]) => fields?.automationTriggers?.triggerEvent?.value as TriggerEvent | 'none',
+    ([fields]) => (fields as any)?.automationTriggers?.triggerEvent?.value as TriggerEvent | 'none',
   )
 
   // Always show ALL variables in the Variables tab (complete reference guide)
@@ -143,7 +143,9 @@ export const VariablesListField: React.FC = () => {
                       <span
                         style={{
                           fontSize: '12px',
-                          color: isCopied ? 'var(--theme-success-700)' : 'var(--theme-elevation-600)',
+                          color: isCopied
+                            ? 'var(--theme-success-700)'
+                            : 'var(--theme-elevation-600)',
                           fontWeight: isCopied ? 600 : 400,
                           transition: 'all 0.2s ease',
                         }}
@@ -153,7 +155,13 @@ export const VariablesListField: React.FC = () => {
                     </div>
 
                     {/* Description */}
-                    <div style={{ marginBottom: '0.5rem', color: 'var(--theme-elevation-700)', fontSize: '14px' }}>
+                    <div
+                      style={{
+                        marginBottom: '0.5rem',
+                        color: 'var(--theme-elevation-700)',
+                        fontSize: '14px',
+                      }}
+                    >
                       {variable.description}
                     </div>
 
@@ -168,8 +176,10 @@ export const VariablesListField: React.FC = () => {
                         fontStyle: 'italic',
                       }}
                     >
-                      <strong style={{ fontStyle: 'normal', color: 'var(--theme-elevation-700)' }}>Example:</strong> "
-                      {variable.example}"
+                      <strong style={{ fontStyle: 'normal', color: 'var(--theme-elevation-700)' }}>
+                        Example:
+                      </strong>{' '}
+                      "{variable.example}"
                     </div>
                   </div>
                 )
@@ -189,12 +199,26 @@ export const VariablesListField: React.FC = () => {
           border: '1px solid var(--theme-elevation-300)',
         }}
       >
-        <h4 style={{ margin: '0 0 1rem 0', fontSize: '15px', fontWeight: 600, color: 'var(--theme-text)' }}>
+        <h4
+          style={{
+            margin: '0 0 1rem 0',
+            fontSize: '15px',
+            fontWeight: 600,
+            color: 'var(--theme-text)',
+          }}
+        >
           💡 Usage Examples
         </h4>
 
         <div style={{ marginBottom: '1rem' }}>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--theme-elevation-600)', marginBottom: '0.5rem' }}>
+          <div
+            style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              color: 'var(--theme-elevation-600)',
+              marginBottom: '0.5rem',
+            }}
+          >
             Subject Line:
           </div>
           <code
@@ -214,7 +238,14 @@ export const VariablesListField: React.FC = () => {
         </div>
 
         <div>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--theme-elevation-600)', marginBottom: '0.5rem' }}>
+          <div
+            style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              color: 'var(--theme-elevation-600)',
+              marginBottom: '0.5rem',
+            }}
+          >
             Email Body:
           </div>
           <code

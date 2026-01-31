@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react'
 import { useField, useFormFields, SelectInput } from '@payloadcms/ui'
 import type { SelectFieldClientComponent } from 'payload'
-import type { Option } from '@payloadcms/ui'
+import type { Options } from '@payloadcms/ui'
 
 type FilteredSelectFieldProps = {
   excludeFieldPath?: string
@@ -19,7 +19,7 @@ const getLabelString = (label: unknown): string => {
   return ''
 }
 
-const FilteredSelectField: SelectFieldClientComponent<{}, FilteredSelectFieldProps> = (props) => {
+const FilteredSelectField: SelectFieldClientComponent = (props: any) => {
   const { field, path, readOnly } = props
   const excludeFieldPath = props.excludeFieldPath
   const allOptions = props.allOptions || []
@@ -39,18 +39,18 @@ const FilteredSelectField: SelectFieldClientComponent<{}, FilteredSelectFieldPro
   })
 
   // Filter options to exclude values that are already selected in the other field
-  const filteredOptions: Option[] = useMemo(() => {
+  const filteredOptions = useMemo(() => {
     return allOptions
-      .filter((opt) => !excludedValues.includes(opt.value))
-      .map((opt) => ({
+      .filter((opt: any) => !excludedValues.includes(opt.value))
+      .map((opt: any) => ({
         label: opt.label,
         value: opt.value,
       }))
   }, [allOptions, excludedValues])
 
-  const handleChange = (selectedOptions: Option | Option[]) => {
+  const handleChange = (selectedOptions: any) => {
     if (Array.isArray(selectedOptions)) {
-      setValue(selectedOptions.map((opt) => opt.value as string))
+      setValue(selectedOptions.map((opt: any) => opt.value as string))
     } else if (selectedOptions) {
       setValue([selectedOptions.value as string])
     } else {
@@ -62,7 +62,11 @@ const FilteredSelectField: SelectFieldClientComponent<{}, FilteredSelectFieldPro
   // Only show values that are still valid (not in excluded list)
   const selectedValue: string | string[] = useMemo(() => {
     if (!value || !Array.isArray(value)) return []
-    return value.filter((v) => !excludedValues.includes(v) && allOptions.some((o) => o.value === v))
+    return value.filter(
+      (v) =>
+        !excludedValues.includes(v) &&
+        allOptions.filter((o: any) => o.value !== '').some((o: any) => o.value === v),
+    )
   }, [value, allOptions, excludedValues])
 
   const labelString = getLabelString(field.label)

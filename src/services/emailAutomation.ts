@@ -110,7 +110,7 @@ export async function triggerAutomatedEmails({
           console.log(`📤 Sending template "${template.name}" immediately`)
           const result = await sendTenantEmail({
             payload,
-            tenantId: organizationId,
+            tenantId: String(organizationId),
             templateName: template.name,
             to: recipientEmail,
             variables: data,
@@ -229,7 +229,7 @@ async function scheduleDelayedEmail({
       try {
         const result = await sendTenantEmail({
           payload,
-          tenantId: organizationId,
+          tenantId: String(organizationId),
           templateName: template.name,
           to: recipientEmail,
           variables,
@@ -275,10 +275,10 @@ async function logEmailSent({
     await payload.create({
       collection: 'email-logs',
       data: {
-        template: templateId,
-        organization: organizationId,
+        template: templateId as any,
+        organization: organizationId as any,
         recipientEmail,
-        triggerEvent,
+        triggerEvent: triggerEvent as any,
         variables: JSON.stringify(variables),
         sentAt: new Date().toISOString(),
         status: 'sent',

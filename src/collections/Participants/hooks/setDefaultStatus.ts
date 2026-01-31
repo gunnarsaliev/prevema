@@ -1,6 +1,6 @@
-import { BeforeChangeHook } from 'payload/dist/collections/config/types'
+import type { CollectionBeforeChangeHook } from 'payload'
 
-export const setDefaultStatus: BeforeChangeHook = async ({ req, data, operation }) => {
+export const setDefaultStatus: CollectionBeforeChangeHook = async ({ req, data, operation }) => {
   // For public submissions (no authenticated user), set default status to not-approved
   if (operation === 'create' && !req.user) {
     data.status = 'not-approved'

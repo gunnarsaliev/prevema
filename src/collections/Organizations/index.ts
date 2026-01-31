@@ -132,6 +132,8 @@ export const Organizations: CollectionConfig = {
   hooks: {
     beforeValidate: [
       ({ data, req, operation }) => {
+        if (!data) return data
+
         // Automatically set owner to current user on create
         if (operation === 'create' && req.user) {
           data.owner = req.user.id
@@ -261,7 +263,7 @@ export const Organizations: CollectionConfig = {
           },
           validate: (value, { siblingData }) => {
             // Either user or email must be provided, but not both
-            const hasUser = siblingData?.user
+            const hasUser = (siblingData as any)?.user
             const hasEmail = value && value.trim() !== ''
 
             if (!hasUser && !hasEmail) {

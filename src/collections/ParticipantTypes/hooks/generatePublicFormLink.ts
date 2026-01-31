@@ -1,6 +1,10 @@
-import { AfterChangeHook } from 'payload/dist/collections/config/types'
+import type { CollectionAfterChangeHook } from 'payload'
 
-export const generatePublicFormLink: AfterChangeHook = async ({ doc, req, operation }) => {
+export const generatePublicFormLink: CollectionAfterChangeHook = async ({
+  doc,
+  req,
+  operation,
+}) => {
   // Only generate link if it doesn't exist or if the document was just created
   if (!doc.publicFormLink || operation === 'create') {
     const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'

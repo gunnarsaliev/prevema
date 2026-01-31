@@ -1,11 +1,11 @@
-import { BeforeChangeHook } from 'payload/dist/collections/config/types';
+import type { CollectionBeforeChangeHook } from 'payload'
 
-export const populateCreatedBy: BeforeChangeHook = ({ req, data, operation }) => {
+export const populateCreatedBy: CollectionBeforeChangeHook = ({ req, data, operation }) => {
   if (operation === 'create') {
     if (req.user) {
-      data.createdBy = req.user.id;
-      return data;
+      data.createdBy = req.user.id
+      return data
     }
   }
-  return data;
-};
+  return data
+}

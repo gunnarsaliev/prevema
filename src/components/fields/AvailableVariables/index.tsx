@@ -8,7 +8,7 @@ import type { TriggerEvent } from '@/services/emailAutomation'
 export const AvailableVariablesField: React.FC = () => {
   // Get the trigger event from the form
   const triggerEvent = useFormFields(
-    ([fields]) => fields?.automationTriggers?.triggerEvent?.value as TriggerEvent | 'none',
+    ([fields]) => (fields as any)?.automationTriggers?.triggerEvent?.value as TriggerEvent | 'none',
   )
 
   // Get the predefined variables for this trigger event
@@ -121,7 +121,9 @@ export const AvailableVariablesField: React.FC = () => {
       >
         <strong>💡 Quick Example:</strong>
         <div style={{ marginTop: '0.5rem', fontFamily: 'monospace', fontSize: '11px' }}>
-          <div>Subject: Welcome {'{{name}}'} to {'{{event}}'}!</div>
+          <div>
+            Subject: Welcome {'{{name}}'} to {'{{event}}'}!
+          </div>
           <div style={{ marginTop: '0.25rem' }}>
             Body: Hello {'{{name}}'}, thank you for registering...
           </div>

@@ -7,8 +7,12 @@ import { getUserOrganizationIds } from '@/access/utilities'
  * - No organization has been manually selected yet
  * - The user has exactly one organization available
  */
-export const autoSelectOrganization: CollectionBeforeValidateHook = async ({ req, data, operation }) => {
-  if (operation === 'create' && !data?.organization && req.user) {
+export const autoSelectOrganization: CollectionBeforeValidateHook = async ({
+  req,
+  data,
+  operation,
+}) => {
+  if (operation === 'create' && !data?.organization && req.user && data) {
     try {
       // Get user's organizations
       const organizationIds = await getUserOrganizationIds(req.payload, req.user)

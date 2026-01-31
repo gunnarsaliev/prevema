@@ -73,7 +73,7 @@ export const handleEmailAutomation: CollectionAfterChangeHook<Participant> = asy
     const participantVariables = buildParticipantVariables({
       name: doc.name,
       email: doc.email,
-      status: doc.status,
+      status: doc.status || undefined,
       participantType: participantTypeName,
       event: eventTitle,
       companyName: doc.companyName,

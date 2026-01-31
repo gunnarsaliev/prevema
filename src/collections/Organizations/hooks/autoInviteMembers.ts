@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import type { CollectionAfterChangeHook } from 'payload'
 import type { Organization } from '@/payload-types'
 
@@ -50,16 +51,25 @@ export const autoInviteMembers: CollectionAfterChangeHook<Organization> = async 
     const email = member.email
     const role = member.role || 'editor'
 
+    if (!email) {
+      console.warn('⚠️ Skipping invitation for member without email')
+      continue
+    }
+
     try {
       console.log(`📤 Creating invitation for ${email} with role ${role}`)
 
       // Create invitation
       await payload.create({
         collection: 'invitations',
+        draft: false,
         data: {
           email,
           organization: doc.id,
           role,
+          status: 'pending',
+          token: crypto.randomBytes(32).toString('hex'),
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
           invitedBy: req.user?.id,
         },
       })
