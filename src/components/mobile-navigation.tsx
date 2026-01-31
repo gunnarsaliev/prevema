@@ -31,7 +31,6 @@ export function MobileNavigation({
       label: 'Messages',
       icon: MailOpen,
       url: '/dash/messages',
-      specialAction: 'openTicketList' as const,
     },
     {
       id: 'analytics' as NavItemId,
@@ -61,9 +60,7 @@ export function MobileNavigation({
           const isActive = pathname === item.url
 
           const handleClick = () => {
-            if (item.specialAction === 'openTicketList') {
-              onMobileTicketListOpen()
-            } else if (item.specialAction === 'openCommand') {
+            if (item.specialAction === 'openCommand') {
               onCommandOpen()
             }
             // Navigation is handled by Next.js Link

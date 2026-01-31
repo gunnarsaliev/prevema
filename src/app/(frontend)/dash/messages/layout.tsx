@@ -39,7 +39,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
 
       {/* Mobile Layout - only shown on mobile */}
       <div className="md:hidden">
-        <MobileDashLayout showTicketList={true}>{children}</MobileDashLayout>
+        <MobileDashLayout showTicketList={false}>{children}</MobileDashLayout>
       </div>
     </>
   )
