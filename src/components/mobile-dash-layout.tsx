@@ -9,6 +9,7 @@ import { TicketCommandPalette } from '@/components/layout/ticket-command-palette
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { useApplicationState } from '@/hooks/useApplicationState'
 import { navItems } from '@/components/layout/data'
+import { MobileNavUser } from '@/components/layout/avatar-menu'
 import { ReactNode } from 'react'
 
 interface MobileDashLayoutProps {
@@ -48,6 +49,13 @@ export function MobileDashLayout({ children, showTicketList = false }: MobileDas
             {navItems.find((item) => item.id === activeNavItem)?.label ?? 'Dashboard'}
           </span>
         </div>
+        <MobileNavUser
+          user={{
+            name: 'John Doe',
+            email: 'john@example.com',
+            avatar: 'https://deifkwefumgah.cloudfront.net/shadcnblocks/block/avatar-1.webp',
+          }}
+        />
       </div>
 
       {/* Mobile Content */}
@@ -60,9 +68,7 @@ export function MobileDashLayout({ children, showTicketList = false }: MobileDas
             onTicketSelect={handleTicketSelect}
           />
         ) : (
-          <div className="flex-1 overflow-auto">
-            {children}
-          </div>
+          <div className="flex-1 overflow-auto">{children}</div>
         )}
       </div>
 

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -20,6 +21,14 @@ import {
 } from '@/components/ui/sidebar'
 import { LogoDropdown } from './logo-dropdown'
 import { navItems, buckets, type NavItemId, type BucketId } from './data'
+import { NavUser, type UserData } from './avatar-menu'
+
+// Sample user data - replace with actual user data from your auth system
+const userData: UserData = {
+  name: 'John Doe',
+  email: 'john@example.com',
+  avatar: 'https://deifkwefumgah.cloudfront.net/shadcnblocks/block/avatar-1.webp',
+}
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   activeNavItem: NavItemId
@@ -119,6 +128,9 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={userData} />
+      </SidebarFooter>
     </Sidebar>
   )
 }
