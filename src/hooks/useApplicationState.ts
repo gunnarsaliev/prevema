@@ -2,7 +2,7 @@ import * as React from 'react'
 import { mockTickets, type NavItemId, type BucketId } from '@/components/layout/data'
 
 export function useApplicationState() {
-  const [activeNavItem, setActiveNavItem] = React.useState<NavItemId>('inbox')
+  const [activeNavItem, setActiveNavItem] = React.useState<NavItemId>('dashboard')
   const [activeBucket, setActiveBucket] = React.useState<BucketId | null>(null)
   const [selectedTicketId, setSelectedTicketId] = React.useState<string | null>(
     mockTickets[0]?.id ?? null,

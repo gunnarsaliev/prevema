@@ -1,19 +1,7 @@
-import {
-  Archive,
-  Bug,
-  CommandIcon,
-  File,
-  Inbox,
-  Lightbulb,
-  MailOpen,
-  MessageSquare,
-  MoreHorizontal,
-  Search,
-  Trash2,
-  UserCheck,
-  Users,
-} from 'lucide-react'
+import { CommandIcon, MoreHorizontal, Search } from 'lucide-react'
 import * as React from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -51,6 +39,7 @@ export function AppSidebar({
   ...props
 }: AppSidebarProps) {
   const { state } = useSidebar()
+  const pathname = usePathname()
   const isCollapsed = state === 'collapsed'
   return (
     <Sidebar collapsible="offcanvas" variant="inset" className={cn(className)} {...props}>
@@ -88,22 +77,17 @@ export function AppSidebar({
             <SidebarMenu>
               {navItems.map((item) => {
                 const Icon = item.icon
-                const isActive = activeNavItem === item.id && activeBucket === null
+                const isActive = pathname === item.url && activeBucket === null
                 return (
                   <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton
-                      onClick={() => {
-                        onNavItemChange(item.id)
-                        onBucketChange(null)
-                      }}
-                      isActive={isActive}
-                      className="px-2"
-                    >
-                      <Icon className="size-4" />
-                      <span>{item.label}</span>
-                      {item.count !== undefined && (
-                        <SidebarMenuBadge>{item.count}</SidebarMenuBadge>
-                      )}
+                    <SidebarMenuButton asChild isActive={isActive} className="px-2">
+                      <Link href={item.url}>
+                        <Icon className="size-4" />
+                        <span>{item.label}</span>
+                        {item.count !== undefined && (
+                          <SidebarMenuBadge>{item.count}</SidebarMenuBadge>
+                        )}
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )

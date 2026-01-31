@@ -1,17 +1,21 @@
 import {
   Archive,
+  BarChart3,
   Bug,
   File,
   Inbox,
   Lightbulb,
   MailOpen,
   MessageSquare,
+  MoreHorizontal,
+  Palette,
+  Search,
   Trash2,
   UserCheck,
   Users,
 } from 'lucide-react'
 
-export type NavItemId = 'inbox' | 'unassigned' | 'assigned' | 'drafts' | 'archived' | 'spam'
+export type NavItemId = 'dashboard' | 'messages' | 'analytics' | 'graphics'
 
 export type BucketId = 'support' | 'bugs' | 'features' | 'internal'
 
@@ -20,6 +24,7 @@ export type TicketStatus = 'active' | 'pending' | 'closed'
 export type NavItem = {
   id: NavItemId
   label: string
+  url: string
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
   count?: number
 }
@@ -77,12 +82,10 @@ export type PreviousConversation = {
 }
 
 export const navItems: NavItem[] = [
-  { id: 'inbox', label: 'Inbox', icon: Inbox, count: 6 },
-  { id: 'unassigned', label: 'Unassigned', icon: MailOpen, count: 10 },
-  { id: 'assigned', label: 'Assigned', icon: UserCheck, count: 3 },
-  { id: 'drafts', label: 'Drafts', icon: File, count: 1 },
-  { id: 'archived', label: 'Archived', icon: Archive },
-  { id: 'spam', label: 'Spam', icon: Trash2 },
+  { id: 'dashboard', label: 'Dashboard', url: '/dash', icon: Inbox, count: 6 },
+  { id: 'messages', label: 'Messages', url: '/dash/messages', icon: MailOpen, count: 10 },
+  { id: 'analytics', label: 'Analytics', url: '/dash/analytics', icon: BarChart3, count: 3 },
+  { id: 'graphics', label: 'Graphics', url: '/dash/graphics', icon: Palette },
 ]
 
 export const buckets: Bucket[] = [
