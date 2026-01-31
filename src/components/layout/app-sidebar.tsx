@@ -1,4 +1,4 @@
-import { CommandIcon, MoreHorizontal, Search, Users, UserCheck } from 'lucide-react'
+import { CommandIcon, MoreHorizontal, Search, Users } from 'lucide-react'
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -20,7 +20,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { LogoDropdown } from './logo-dropdown'
-import { navItems, partners, guests, buckets, type NavItemId, type BucketId } from './data'
+import { navItems, partners, guests, type NavItemId } from './data'
 import { NavUser, type UserData } from './avatar-menu'
 
 // Sample user data - replace with actual user data from your auth system
@@ -32,17 +32,13 @@ const userData: UserData = {
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   activeNavItem: NavItemId
-  activeBucket: BucketId | null
   onNavItemChange: (id: NavItemId) => void
-  onBucketChange: (id: BucketId | null) => void
   onSearchClick: () => void
 }
 
 export function AppSidebar({
   activeNavItem,
-  activeBucket,
   onNavItemChange,
-  onBucketChange,
   onSearchClick,
   className,
   ...props
@@ -86,7 +82,7 @@ export function AppSidebar({
             <SidebarMenu>
               {navItems.map((item) => {
                 const Icon = item.icon
-                const isActive = pathname === item.url && activeBucket === null
+                const isActive = pathname === item.url
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton asChild isActive={isActive} className="px-2">
@@ -97,29 +93,6 @@ export function AppSidebar({
                           <SidebarMenuBadge>{item.count}</SidebarMenuBadge>
                         )}
                       </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Buckets</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {buckets.map((bucket) => {
-                const Icon = bucket.icon
-                return (
-                  <SidebarMenuItem key={bucket.id}>
-                    <SidebarMenuButton
-                      onClick={() => onBucketChange(bucket.id)}
-                      isActive={activeBucket === bucket.id}
-                      className="px-2"
-                    >
-                      <Icon className="size-4" />
-                      <span>{bucket.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )
@@ -151,7 +124,7 @@ export function AppSidebar({
               {partners.map((partner) => (
                 <SidebarMenuItem key={partner.id}>
                   <SidebarMenuButton className="px-2">
-                    <UserCheck className="size-4" />
+                    <Users className="size-4" />
                     <span>{partner.name}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

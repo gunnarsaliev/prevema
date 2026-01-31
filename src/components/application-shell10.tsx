@@ -18,7 +18,6 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 export function ApplicationShell10() {
   const {
     activeNavItem,
-    activeBucket,
     selectedTicketId,
     tickets,
     isAgentPanelOpen,
@@ -28,7 +27,6 @@ export function ApplicationShell10() {
     isMobileAgentOpen,
     selectedTicket,
     setActiveNavItem,
-    setActiveBucket,
     setIsCommandOpen,
     setIsMobileTicketListOpen,
     setIsMobileConversationOpen,
@@ -41,9 +39,7 @@ export function ApplicationShell10() {
     <SidebarProvider className="h-svh overflow-hidden">
       <AppSidebar
         activeNavItem={activeNavItem}
-        activeBucket={activeBucket}
         onNavItemChange={setActiveNavItem}
-        onBucketChange={setActiveBucket}
         onSearchClick={() => setIsCommandOpen(true)}
         className="hidden md:flex"
       />
@@ -86,7 +82,6 @@ export function ApplicationShell10() {
         onTicketSelect={handleTicketSelect}
         onNavItemSelect={(navItemId) => {
           setActiveNavItem(navItemId)
-          setActiveBucket(null)
         }}
       />
 

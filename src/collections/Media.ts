@@ -1,6 +1,11 @@
 import type { CollectionConfig } from 'payload'
 
-import { publicMediaCreate, publicMediaRead, mediaUpdate, mediaDelete } from '@/access/publicMediaAccess'
+import {
+  publicMediaCreate,
+  publicMediaRead,
+  mediaUpdate,
+  mediaDelete,
+} from '@/access/publicMediaAccess'
 
 export const Media: CollectionConfig = {
   slug: 'media',

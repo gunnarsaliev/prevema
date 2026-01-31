@@ -11,13 +11,10 @@ import {
   Palette,
   Search,
   Trash2,
-  UserCheck,
   Users,
 } from 'lucide-react'
 
-export type NavItemId = 'dashboard' | 'messages' | 'analytics' | 'graphics'
-
-export type BucketId = 'support' | 'bugs' | 'features' | 'internal'
+export type NavItemId = 'dashboard' | 'messages' | 'analytics' | 'assets'
 
 export type TicketStatus = 'active' | 'pending' | 'closed'
 
@@ -27,12 +24,6 @@ export type NavItem = {
   url: string
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
   count?: number
-}
-
-export type Bucket = {
-  id: BucketId
-  label: string
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
 }
 
 export type Guest = {
@@ -95,18 +86,11 @@ export type PreviousConversation = {
   timestamp: string
 }
 
-export const buckets: Bucket[] = [
-  { id: 'support', label: 'Support', icon: UserCheck },
-  { id: 'bugs', label: 'Bug Reports', icon: Bug },
-  { id: 'features', label: 'Features', icon: Lightbulb },
-  { id: 'internal', label: 'Internal', icon: Archive },
-]
-
 export const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', url: '/dash', icon: Inbox, count: 6 },
   { id: 'messages', label: 'Messages', url: '/dash/messages', icon: MailOpen, count: 10 },
   { id: 'analytics', label: 'Analytics', url: '/dash/analytics', icon: BarChart3, count: 3 },
-  { id: 'graphics', label: 'Graphics', url: '/dash/graphics', icon: Palette },
+  { id: 'assets', label: 'Assets', url: '/dash/assets', icon: Palette },
 ]
 
 export const guests: Guest[] = [

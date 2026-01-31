@@ -7,7 +7,7 @@ import type { Canvas, CanvasRenderingContext2D, Image } from 'canvas'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-// Dynamic import for canvas to avoid bundling issues with Cloudflare Workers
+// Dynamic import for canvas to avoid bundling issues
 let canvasModule: typeof import('canvas') | null = null
 
 async function getCanvas() {

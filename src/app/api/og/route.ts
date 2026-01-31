@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 
-// Override Payload's OG endpoint to prevent Workers from hanging
-// This endpoint uses canvas/node APIs that aren't compatible with Cloudflare Workers
+// OG image generation endpoint
+// This endpoint is currently disabled
 export async function GET() {
   // Return a simple 404 or you could return a static fallback image
-  return new NextResponse('OG image generation is disabled in Workers runtime', {
+  return new NextResponse('OG image generation is disabled', {
     status: 404,
   })
 }

@@ -1,8 +1,7 @@
 /**
  * CSP-Safe Template Engine
  *
- * This module provides a Cloudflare Workers-compatible template engine
- * that doesn't rely on dynamic code generation (eval, new Function).
+ * This module provides a template engine that doesn't rely on dynamic code generation (eval, new Function).
  *
  * Unlike Handlebars.compile() which uses new Function() internally,
  * this engine uses regex-based string replacement which is safe in
@@ -19,12 +18,12 @@
  * - Block expressions
  * - Custom helpers
  *
- * For production use in Cloudflare Workers where CSP is enforced.
+ * For production use where CSP is enforced.
  */
 
 /**
  * Compile a template string with variables
- * This is CSP-safe and works in Cloudflare Workers
+ * This is CSP-safe and works in various environments
  */
 export function compileTemplate(template: string, variables: Record<string, any>): string {
   // Replace {{variableName}} with actual values
@@ -77,11 +76,11 @@ export function extractTemplateVariables(template: string): string[] {
  */
 export function validateTemplateVariables(
   template: string,
-  variables: Record<string, any>
+  variables: Record<string, any>,
 ): { valid: boolean; missing: string[] } {
   const required = extractTemplateVariables(template)
   const provided = Object.keys(variables)
-  const missing = required.filter(v => !(v in variables))
+  const missing = required.filter((v) => !(v in variables))
 
   return {
     valid: missing.length === 0,
@@ -95,7 +94,7 @@ export function validateTemplateVariables(
  */
 export function previewTemplate(
   template: string,
-  variables: Record<string, any>
+  variables: Record<string, any>,
 ): {
   result: string
   validation: { valid: boolean; missing: string[] }
