@@ -30,10 +30,10 @@ export default function Page() {
     <div
       className={`${plusJakarta.variable} ${spaceGrotesk.variable} font-[family-name:var(--font-plus-jakarta)] w-full`}
     >
-      <div className="text-white flex justify-center">
+      <div className="flex justify-center">
         <div ref={contentRef} className="w-full max-w-[1200px] flex flex-col gap-6">
           <header className="flex justify-between items-center py-4 sm:py-5 mb-4 sm:mb-5">
-            <h1 className="text-default-foreground text-3xl leading-9 font-bold">Dashboard</h1>
+            <h1 className="text-3xl leading-9 font-bold">Dashboard</h1>
           </header>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 auto-rows-auto gap-4 sm:gap-6">

@@ -24,11 +24,7 @@ export function LogoDropdown({ isCollapsed = false }: LogoDropdownProps) {
             variant="ghost"
             className="flex h-auto items-center gap-3 p-0! hover:bg-transparent"
           >
-            <LogoImage
-              src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/block-1.svg"
-              alt="Zerostatic Studio"
-              className="h-8 w-8 rounded-sm bg-muted p-1"
-            />
+            <LogoImage src="/logo.png" alt="Prevema" className="h-8 w-8 rounded-sm bg-muted p-1" />
             {!isCollapsed && (
               <>
                 <span className="font-semibold">Prevema</span>
