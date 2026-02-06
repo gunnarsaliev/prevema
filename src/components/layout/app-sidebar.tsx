@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/sidebar'
 import { navItems, partners, guests, type NavItemId } from './data'
 import { NavUser, type UserData } from './avatar-menu'
-import DropdownMenuProfile4 from '@/components/dropdown-menu-profile-4'
+import { EventSwitcher } from '@/components/event-switcher'
 
 // Sample user data - replace with actual user data from your auth system
 const userData: UserData = {
@@ -51,7 +51,7 @@ export function AppSidebar({
       <SidebarHeader className={cn('flex h-14 flex-row items-center justify-between')}>
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenuProfile4 />
+            <EventSwitcher />
           </SidebarMenuItem>
         </SidebarMenu>
         <Button variant="ghost" size="icon" className="size-7">
