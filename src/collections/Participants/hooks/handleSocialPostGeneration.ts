@@ -8,24 +8,28 @@ import { generateAllPlatformPosts } from '@/services/socialPostGeneration'
 export const handleSocialPostGeneration: CollectionAfterChangeHook<Participant> = async ({
   doc,
   operation,
-  req: { payload },
+  req,
+  context,
 }) => {
   try {
+    // Skip if we're already updating to prevent infinite loops
+    if (context.skipSocialPostGeneration) {
+      return doc
+    }
+
     // Only generate on creation
     // Skip if social posts already exist (to avoid overwriting manual edits)
     if (operation !== 'create' || doc.socialPostLinkedIn) {
-      console.log('⏭️  Skipping social post generation: not a new participant or posts already exist')
+      console.log(
+        '⏭️  Skipping social post generation: not a new participant or posts already exist',
+      )
       return doc
     }
 
     console.log(`🎨 Generating social posts for participant: ${doc.name}`)
 
-    // Fetch the full participant with populated relationships
-    const fullDoc = await payload.findByID({
-      collection: 'participants',
-      id: doc.id,
-      depth: 2,
-    })
+    // Use the doc parameter directly instead of re-fetching to avoid NotFound errors
+    const fullDoc = doc
 
     // Get event details
     let eventName = ''
@@ -59,7 +63,7 @@ export const handleSocialPostGeneration: CollectionAfterChangeHook<Participant> 
     })
 
     // Update the participant with all generated social posts
-    await payload.update({
+    await req.payload.update({
       collection: 'participants',
       id: doc.id,
       data: {
@@ -69,6 +73,8 @@ export const handleSocialPostGeneration: CollectionAfterChangeHook<Participant> 
         socialPostInstagram: posts.instagram,
         socialPostGeneratedAt: new Date().toISOString(),
       },
+      context: { skipSocialPostGeneration: true }, // Prevent infinite loop
+      req, // Maintain transaction safety
     })
 
     console.log(`✅ Generated social posts for all platforms for participant: ${doc.name}`)

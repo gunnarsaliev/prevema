@@ -4,7 +4,13 @@ export const generatePublicFormLink: CollectionAfterChangeHook = async ({
   doc,
   req,
   operation,
+  context,
 }) => {
+  // Skip if we're already updating to prevent infinite loops
+  if (context.skipPublicFormLink) {
+    return doc
+  }
+
   // Only generate link if it doesn't exist or if the document was just created
   if (!doc.publicFormLink || operation === 'create') {
     const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
@@ -18,6 +24,8 @@ export const generatePublicFormLink: CollectionAfterChangeHook = async ({
         data: {
           publicFormLink,
         },
+        context: { skipPublicFormLink: true }, // Prevent infinite loop
+        req, // Maintain transaction safety
       })
 
       // Update the returned doc object so it includes the new link

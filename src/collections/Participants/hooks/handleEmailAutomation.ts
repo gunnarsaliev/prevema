@@ -24,12 +24,8 @@ export const handleEmailAutomation: CollectionAfterChangeHook<Participant> = asy
       typeof doc.organization === 'object' ? doc.organization.id : doc.organization
     const organization = typeof doc.organization === 'object' ? doc.organization : undefined
 
-    // Fetch the full participant with populated relationships
-    const fullDoc = await payload.findByID({
-      collection: 'participants',
-      id: doc.id,
-      depth: 2, // Populate relationships up to 2 levels deep
-    })
+    // Use the doc parameter directly instead of re-fetching to avoid NotFound errors
+    const fullDoc = doc
 
     // Fetch relationship data from the fully populated document
     let participantTypeName = ''
