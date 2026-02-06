@@ -1,7 +1,7 @@
 import { CommandIcon, MoreHorizontal, Search, Users } from 'lucide-react'
 import * as React from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -45,7 +45,17 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const { state } = useSidebar()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const isCollapsed = state === 'collapsed'
+
+  // Helper function to preserve eventId in navigation links
+  const buildUrlWithEventId = (baseUrl: string) => {
+    const eventId = searchParams.get('eventId')
+    if (eventId) {
+      return `${baseUrl}?eventId=${eventId}`
+    }
+    return baseUrl
+  }
   return (
     <Sidebar collapsible="offcanvas" variant="inset" className={cn(className)} {...props}>
       <SidebarHeader className={cn('flex h-14 flex-row items-center justify-between')}>
@@ -86,7 +96,7 @@ export function AppSidebar({
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton asChild isActive={isActive} className="px-2">
-                      <Link href={item.url}>
+                      <Link href={buildUrlWithEventId(item.url)}>
                         <Icon className="size-4" />
                         <span>{item.label}</span>
                         {item.count !== undefined && (

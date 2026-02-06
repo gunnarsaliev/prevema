@@ -63,6 +63,28 @@ export const EventSwitcher = () => {
         const eventsList = data.docs || []
         setEvents(eventsList)
 
+        // Validate eventId in URL belongs to accessible events
+        if (currentEventId) {
+          const eventExists = eventsList.some((e: Event) => e.id === currentEventId)
+
+          if (!eventExists) {
+            // Invalid eventId in URL - remove it
+            console.warn(
+              `[EventSwitcher] Invalid eventId in URL: ${currentEventId}. Removing from URL.`,
+            )
+            const params = new URLSearchParams(searchParams.toString())
+            params.delete('eventId')
+
+            // If there are events, select the first one
+            if (eventsList.length > 0) {
+              params.set('eventId', eventsList[0].id)
+            }
+
+            router.replace(`${pathname}?${params.toString()}`)
+            return
+          }
+        }
+
         // Auto-select first event if none selected and events exist
         if (!currentEventId && eventsList.length > 0) {
           const params = new URLSearchParams(searchParams.toString())
@@ -134,11 +156,20 @@ export const EventSwitcher = () => {
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col items-start min-w-0">
-              <span className="text-sm font-medium truncate">
-                {currentEvent?.name || 'Select Event'}
-              </span>
+              <div className="flex items-center gap-1.5 w-full">
+                <span className="text-xs font-medium truncate">
+                  {currentEvent?.name || 'Select Event'}
+                </span>
+                {currentEvent && (
+                  <span
+                    className={`text-[9px] px-1 py-0.5 rounded-full flex-shrink-0 ${statusColors[currentEvent.status]}`}
+                  >
+                    {statusLabels[currentEvent.status]}
+                  </span>
+                )}
+              </div>
               {currentEvent && (
-                <span className="text-xs text-muted-foreground truncate">
+                <span className="text-[10px] text-muted-foreground truncate">
                   {formatDate(currentEvent.startDate)}
                 </span>
               )}
