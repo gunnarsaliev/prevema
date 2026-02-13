@@ -61,7 +61,7 @@ const NAVIGATION = [
 
 const Footer16 = () => {
   return (
-    <section className="pt-32">
+    <section className="py-32">
       <footer className="container">
         <div className="grid gap-10 pb-6 md:grid-cols-2 md:pb-0">
           <div className="flex flex-col justify-start gap-8">

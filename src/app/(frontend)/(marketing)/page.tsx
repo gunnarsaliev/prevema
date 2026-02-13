@@ -7,8 +7,7 @@ import { Hero187b } from '@/components/hero187b'
 import { Feature102 } from '@/components/feature102'
 import { Cta7 } from '@/components/cta7'
 import config from '@/payload.config'
-import './styles.css'
-import Link from 'next/link'
+import '../styles.css'
 
 export default async function HomePage() {
   const headers = await getHeaders()
@@ -19,10 +18,10 @@ export default async function HomePage() {
   const fileURL = `vscode://file/${fileURLToPath(import.meta.url)}`
 
   return (
-    <div>
+    <>
       <Hero187b />
       <Feature102 />
       <Cta7 />
-    </div>
+    </>
   )
 }

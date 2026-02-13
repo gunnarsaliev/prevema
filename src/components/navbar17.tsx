@@ -26,7 +26,7 @@ const NAV_ITEMS = [
   { name: 'Home', link: '/' },
   { name: 'About', link: '/about' },
   { name: 'Pricing', link: '/pricing' },
-  { name: 'Image Generator', link: '/image-generator' },
+  // { name: 'Image Generator', link: '/image-generator' },
   { name: 'Contact', link: '/contact' },
 ]
 
