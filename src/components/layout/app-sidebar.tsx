@@ -20,15 +20,9 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { navItems, partners, guests, type NavItemId } from './data'
-import { NavUser, type UserData } from './avatar-menu'
+import { NavUser } from './avatar-menu'
 import { EventSwitcher } from '@/components/event-switcher'
-
-// Sample user data - replace with actual user data from your auth system
-const userData: UserData = {
-  name: 'John Doe',
-  email: 'john@example.com',
-  avatar: 'https://deifkwefumgah.cloudfront.net/shadcnblocks/block/avatar-1.webp',
-}
+import { useAuth } from '@/providers/Auth'
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   activeNavItem: NavItemId
@@ -47,6 +41,11 @@ export function AppSidebar({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const isCollapsed = state === 'collapsed'
+  const { user } = useAuth()
+
+  const userData = user
+    ? { name: user.name ?? user.email, email: user.email, avatar: '' }
+    : null
 
   // Helper function to preserve eventId in navigation links
   const buildUrlWithEventId = (baseUrl: string) => {
@@ -144,7 +143,7 @@ export function AppSidebar({
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={userData} />
+        {userData && <NavUser user={userData} />}
       </SidebarFooter>
     </Sidebar>
   )
