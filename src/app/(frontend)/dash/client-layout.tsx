@@ -18,6 +18,13 @@ export function DashClientLayout({ children }: { children: React.ReactNode }) {
   // Check if we should show ticket list on mobile (only for messages)
   const showTicketList = isMessagesPage
 
+  // Settings page renders without sidebar
+  const isSettingsPage = pathname.startsWith('/dash/settings')
+
+  if (isSettingsPage) {
+    return <div className="flex-1 p-6">{children}</div>
+  }
+
   return (
     <SidebarProvider className="h-screen">
       {/* Desktop Sidebar - hidden on mobile */}
