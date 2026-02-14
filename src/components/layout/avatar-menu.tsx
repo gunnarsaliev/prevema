@@ -1,6 +1,7 @@
 'use client'
 
-import { ChevronsUpDown, User, LogOut } from 'lucide-react'
+import { ChevronsUpDown, User, LogOut, Settings } from 'lucide-react'
+import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -74,9 +75,18 @@ export function NavUser({ user }: NavUserProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="mr-2 size-4" />
-              Account
+            <DropdownMenuItem asChild>
+              <Link href="/dash/profile">
+                <User className="mr-2 size-4" />
+                Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/dash/settings">
+                <Settings className="mr-2 size-4" />
+                Settings
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
@@ -134,6 +144,11 @@ export function MobileNavUser({ user, className }: MobileNavUserProps) {
         <DropdownMenuItem>
           <User className="mr-2 size-4" />
           Account
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <User className="mr-2 size-4" />
+          Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem>

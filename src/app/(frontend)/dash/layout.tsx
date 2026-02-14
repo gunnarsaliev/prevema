@@ -31,7 +31,7 @@ export default async function DashLayout({ children }: { children: React.ReactNo
     select: { id: true, name: true },
   })
 
-  const initialEvents = docs as Event[]
+  const initialEvents: Event[] = docs.map((doc) => ({ id: String(doc.id), name: doc.name }))
 
   return <DashClientLayout initialEvents={initialEvents}>{children}</DashClientLayout>
 }

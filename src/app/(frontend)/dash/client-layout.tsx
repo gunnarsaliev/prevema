@@ -26,19 +26,6 @@ export function DashClientLayout({
   // Check if we should show ticket list on mobile (only for messages)
   const showTicketList = isMessagesPage
 
-  // Settings page renders without sidebar
-  const isSettingsPage = pathname.startsWith('/dash/settings')
-
-  if (isSettingsPage) {
-    return (
-      <Suspense>
-        <EventProvider initialEvents={initialEvents}>
-          <div className="flex-1 p-6">{children}</div>
-        </EventProvider>
-      </Suspense>
-    )
-  }
-
   return (
     <Suspense>
       <EventProvider initialEvents={initialEvents}>
