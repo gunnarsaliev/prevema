@@ -10,7 +10,14 @@ import { eventSchema, type EventFormValues } from '@/lib/schemas/event'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldSet,
+  FieldLegend,
+} from '@/components/ui/field'
 import {
   Select,
   SelectContent,
@@ -37,15 +44,16 @@ export function EventForm(props: Props) {
       : {
           // Auto-select the only org; if multiple, the user will pick via the selector below
           organization: organizations.length === 1 ? organizations[0].id : undefined,
+          name: '',
           status: 'planning',
           eventType: 'online',
+          startDate: '',
         }
 
   const {
-    register,
     handleSubmit,
     control,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
     defaultValues,
@@ -94,196 +102,323 @@ export function EventForm(props: Props) {
 
       {/* Organization selector — only shown when the user belongs to 2+ organizations */}
       {props.mode === 'create' && organizations.length >= 2 && (
-        <div className="space-y-1">
-          <Label htmlFor="organization">Organization *</Label>
-          <Controller
-            name="organization"
-            control={control}
-            rules={{ required: 'Please select an organization' }}
-            render={({ field }) => (
-              <Select
-                value={field.value ? String(field.value) : ''}
-                onValueChange={(v) => field.onChange(Number(v))}
-              >
-                <SelectTrigger id="organization" ref={field.ref}>
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={String(org.id)}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {errors.organization && (
-            <p className="text-xs text-destructive">{errors.organization.message}</p>
-          )}
-        </div>
+        <FieldSet>
+          <FieldLegend>Organization</FieldLegend>
+          <FieldGroup>
+            <Controller
+              name="organization"
+              control={control}
+              rules={{ required: 'Please select an organization' }}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="organization">Organization *</FieldLabel>
+                  <Select
+                    value={field.value ? String(field.value) : ''}
+                    onValueChange={(v) => field.onChange(Number(v))}
+                  >
+                    <SelectTrigger id="organization" ref={field.ref} aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Select organization" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {organizations.map((org) => (
+                        <SelectItem key={org.id} value={String(org.id)}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+          </FieldGroup>
+        </FieldSet>
       )}
 
       {/* Basic info */}
-      <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Basic info
-        </h2>
+      <FieldSet>
+        <FieldLegend>Basic info</FieldLegend>
+        <FieldGroup>
+          <Controller
+            name="name"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Event name *</FieldLabel>
+                <Input
+                  {...field}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  className="bg-background"
+                  placeholder="My Event"
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-        <div className="space-y-1">
-          <Label htmlFor="name">Event name *</Label>
-          <Input id="name" {...register('name')} placeholder="My Event" />
-          {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          {/* Controller is the correct RHF pattern for non-native inputs like Radix Select */}
-          <div className="space-y-1">
-            <Label htmlFor="status">Status</Label>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Controller is the correct RHF pattern for non-native inputs like Radix Select */}
             <Controller
               name="status"
               control={control}
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id="status" ref={field.ref}>
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="planning">Planning</SelectItem>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                    <SelectItem value="archived">Archived</SelectItem>
-                  </SelectContent>
-                </Select>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="status">Status</FieldLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="status" ref={field.ref} aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="planning">Planning</SelectItem>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="closed">Closed</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
-            {errors.status && <p className="text-xs text-destructive">{errors.status.message}</p>}
-          </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="eventType">Event type</Label>
             <Controller
               name="eventType"
               control={control}
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id="eventType" ref={field.ref}>
-                    <SelectValue placeholder="Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="online">Online</SelectItem>
-                    <SelectItem value="physical">Physical</SelectItem>
-                  </SelectContent>
-                </Select>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="eventType">Event type</FieldLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="eventType" ref={field.ref} aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="online">Online</SelectItem>
+                      <SelectItem value="physical">Physical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
             />
-            {errors.eventType && (
-              <p className="text-xs text-destructive">{errors.eventType.message}</p>
+          </div>
+
+          {/* Only re-renders this section when eventType changes, not the whole form */}
+          {eventType === 'physical' && (
+            <Controller
+              name="address"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Address</FieldLabel>
+                  <Input
+                    {...field}
+                    value={field.value ?? ''}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                    placeholder="123 Main St, City"
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+          )}
+
+          <Controller
+            name="theme"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Theme / tagline</FieldLabel>
+                <Input
+                  {...field}
+                  value={field.value ?? ''}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  className="bg-background"
+                  placeholder="Inspiring the future of tech"
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
             )}
-          </div>
-        </div>
-
-        {/* Only re-renders this section when eventType changes, not the whole form */}
-        {eventType === 'physical' && (
-          <div className="space-y-1">
-            <Label htmlFor="address">Address</Label>
-            <Input id="address" {...register('address')} placeholder="123 Main St, City" />
-            {errors.address && <p className="text-xs text-destructive">{errors.address.message}</p>}
-          </div>
-        )}
-
-        <div className="space-y-1">
-          <Label htmlFor="theme">Theme / tagline</Label>
-          <Input id="theme" {...register('theme')} placeholder="Inspiring the future of tech" />
-        </div>
-      </div>
+          />
+        </FieldGroup>
+      </FieldSet>
 
       {/* Dates */}
-      <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Dates
-        </h2>
+      <FieldSet>
+        <FieldLegend>Dates</FieldLegend>
+        <FieldGroup>
+          <div className="grid grid-cols-2 gap-4">
+            <Controller
+              name="startDate"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Start date *</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    type="datetime-local"
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label htmlFor="startDate">Start date *</Label>
-            <Input id="startDate" type="datetime-local" {...register('startDate')} />
-            {errors.startDate && (
-              <p className="text-xs text-destructive">{errors.startDate.message}</p>
+            <Controller
+              name="endDate"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>End date</FieldLabel>
+                  <Input
+                    {...field}
+                    value={field.value ?? ''}
+                    id={field.name}
+                    type="datetime-local"
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+          </div>
+
+          <Controller
+            name="timezone"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Timezone</FieldLabel>
+                <Input
+                  {...field}
+                  value={field.value ?? ''}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  className="bg-background"
+                  placeholder="Europe/Berlin"
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
             )}
-          </div>
-
-          <div className="space-y-1">
-            <Label htmlFor="endDate">End date</Label>
-            <Input id="endDate" type="datetime-local" {...register('endDate')} />
-            {errors.endDate && <p className="text-xs text-destructive">{errors.endDate.message}</p>}
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          <Label htmlFor="timezone">Timezone</Label>
-          <Input id="timezone" {...register('timezone')} placeholder="Europe/Berlin" />
-        </div>
-      </div>
+          />
+        </FieldGroup>
+      </FieldSet>
 
       {/* Description */}
-      <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Description
-        </h2>
-
-        <div className="space-y-1">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            {...register('description')}
-            placeholder="Brief overview of the event…"
-            rows={3}
+      <FieldSet>
+        <FieldLegend>Description</FieldLegend>
+        <FieldGroup>
+          <Controller
+            name="description"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Description</FieldLabel>
+                <Textarea
+                  {...field}
+                  value={field.value ?? ''}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  className="bg-background"
+                  placeholder="Brief overview of the event…"
+                  rows={3}
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
           />
-        </div>
-      </div>
+        </FieldGroup>
+      </FieldSet>
 
       {/* Context */}
-      <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Context
-        </h2>
-
-        <div className="space-y-1">
-          <Label htmlFor="why">Why</Label>
-          <Textarea
-            id="why"
-            {...register('why')}
-            placeholder="Why this event is happening…"
-            rows={2}
+      <FieldSet>
+        <FieldLegend>Context</FieldLegend>
+        <FieldGroup>
+          <Controller
+            name="why"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Why</FieldLabel>
+                <Textarea
+                  {...field}
+                  value={field.value ?? ''}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  className="bg-background"
+                  placeholder="Why this event is happening…"
+                  rows={2}
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
           />
-        </div>
 
-        <div className="space-y-1">
-          <Label htmlFor="what">What</Label>
-          <Textarea
-            id="what"
-            {...register('what')}
-            placeholder="What the event is about…"
-            rows={2}
+          <Controller
+            name="what"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>What</FieldLabel>
+                <Textarea
+                  {...field}
+                  value={field.value ?? ''}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  className="bg-background"
+                  placeholder="What the event is about…"
+                  rows={2}
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
           />
-        </div>
 
-        <div className="space-y-1">
-          <Label htmlFor="where">Where (context)</Label>
-          <Input id="where" {...register('where')} placeholder="Venue name, city, or platform…" />
-        </div>
-
-        <div className="space-y-1">
-          <Label htmlFor="who">Who</Label>
-          <Textarea
-            id="who"
-            {...register('who')}
-            placeholder="Who should attend…"
-            rows={2}
+          <Controller
+            name="where"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Where (context)</FieldLabel>
+                <Input
+                  {...field}
+                  value={field.value ?? ''}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  className="bg-background"
+                  placeholder="Venue name, city, or platform…"
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
           />
-        </div>
-      </div>
+
+          <Controller
+            name="who"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Who</FieldLabel>
+                <Textarea
+                  {...field}
+                  value={field.value ?? ''}
+                  id={field.name}
+                  aria-invalid={fieldState.invalid}
+                  className="bg-background"
+                  placeholder="Who should attend…"
+                  rows={2}
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
+        </FieldGroup>
+      </FieldSet>
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">
