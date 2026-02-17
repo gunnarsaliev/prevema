@@ -35,6 +35,7 @@ import { BlockquoteFeatureClient as BlockquoteFeatureClient_e70f5e05f09f93e00b99
 import { UploadFeatureClient as UploadFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { GenerateContentButton as GenerateContentButton_068e2d9404a590e6b4b90b0691773725 } from '@/collections/EmailTemplates/components'
 import { VariablesListField as VariablesListField_3de5f66409f7f23ffc262e660ffe81ec } from '@/components/fields/VariablesList'
+import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
 import { CollectionCards as CollectionCards_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
 
 export const importMap = {
@@ -75,5 +76,6 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#UploadFeatureClient": UploadFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@/collections/EmailTemplates/components#GenerateContentButton": GenerateContentButton_068e2d9404a590e6b4b90b0691773725,
   "@/components/fields/VariablesList#VariablesListField": VariablesListField_3de5f66409f7f23ffc262e660ffe81ec,
+  "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24,
   "@payloadcms/ui/rsc#CollectionCards": CollectionCards_ab83ff7e88da8d3530831f296ec4756a
 }
