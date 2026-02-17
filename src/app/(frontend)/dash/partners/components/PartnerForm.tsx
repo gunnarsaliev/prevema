@@ -34,6 +34,7 @@ type SharedOptions = {
   events: EventOption[]
   partnerTypes: PartnerTypeOption[]
   tiers: TierOption[]
+  defaultEventId?: number
 }
 
 type Props =
@@ -52,6 +53,7 @@ export function PartnerForm(props: Props) {
           contactPerson: '',
           contactEmail: '',
           status: 'default',
+          ...(props.defaultEventId ? { event: props.defaultEventId } : {}),
         }
 
   const {

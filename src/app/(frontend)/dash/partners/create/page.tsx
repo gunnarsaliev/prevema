@@ -5,7 +5,12 @@ import config from '@/payload.config'
 
 import { PartnerForm } from '../components/PartnerForm'
 
-export default async function CreatePartnerPage() {
+export default async function CreatePartnerPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ eventId?: string }>
+}) {
+  const { eventId } = await searchParams
   const headers = await getHeaders()
   const payload = await getPayload({ config: await config })
   const { user } = await payload.auth({ headers })
@@ -60,6 +65,7 @@ export default async function CreatePartnerPage() {
         events={events}
         partnerTypes={partnerTypes}
         tiers={tiers}
+        defaultEventId={eventId ? Number(eventId) : undefined}
       />
     </div>
   )

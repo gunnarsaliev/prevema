@@ -19,7 +19,7 @@ import Link from 'next/link'
 const CALENDAR_ICON = 'fluent-color:calendar-32'
 
 const handleCreateEvent = () => {
-  window.open('/admin/collections/events/create', '_blank')
+  window.open('/dash/events/create', '_blank')
 }
 
 export const EventSwitcher = () => {
@@ -60,7 +60,7 @@ export const EventSwitcher = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[calc(100%-1rem)] min-w-64" sideOffset={4}>
         <DropdownMenuLabel>
-          <Link href="/admin/collections/events">See all events</Link>
+          <Link href="/dash/events">See all events</Link>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {events.map((event) => {

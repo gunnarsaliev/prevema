@@ -5,25 +5,46 @@ import config from '@/payload.config'
 
 import { PartnersList } from './components/PartnersList'
 
-export default async function PartnersPage() {
+export default async function PartnersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ eventId?: string }>
+}) {
+  const { eventId } = await searchParams
   const headers = await getHeaders()
   const payload = await getPayload({ config: await config })
   const { user } = await payload.auth({ headers })
 
   if (!user) redirect('/admin/login')
 
-  const { docs } = await payload.find({
-    collection: 'partners',
-    overrideAccess: false,
-    user,
-    depth: 1, // resolve partnerType and tier names
-    limit: 500,
-    sort: 'companyName',
-  })
+  const [{ docs: partners }, { docs: eventDocs }] = await Promise.all([
+    payload.find({
+      collection: 'partners',
+      overrideAccess: false,
+      user,
+      depth: 1, // resolve partnerType and tier names
+      limit: 500,
+      sort: 'companyName',
+      ...(eventId
+        ? { where: { event: { equals: Number(eventId) } } }
+        : {}),
+    }),
+    payload.find({
+      collection: 'events',
+      overrideAccess: false,
+      user,
+      depth: 0,
+      limit: 200,
+      sort: 'name',
+      select: { id: true, name: true },
+    }),
+  ])
+
+  const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
 
   return (
     <div className="px-6 py-8">
-      <PartnersList partners={docs} />
+      <PartnersList partners={partners} events={events} eventId={eventId} />
     </div>
   )
 }
