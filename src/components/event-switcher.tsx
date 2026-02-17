@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useEvent } from '@/providers/Event'
+import Link from 'next/link'
 
 const CALENDAR_ICON = 'fluent-color:calendar-32'
 
@@ -58,7 +59,9 @@ export const EventSwitcher = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[calc(100%-1rem)] min-w-64" sideOffset={4}>
-        <DropdownMenuLabel>Events</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          <Link href="/admin/collections/events">See all events</Link>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {events.map((event) => {
           const isSelected = selectedEvent?.id === event.id
