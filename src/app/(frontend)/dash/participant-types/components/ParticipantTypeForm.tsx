@@ -34,9 +34,15 @@ import {
 type OrgOption = { id: number; name: string }
 type EventOption = { id: number; name: string }
 
+type SharedCallbacks = {
+  onSuccess?: () => void
+  onCancel?: () => void
+  lockedValues?: { event?: number; organization?: number }
+}
+
 type Props =
-  | { mode: 'create'; organizations: OrgOption[]; events: EventOption[] }
-  | { mode: 'edit'; participantTypeId: string; defaultValues: ParticipantTypeFormValues; organizations: OrgOption[]; events: EventOption[] }
+  | ({ mode: 'create'; organizations: OrgOption[]; events: EventOption[] } & SharedCallbacks)
+  | ({ mode: 'edit'; participantTypeId: string; defaultValues: ParticipantTypeFormValues; organizations: OrgOption[]; events: EventOption[] } & SharedCallbacks)
 
 export function ParticipantTypeForm(props: Props) {
   const router = useRouter()
@@ -48,8 +54,10 @@ export function ParticipantTypeForm(props: Props) {
     props.mode === 'edit'
       ? props.defaultValues
       : {
-          // Auto-select the only org; if multiple, the user will pick via the selector below
-          organization: organizations.length === 1 ? organizations[0].id : undefined,
+          organization:
+            props.lockedValues?.organization ??
+            (organizations.length === 1 ? organizations[0].id : undefined),
+          event: props.lockedValues?.event ?? undefined,
           name: '',
           isActive: true,
           showOptionalFields: false,
@@ -93,23 +101,28 @@ export function ParticipantTypeForm(props: Props) {
         throw new Error(message)
       }
 
-      router.push('/dash/participant-types')
-      router.refresh()
+      if (props.onSuccess) {
+        props.onSuccess()
+        router.refresh()
+      } else {
+        router.push('/dash/participant-types')
+        router.refresh()
+      }
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Unexpected error')
     }
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-2xl">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-2xl w-full">
       {serverError && (
         <p className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">
           {serverError}
         </p>
       )}
 
-      {/* Organization selector — only shown when the user belongs to 2+ organizations */}
-      {props.mode === 'create' && organizations.length >= 2 && (
+      {/* Organization selector — hidden when locked (e.g. from event detail drawer) */}
+      {!props.lockedValues?.organization && props.mode === 'create' && organizations.length >= 2 && (
         <FieldSet>
           <FieldLegend>Organization</FieldLegend>
           <FieldGroup>
@@ -185,33 +198,35 @@ export function ParticipantTypeForm(props: Props) {
             )}
           />
 
-          <div className="grid grid-cols-2 gap-4">
-            <Controller
-              name="event"
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="event">Link to event</FieldLabel>
-                  <Select
-                    value={field.value ? String(field.value) : 'none'}
-                    onValueChange={(v) => field.onChange(v === 'none' ? null : Number(v))}
-                  >
-                    <SelectTrigger id="event" ref={field.ref} aria-invalid={fieldState.invalid}>
-                      <SelectValue placeholder="Any event" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Any event</SelectItem>
-                      {props.events.map((e) => (
-                        <SelectItem key={e.id} value={String(e.id)}>
-                          {e.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
+          <div className={props.lockedValues?.event == null ? 'grid grid-cols-2 gap-4' : undefined}>
+            {props.lockedValues?.event == null && (
+              <Controller
+                name="event"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="event">Link to event</FieldLabel>
+                    <Select
+                      value={field.value ? String(field.value) : 'none'}
+                      onValueChange={(v) => field.onChange(v === 'none' ? null : Number(v))}
+                    >
+                      <SelectTrigger id="event" ref={field.ref} aria-invalid={fieldState.invalid}>
+                        <SelectValue placeholder="Any event" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Any event</SelectItem>
+                        {props.events.map((e) => (
+                          <SelectItem key={e.id} value={String(e.id)}>
+                            {e.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            )}
 
             <Controller
               name="isActive"
@@ -363,7 +378,7 @@ export function ParticipantTypeForm(props: Props) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push('/dash/participant-types')}
+          onClick={() => props.onCancel ? props.onCancel() : router.push('/dash/participant-types')}
           disabled={isSubmitting}
         >
           Cancel
