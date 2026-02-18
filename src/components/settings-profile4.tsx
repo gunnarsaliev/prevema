@@ -9,11 +9,15 @@ import {
   Link2,
   Mail,
   MapPin,
+  Monitor,
+  Moon,
   Phone,
   Settings,
+  Sun,
   User,
   X,
 } from 'lucide-react'
+import { useTheme } from 'next-themes'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -94,6 +98,7 @@ const SettingsProfile4 = ({
 }: SettingsProfile4Props) => {
   const [activeSection, setActiveSection] = useState('personal')
   const [avatarFiles, setAvatarFiles] = useState<File[]>([])
+  const { theme, setTheme } = useTheme()
 
   const initials = defaultValues.name
     ?.split(' ')
@@ -386,6 +391,37 @@ const SettingsProfile4 = ({
                   <p className="text-sm text-muted-foreground">Customize your experience</p>
 
                   <div className="mt-6 space-y-6">
+                    {/* Theme switcher */}
+                    <div className="space-y-2">
+                      <Label>Appearance</Label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {(
+                          [
+                            { value: 'light', label: 'Light', Icon: Sun },
+                            { value: 'dark', label: 'Dark', Icon: Moon },
+                            { value: 'system', label: 'System', Icon: Monitor },
+                          ] as const
+                        ).map(({ value, label, Icon }) => (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setTheme(value)}
+                            className={cn(
+                              'flex flex-col items-center gap-2 rounded-lg border px-4 py-3 text-sm transition-colors',
+                              theme === value
+                                ? 'border-primary bg-primary/5 text-primary'
+                                : 'border-border text-muted-foreground hover:border-primary/50 hover:bg-muted',
+                            )}
+                          >
+                            <Icon className="size-5" />
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <Separator />
+
                     <div className="space-y-2">
                       <Label htmlFor="language">Language</Label>
                       <Select defaultValue={defaultValues.language}>

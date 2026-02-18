@@ -1,4 +1,4 @@
-import { CommandIcon, MoreHorizontal, Search, Users } from 'lucide-react'
+import { Building2, CommandIcon, MoreHorizontal, Search, Users } from 'lucide-react'
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
@@ -19,7 +19,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { navItems, partners, guests, type NavItemId } from './data'
+import { navItems, type NavItemId } from './data'
 import { NavUser } from './avatar-menu'
 import { EventSwitcher } from '@/components/event-switcher'
 import { useAuth } from '@/providers/Auth'
@@ -43,9 +43,7 @@ export function AppSidebar({
   const isCollapsed = state === 'collapsed'
   const { user } = useAuth()
 
-  const userData = user
-    ? { name: user.name ?? user.email, email: user.email, avatar: '' }
-    : null
+  const userData = user ? { name: user.name ?? user.email, email: user.email, avatar: '' } : null
 
   // Helper function to preserve eventId in navigation links
   const buildUrlWithEventId = (baseUrl: string) => {
@@ -114,37 +112,35 @@ export function AppSidebar({
           <SidebarGroupLabel>Guests</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {guests.map((guest) => (
-                <SidebarMenuItem key={guest.id}>
-                  <SidebarMenuButton className="px-2">
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith('/dash/participants')}
+                  className="px-2"
+                >
+                  <Link href={buildUrlWithEventId('/dash/participants')}>
                     <Users className="size-4" />
-                    <span>{guest.name}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Partners</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {partners.map((partner) => (
-                <SidebarMenuItem key={partner.id}>
-                  <SidebarMenuButton className="px-2">
-                    <Users className="size-4" />
-                    <span>{partner.name}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                    <span>Participants</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith('/dash/partners')}
+                  className="px-2"
+                >
+                  <Link href={buildUrlWithEventId('/dash/partners')}>
+                    <Building2 className="size-4" />
+                    <span>Partners</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        {userData && <NavUser user={userData} />}
-      </SidebarFooter>
+      <SidebarFooter>{userData && <NavUser user={userData} />}</SidebarFooter>
     </Sidebar>
   )
 }
