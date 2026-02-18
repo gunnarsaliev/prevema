@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAvailableVariables, formatVariableReference } from '@/services/emailVariables'
 import type { TriggerEvent } from '@/services/emailAutomation'
+import { EMAIL_SYSTEM_PROMPT, buildEmailPrompt } from '@/lib/prompts'
 
 interface GenerateEmailContentRequest {
   subject?: string
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     const variableReference = formatVariableReference(triggerEvent || 'none')
 
     // Build comprehensive prompt
-    const prompt = buildPrompt({
+    const prompt = buildEmailPrompt({
       subject,
       description,
       tenantName,
@@ -37,8 +38,11 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured. Please add OPENAI_API_KEY to environment variables.' },
-        { status: 500 }
+        {
+          error:
+            'OpenAI API key not configured. Please add OPENAI_API_KEY to environment variables.',
+        },
+        { status: 500 },
       )
     }
 
@@ -54,8 +58,7 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: 'system',
-            content:
-              'You are an expert email copywriter. Generate professional, engaging email content in HTML format with Handlebars variable placeholders.',
+            content: EMAIL_SYSTEM_PROMPT,
           },
           {
             role: 'user',
@@ -71,17 +74,16 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const error = await response.text()
 
-      // Parse error for better reporting
       try {
         const errorJson = JSON.parse(error)
         return NextResponse.json(
           { error: errorJson.error?.message || 'Failed to generate content from OpenAI' },
-          { status: response.status }
+          { status: response.status },
         )
       } catch (parseErr) {
         return NextResponse.json(
           { error: `OpenAI API error: ${error.substring(0, 200)}` },
-          { status: response.status }
+          { status: response.status },
         )
       }
     }
@@ -157,83 +159,7 @@ export async function POST(req: NextRequest) {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
-}
-
-/**
- * Build the prompt for OpenAI
- */
-function buildPrompt(params: {
-  subject?: string
-  description?: string
-  tenantName?: string
-  triggerEvent?: string
-  variableReference: string
-  variableGroups: any[]
-}): string {
-  const { subject, description, tenantName, triggerEvent, variableReference, variableGroups } =
-    params
-
-  // Build context-aware description
-  let contextDescription = ''
-  if (triggerEvent === 'participant.created') {
-    contextDescription =
-      'This is for when a new participant registers for an event. The email should welcome them and provide relevant event information.'
-  } else if (triggerEvent === 'participant.updated') {
-    contextDescription =
-      'This is for notifying participants about status changes (approval, need more info, etc.). Focus on the status update and next steps.'
-  } else if (triggerEvent === 'partner.invited') {
-    contextDescription =
-      'This is for inviting potential partners or sponsors. Focus on partnership opportunities and benefits.'
-  } else if (triggerEvent === 'event.published') {
-    contextDescription = 'This is for announcing a published event to relevant recipients.'
-  }
-
-  const prompt = `Generate professional email template content in HTML format for an event management system.
-
-## Context:
-${subject ? `- Subject: ${subject}` : ''}
-${description ? `- Purpose: ${description}` : ''}
-${tenantName ? `- Organization: ${tenantName}` : ''}
-${triggerEvent && triggerEvent !== 'none' ? `- Trigger Event: ${triggerEvent}` : ''}
-${contextDescription ? `- Context: ${contextDescription}` : ''}
-
-## Available Variables:
-${variableReference}
-
-## CRITICAL REQUIREMENTS:
-1. **DO NOT include any links (<a> tags) in the email**
-2. **DO NOT include any email addresses** (the system will use {{email}} variable when needed)
-3. **DO NOT use placeholder text like:**
-   - support@example.com
-   - contact@organization.com
-   - info@company.com
-   - https://example.com
-   - [Insert Link Here]
-   - Any other placeholder or example URLs/emails
-
-4. Write the email body content in clean, semantic HTML
-5. Use appropriate Handlebars variables ({{variableName}}) throughout the content based on the available variables
-6. Include:
-   - Warm, professional greeting using {{name}} if available
-   - Clear, engaging body text relevant to the context and trigger event
-   - Specific information using variables like {{event}}, {{status}}, {{companyName}}, etc.
-   - Professional sign-off using {{tenantName}} if appropriate
-7. Structure:
-   - Use <h2> for section headings if needed (avoid <h1>)
-   - Use <p> for paragraphs
-   - Use <strong> and <em> for emphasis
-   - DO NOT use <a> tags
-8. Make it personal and engaging by using the provided variables
-9. Keep it concise but informative (3-5 short paragraphs)
-10. Maintain professional tone appropriate for ${triggerEvent || 'general'} communication
-11. Focus on the actual context provided - if this is about participant approval, talk about approval; if it's about registration, welcome them, etc.
-
-## Output Format:
-Return ONLY the HTML content, no markdown code blocks, no explanations, no placeholder links or emails.
-Start directly with HTML tags.`
-
-  return prompt
 }
