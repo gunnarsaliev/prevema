@@ -29,14 +29,11 @@ export const EventSwitcher = () => {
     return (
       <Button
         onClick={handleCreateEvent}
-        className="h-auto w-full justify-between py-2 px-2"
+        className="h-auto w-full justify-start gap-2 py-2 px-2"
         variant="outline"
       >
-        <div className="flex items-center gap-2">
-          <Icon icon={CALENDAR_ICON} className="h-4 w-4" />
-          <span className="text-sm">No events - Create one</span>
-        </div>
         <Plus className="h-4 w-4 shrink-0" />
+        <span className="text-sm">Create event</span>
       </Button>
     )
   }
