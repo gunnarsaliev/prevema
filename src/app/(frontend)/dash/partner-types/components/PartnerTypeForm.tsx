@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useForm, useWatch, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
+import slugify from 'slugify'
 
 import {
   partnerTypeSchema,
@@ -88,10 +89,13 @@ export function PartnerTypeForm(props: Props) {
           : '/api/partner-types'
       const method = props.mode === 'edit' ? 'PATCH' : 'POST'
 
+      // Generate slug from name
+      const slug = slugify(values.name, { lower: true, strict: true, locale: 'en' })
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, slug }),
       })
 
       if (!res.ok) {

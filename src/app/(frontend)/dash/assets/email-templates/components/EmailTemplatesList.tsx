@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { DataTable } from '@/components/ui/data-table'
+import { DataTable, createSelectColumn } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 type EmailTemplate = {
@@ -41,6 +41,7 @@ export function EmailTemplatesList({ templates }: EmailTemplatesListProps) {
   }
 
   const columns: ColumnDef<EmailTemplate>[] = [
+    createSelectColumn<EmailTemplate>(),
     {
       accessorKey: 'name',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,

@@ -3,19 +3,22 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Pencil, Trash2, Plus, Loader2, CheckCircle2, XCircle, Copy, Check } from 'lucide-react'
+import { ColumnDef } from '@tanstack/react-table'
+import { Pencil, Trash2, Plus, Loader2, CheckCircle2, XCircle, Copy, Check, MoreHorizontal } from 'lucide-react'
 
 import type { ParticipantType } from '@/payload-types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { DataTable, createSelectColumn } from '@/components/ui/data-table'
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 interface Props {
   participantTypes: ParticipantType[]
@@ -56,6 +59,104 @@ export function ParticipantTypesList({ participantTypes }: Props) {
     return '—'
   }
 
+  const columns: ColumnDef<ParticipantType>[] = [
+    createSelectColumn<ParticipantType>(),
+    {
+      accessorKey: 'name',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+    },
+    {
+      accessorKey: 'event',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Event" />,
+      cell: ({ row }) => getEventName(row.getValue('event')),
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'requiredFields',
+      header: 'Required fields',
+      cell: ({ row }) => {
+        const fields = row.getValue('requiredFields') as string[]
+        return Array.isArray(fields) && fields.length > 0 ? (
+          <Badge variant="secondary">{fields.length} fields</Badge>
+        ) : (
+          <span className="text-muted-foreground text-sm">None</span>
+        )
+      },
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'isActive',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Active" />,
+      cell: ({ row }) => {
+        const isActive = row.getValue('isActive') as boolean
+        return isActive ? (
+          <CheckCircle2 className="h-4 w-4 text-green-500" />
+        ) : (
+          <XCircle className="h-4 w-4 text-muted-foreground" />
+        )
+      },
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const participantType = row.original
+        const isDeleting = deletingId === participantType.id
+        const isCopied = copiedId === participantType.id
+
+        return (
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                {participantType.publicFormLink && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => handleCopy(participantType.id, participantType.publicFormLink!)}
+                    >
+                      {isCopied ? (
+                        <Check className="mr-2 h-4 w-4 text-green-500" />
+                      ) : (
+                        <Copy className="mr-2 h-4 w-4" />
+                      )}
+                      {isCopied ? 'Copied!' : 'Copy public form URL'}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuItem asChild>
+                  <Link href={`/dash/participant-types/${participantType.id}/edit`}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  disabled={isDeleting}
+                  onClick={() => handleDelete(participantType.id, participantType.name)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="mr-2 h-4 w-4" />
+                  )}
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )
+      },
+    },
+  ]
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -77,77 +178,12 @@ export function ParticipantTypesList({ participantTypes }: Props) {
           </Button>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Event</TableHead>
-              <TableHead>Required fields</TableHead>
-              <TableHead>Active</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {participantTypes.map((pt) => (
-              <TableRow key={pt.id}>
-                <TableCell className="font-medium">{pt.name}</TableCell>
-                <TableCell>{getEventName(pt.event)}</TableCell>
-                <TableCell>
-                  {Array.isArray(pt.requiredFields) && pt.requiredFields.length > 0 ? (
-                    <Badge variant="secondary">{pt.requiredFields.length} fields</Badge>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">None</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {pt.isActive ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <XCircle className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    {pt.publicFormLink && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleCopy(pt.id, pt.publicFormLink!)}
-                        title="Copy public form URL"
-                      >
-                        {copiedId === pt.id ? (
-                          <Check className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                        <span className="sr-only">Copy public form URL</span>
-                      </Button>
-                    )}
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/dash/participant-types/${pt.id}/edit`}>
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">Edit</span>
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={deletingId === pt.id}
-                      onClick={() => handleDelete(pt.id, pt.name)}
-                    >
-                      {deletingId === pt.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      )}
-                      <span className="sr-only">Delete</span>
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable
+          columns={columns}
+          data={participantTypes}
+          searchKey="name"
+          searchPlaceholder="Search participant types..."
+        />
       )}
     </div>
   )

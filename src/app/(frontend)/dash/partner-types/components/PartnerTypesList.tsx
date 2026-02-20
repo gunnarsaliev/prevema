@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DataTable } from '@/components/ui/data-table'
+import { DataTable, createSelectColumn } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 interface Props {
@@ -60,6 +60,7 @@ export function PartnerTypesList({ partnerTypes }: Props) {
   }
 
   const columns: ColumnDef<PartnerType>[] = [
+    createSelectColumn<PartnerType>(),
     {
       accessorKey: 'name',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,

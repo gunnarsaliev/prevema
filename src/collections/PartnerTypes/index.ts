@@ -57,7 +57,7 @@ export const PartnerTypes: CollectionConfig = {
     {
       name: 'slug',
       type: 'text',
-      unique: true,
+      index: true,
       hooks: {
         beforeValidate: [formatSlugHook('name')],
       },
@@ -156,6 +156,6 @@ export const PartnerTypes: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [autoSelectOrganization, validatePartnerFields, syncOptionalFields],
-    afterChange: [generatePublicFormLink],
+    beforeChange: [generatePublicFormLink],
   },
 }

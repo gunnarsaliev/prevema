@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DataTable } from '@/components/ui/data-table'
+import { DataTable, createSelectColumn } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 const STATUS_VARIANT: Record<
@@ -54,6 +54,7 @@ export function EventsList({ events }: Props) {
   }
 
   const columns: ColumnDef<Event>[] = [
+    createSelectColumn<Event>(),
     {
       accessorKey: 'name',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,

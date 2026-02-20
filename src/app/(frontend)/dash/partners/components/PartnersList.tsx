@@ -23,7 +23,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DataTable } from '@/components/ui/data-table'
+import { DataTable, createSelectColumn } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -81,6 +81,7 @@ export function PartnersList({ partners, events, eventId }: Props) {
     : '/dash/partners/create'
 
   const columns: ColumnDef<Partner>[] = [
+    createSelectColumn<Partner>(),
     {
       accessorKey: 'companyName',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Company" />,

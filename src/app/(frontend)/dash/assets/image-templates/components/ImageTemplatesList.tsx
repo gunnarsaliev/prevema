@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { DataTable } from '@/components/ui/data-table'
+import { DataTable, createSelectColumn } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 type ImageTemplate = {
@@ -40,6 +40,7 @@ export function ImageTemplatesList({ templates }: ImageTemplatesListProps) {
   }
 
   const columns: ColumnDef<ImageTemplate>[] = [
+    createSelectColumn<ImageTemplate>(),
     {
       accessorKey: 'name',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,

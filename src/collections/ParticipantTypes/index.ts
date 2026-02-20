@@ -158,6 +158,6 @@ export const ParticipantTypes: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [autoSelectOrganization, validateParticipantFields, syncOptionalFields],
-    afterChange: [generatePublicFormLink],
+    beforeChange: [generatePublicFormLink],
   },
 }

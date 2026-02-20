@@ -1,37 +1,22 @@
-import type { CollectionAfterChangeHook } from 'payload'
+import type { CollectionBeforeChangeHook } from 'payload'
 
-export const generatePublicFormLink: CollectionAfterChangeHook = async ({ doc, req }) => {
-  const hasEvent = !!doc.event
+export const generatePublicFormLink: CollectionBeforeChangeHook = async ({ data, req, operation }) => {
+  const hasEvent = !!data.event
 
   // Clear the link when no event is linked
   if (!hasEvent) {
-    if (doc.publicFormLink) {
-      await req.payload.update({
-        collection: 'partner-types',
-        id: doc.id,
-        data: { publicFormLink: null },
-      })
-      doc.publicFormLink = null
-    }
-    return doc
+    data.publicFormLink = null
+    return data
   }
 
   // Generate link when event is present and link is missing
-  if (!doc.publicFormLink) {
+  // For create operations, we need to generate after we have an ID, so skip here
+  if (operation === 'create' || !data.publicFormLink) {
     const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
-    const publicFormLink = `${baseUrl}/partner-register/${doc.id}`
-
-    try {
-      await req.payload.update({
-        collection: 'partner-types',
-        id: doc.id,
-        data: { publicFormLink },
-      })
-      doc.publicFormLink = publicFormLink
-    } catch (error) {
-      console.error('Error generating public form link:', error)
-    }
+    // For create, we'll use the slug as placeholder - it will be updated in afterChange if needed
+    const identifier = data.slug || 'new'
+    data.publicFormLink = `${baseUrl}/partner-register/${identifier}`
   }
 
-  return doc
+  return data
 }

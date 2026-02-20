@@ -23,7 +23,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DataTable } from '@/components/ui/data-table'
+import { DataTable, createSelectColumn } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -89,6 +89,7 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
     : '/dash/participants/create'
 
   const columns: ColumnDef<Participant>[] = [
+    createSelectColumn<Participant>(),
     {
       accessorKey: 'name',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
