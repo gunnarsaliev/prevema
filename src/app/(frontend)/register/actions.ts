@@ -54,6 +54,9 @@ export async function registerParticipant(
         },
         overrideAccess: true,
       })
+      if (!imageResult) {
+        throw new Error('Failed to upload profile photo')
+      }
       imageUrlId = imageResult.id
     }
 
@@ -74,6 +77,9 @@ export async function registerParticipant(
         },
         overrideAccess: true,
       })
+      if (!logoResult) {
+        throw new Error('Failed to upload company logo')
+      }
       companyLogoUrlId = logoResult.id
     }
 
@@ -125,6 +131,10 @@ export async function registerParticipant(
       draft: false,
       overrideAccess: false,
     })
+
+    if (!participant) {
+      throw new Error('Failed to create participant record')
+    }
 
     return { success: true, id: participant.id }
   } catch (err) {

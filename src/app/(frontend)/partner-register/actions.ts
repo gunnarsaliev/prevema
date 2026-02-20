@@ -54,6 +54,9 @@ export async function registerPartner(formData: FormData): Promise<RegisterPartn
         },
         overrideAccess: true,
       })
+      if (!logoResult) {
+        throw new Error('Failed to upload company logo')
+      }
       companyLogoId = logoResult.id
     }
 
@@ -72,6 +75,9 @@ export async function registerPartner(formData: FormData): Promise<RegisterPartn
         },
         overrideAccess: true,
       })
+      if (!bannerResult) {
+        throw new Error('Failed to upload company banner')
+      }
       companyBannerId = bannerResult.id
     }
 
@@ -122,6 +128,10 @@ export async function registerPartner(formData: FormData): Promise<RegisterPartn
       draft: false,
       overrideAccess: false,
     })
+
+    if (!partner) {
+      throw new Error('Failed to create partner record')
+    }
 
     return { success: true, id: partner.id }
   } catch (err) {

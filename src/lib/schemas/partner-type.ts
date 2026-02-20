@@ -33,10 +33,10 @@ export const partnerTypeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().nullish(),
   event: z.number().nullish(),
-  isActive: z.boolean().default(true),
-  requiredFields: z.array(z.enum(partnerFieldValues)).default([]),
-  showOptionalFields: z.boolean().default(false),
-  optionalFields: z.array(z.enum(partnerFieldValues)).default([]),
+  isActive: z.boolean(),
+  requiredFields: z.array(z.enum(partnerFieldValues)),
+  showOptionalFields: z.boolean(),
+  optionalFields: z.array(z.enum(partnerFieldValues)),
 })
 
 export type PartnerTypeFormValues = z.infer<typeof partnerTypeSchema>

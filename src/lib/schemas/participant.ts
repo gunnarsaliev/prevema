@@ -3,11 +3,9 @@ import { z } from 'zod'
 export const participantSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),
-  event: z.number({ required_error: 'Event is required' }),
-  participantType: z.number({ required_error: 'Participant type is required' }),
-  status: z
-    .enum(['not-approved', 'approved', 'need-info', 'cancelled'])
-    .default('not-approved'),
+  event: z.number(),
+  participantType: z.number(),
+  status: z.enum(['not-approved', 'approved', 'need-info', 'cancelled']),
   biography: z.string().nullish(),
   country: z.string().nullish(),
   phoneNumber: z.string().nullish(),

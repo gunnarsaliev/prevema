@@ -216,7 +216,7 @@ export const Partners: CollectionConfig = {
       type: 'relationship',
       relationTo: 'users',
       admin: { hidden: true },
-      defaultValue: ({ user }: any) => user.id,
+      defaultValue: ({ user }: any) => user?.id,
     },
     {
       name: 'createdDate',
