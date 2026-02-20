@@ -10,10 +10,12 @@ import { checkRole } from '@/access/utilities'
 import { ensureFirstUserIsAdmin } from './hooks/ensureFirstUserIsAdmin'
 import { assignUnlimitedToAdmins } from './hooks/assignUnlimitedToAdmins'
 import { autoAcceptInvitation } from './hooks/autoAcceptInvitation'
+import { preventDeleteIfOwnsOrganizations } from './hooks/preventDeleteIfOwnsOrganizations'
 
 export const Users: CollectionConfig = {
   slug: 'users',
   hooks: {
+    beforeDelete: [preventDeleteIfOwnsOrganizations],
     afterChange: [autoAcceptInvitation],
   },
   access: {

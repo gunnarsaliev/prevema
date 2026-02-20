@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 const NAV_LOGO = {
   url: '/',
-  src: 'https://asset.cooksa.com/prevema.svg',
+  src: '/logo.png',
   alt: 'Prevema Logo',
   title: 'Prevema',
 }

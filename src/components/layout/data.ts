@@ -2,6 +2,7 @@ import {
   Archive,
   BarChart3,
   Bug,
+  Calendar,
   File,
   Inbox,
   Lightbulb,
@@ -14,7 +15,7 @@ import {
   Users,
 } from 'lucide-react'
 
-export type NavItemId = 'dashboard' | 'analytics' | 'assets' | 'messages'
+export type NavItemId = 'dashboard' | 'analytics' | 'assets' | 'messages' | 'events'
 
 export type TicketStatus = 'active' | 'pending' | 'closed'
 
@@ -88,8 +89,9 @@ export type PreviousConversation = {
 
 export const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', url: '/dash', icon: Inbox, count: 6 },
+  { id: 'events', label: 'Events', url: '/dash/events', icon: Calendar },
   // { id: 'messages', label: 'Messages', url: '/dash/messages', icon: MailOpen, count: 10 },
-  { id: 'analytics', label: 'Analytics', url: '/dash/analytics', icon: BarChart3, count: 3 },
+  // { id: 'analytics', label: 'Analytics', url: '/dash/analytics', icon: BarChart3, count: 3 },
   { id: 'assets', label: 'Assets', url: '/dash/assets', icon: Palette },
 ]
 

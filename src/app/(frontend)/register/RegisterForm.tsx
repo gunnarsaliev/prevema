@@ -58,14 +58,6 @@ export function RegisterForm() {
       <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-6 lg:justify-start">
           {/* Logo */}
-          <a href="/">
-            <img
-              src="https://asset.cooksa.com/prevema.svg"
-              alt="Prevema Logo"
-              title="Prevema"
-              className="h-10 dark:invert"
-            />
-          </a>
           <form onSubmit={handleSubmit}>
             <div className="flex w-full max-w-sm min-w-sm flex-col items-center gap-y-4 rounded-md border border-muted bg-background px-6 py-8 shadow-md">
               <h1 className="text-xl font-semibold">Create Account</h1>

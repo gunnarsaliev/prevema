@@ -21,10 +21,10 @@ interface Signup1Props {
 const Signup1 = ({
   heading = "Signup",
   logo = {
-    url: "https://www.shadcnblocks.com",
-    src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblockscom-wordmark.svg",
-    alt: "logo",
-    title: "shadcnblocks.com",
+    url: "/",
+    src: "/logo.png",
+    alt: "Prevema Logo",
+    title: "Prevema",
   },
   buttonText = "Create Account",
   signupText = "Already a user?",
