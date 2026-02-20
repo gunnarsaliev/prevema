@@ -109,7 +109,7 @@ const Navbar17 = () => {
             </Button>
           ) : (
             <Button asChild variant="outline" size="sm" className="h-10 py-2.5 text-sm font-normal">
-              <Link href="/admin">Log In</Link>
+              <Link href="/login">Log In</Link>
             </Button>
           )}
         </div>
@@ -187,7 +187,7 @@ const MobileNav = ({
                 </Button>
               ) : (
                 <Button asChild variant="outline">
-                  <Link href="/admin">Log In</Link>
+                  <Link href="/login">Log In</Link>
                 </Button>
               )}
             </li>

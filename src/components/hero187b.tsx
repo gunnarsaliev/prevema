@@ -100,7 +100,7 @@ const Hero187b = () => {
                 style={{ backgroundColor: '#cebe06', color: '#000' }}
                 className="hover:opacity-90"
               >
-                <a href="/admin">Get started</a>
+                <a href="/login">Get started</a>
               </Button>
               <a href="/docs">
                 <Button aria-label="Documentation" variant="outline" size="lg">
