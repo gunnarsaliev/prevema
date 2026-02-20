@@ -14,7 +14,7 @@ import {
   useReactTable,
   Row,
 } from '@tanstack/react-table'
-import { ChevronDown, Trash2, X } from 'lucide-react'
+import { ChevronDown, Trash2, X, AlertTriangle } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -33,12 +33,28 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+
+export interface BulkActionConfirmation {
+  title: string
+  description: string | ((count: number) => string)
+  confirmLabel?: string
+  cancelLabel?: string
+}
 
 export interface BulkAction<TData> {
   label: string
   icon?: React.ReactNode
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
   onClick: (rows: Row<TData>[]) => void | Promise<void>
+  confirmation?: BulkActionConfirmation
 }
 
 interface DataTableProps<TData, TValue> {
@@ -64,6 +80,15 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const [confirmationDialog, setConfirmationDialog] = React.useState<{
+    open: boolean
+    action: BulkAction<TData> | null
+    rows: Row<TData>[]
+  }>({
+    open: false,
+    action: null,
+    rows: [],
+  })
 
   const table = useReactTable({
     data,
@@ -87,6 +112,25 @@ export function DataTable<TData, TValue>({
   const selectedRows = table.getFilteredSelectedRowModel().rows
   const hasSelection = selectedRows.length > 0
 
+  const handleBulkAction = (action: BulkAction<TData>, rows: Row<TData>[]) => {
+    if (action.confirmation) {
+      setConfirmationDialog({ open: true, action, rows })
+    } else {
+      action.onClick(rows)
+    }
+  }
+
+  const handleConfirm = async () => {
+    if (confirmationDialog.action) {
+      await confirmationDialog.action.onClick(confirmationDialog.rows)
+      setConfirmationDialog({ open: false, action: null, rows: [] })
+    }
+  }
+
+  const handleCancel = () => {
+    setConfirmationDialog({ open: false, action: null, rows: [] })
+  }
+
   return (
     <div className="space-y-4">
       {/* Bulk Actions Toolbar */}
@@ -101,7 +145,7 @@ export function DataTable<TData, TValue>({
                 key={index}
                 variant={action.variant ?? 'default'}
                 size="sm"
-                onClick={() => action.onClick(selectedRows)}
+                onClick={() => handleBulkAction(action, selectedRows)}
               >
                 {action.icon}
                 {action.label}
@@ -226,6 +270,40 @@ export function DataTable<TData, TValue>({
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmationDialog.open} onOpenChange={handleCancel}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              {confirmationDialog.action?.variant === 'destructive' && (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                </div>
+              )}
+              <DialogTitle>
+                {confirmationDialog.action?.confirmation?.title || 'Confirm Action'}
+              </DialogTitle>
+            </div>
+            <DialogDescription>
+              {typeof confirmationDialog.action?.confirmation?.description === 'function'
+                ? confirmationDialog.action.confirmation.description(confirmationDialog.rows.length)
+                : confirmationDialog.action?.confirmation?.description}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancel}>
+              {confirmationDialog.action?.confirmation?.cancelLabel || 'Cancel'}
+            </Button>
+            <Button
+              variant={confirmationDialog.action?.variant ?? 'default'}
+              onClick={handleConfirm}
+            >
+              {confirmationDialog.action?.confirmation?.confirmLabel || 'Confirm'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

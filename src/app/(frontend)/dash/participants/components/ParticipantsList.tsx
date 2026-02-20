@@ -4,18 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ColumnDef, Row } from '@tanstack/react-table'
-import { Pencil, Trash2, Plus, Loader2, MoreHorizontal } from 'lucide-react'
+import { Pencil, Trash2, Loader2, MoreHorizontal } from 'lucide-react'
 
 import type { Participant } from '@/payload-types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,8 +16,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DataTable, createSelectColumn, BulkAction } from '@/components/ui/data-table'
+import { createSelectColumn, BulkAction } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
+import { EntityList, EntityListConfig } from '@/components/shared/EntityList'
+import {
+  handleEntityDelete,
+  handleEntityBulkDelete,
+  getRelationName,
+} from '@/lib/entity-actions'
 
 const STATUS_LABEL: Record<string, string> = {
   'not-approved': 'Not Approved',
@@ -65,53 +64,41 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
   }
 
   const handleDelete = async (id: number, name: string) => {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return
-    setDeletingId(id)
-    try {
-      const res = await fetch(`/api/participants/${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Delete failed')
-      router.refresh()
-    } catch {
-      alert('Failed to delete participant.')
-    } finally {
-      setDeletingId(null)
-    }
+    await handleEntityDelete(
+      { id, name } as any,
+      {
+        apiEndpoint: '/api/participants',
+        entityName: 'participant',
+        getEntityName: (entity) => entity.name,
+      },
+      {
+        onStart: () => setDeletingId(id),
+        onSuccess: () => {
+          router.refresh()
+          setDeletingId(null)
+        },
+        onError: () => setDeletingId(null),
+      }
+    )
   }
 
   const handleBulkDelete = async (rows: Row<Participant>[]) => {
-    const count = rows.length
-    if (!confirm(`Delete ${count} participant(s)? This cannot be undone.`)) return
-
-    setBulkDeleting(true)
-    try {
-      const deletePromises = rows.map((row) =>
-        fetch(`/api/participants/${row.original.id}`, { method: 'DELETE' })
-      )
-      const results = await Promise.all(deletePromises)
-
-      const failedCount = results.filter((res) => !res.ok).length
-      if (failedCount > 0) {
-        alert(`Failed to delete ${failedCount} participant(s).`)
+    await handleEntityBulkDelete(
+      rows,
+      {
+        apiEndpoint: '/api/participants',
+        entityName: 'participant',
+      },
+      {
+        onStart: () => setBulkDeleting(true),
+        onSuccess: () => {
+          router.refresh()
+          setBulkDeleting(false)
+        },
+        onError: () => setBulkDeleting(false),
       }
-
-      router.refresh()
-    } catch {
-      alert('Failed to delete participants.')
-    } finally {
-      setBulkDeleting(false)
-    }
+    )
   }
-
-  const getRelationName = (rel: unknown): string => {
-    if (!rel) return '—'
-    if (typeof rel === 'object' && rel !== null && 'name' in rel)
-      return (rel as { name: string }).name
-    return '—'
-  }
-
-  const createHref = eventId
-    ? `/dash/participants/create?eventId=${eventId}`
-    : '/dash/participants/create'
 
   const bulkActions: BulkAction<Participant>[] = [
     {
@@ -123,6 +110,13 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
       ),
       variant: 'destructive',
       onClick: handleBulkDelete,
+      confirmation: {
+        title: 'Delete participants',
+        description: (count) =>
+          `Are you sure you want to delete ${count} participant${count > 1 ? 's' : ''}? This action cannot be undone.`,
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel',
+      },
     },
   ]
 
@@ -200,57 +194,34 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
     },
   ]
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Participants</h1>
-        <Button asChild>
-          <Link href={createHref}>
-            <Plus className="mr-2 h-4 w-4" />
-            New participant
-          </Link>
-        </Button>
-      </div>
+  const createHref = eventId
+    ? `/dash/participants/create?eventId=${eventId}`
+    : '/dash/participants/create'
 
-      {/* Event filter */}
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">Filter by event</span>
-        <Select value={eventId ?? 'all'} onValueChange={handleEventChange}>
-          <SelectTrigger className="w-64">
-            <SelectValue placeholder="All events" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All events</SelectItem>
-            {events.map((e) => (
-              <SelectItem key={e.id} value={String(e.id)}>
-                {e.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+  const config: EntityListConfig<Participant> = {
+    title: 'Participants',
+    createButtonLabel: 'New participant',
+    createHref,
+    columns,
+    data: participants,
+    searchKey: 'name',
+    searchPlaceholder: 'Search participants...',
+    emptyTitle: 'No participants yet',
+    emptyDescription: eventId
+      ? 'No participants found for this event.'
+      : 'Add your first participant to get started.',
+    emptyActionLabel: 'Add participant',
+    bulkActions,
+    filter: {
+      label: 'Filter by event',
+      value: eventId ?? 'all',
+      options: [
+        { value: 'all', label: 'All events' },
+        ...events.map((e) => ({ value: String(e.id), label: e.name })),
+      ],
+      onChange: handleEventChange,
+    },
+  }
 
-      {participants.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center text-muted-foreground">
-          <p className="text-lg font-medium">No participants yet</p>
-          <p className="text-sm mt-1">
-            {eventId
-              ? 'No participants found for this event.'
-              : 'Add your first participant to get started.'}
-          </p>
-          <Button asChild className="mt-4">
-            <Link href={createHref}>Add participant</Link>
-          </Button>
-        </div>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={participants}
-          searchKey="name"
-          searchPlaceholder="Search participants..."
-          bulkActions={bulkActions}
-        />
-      )}
-    </div>
-  )
+  return <EntityList config={config} />
 }

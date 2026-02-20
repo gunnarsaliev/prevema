@@ -12,8 +12,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { DataTable, createSelectColumn } from '@/components/ui/data-table'
+import { createSelectColumn } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
+import { EntityList, EntityListConfig } from '@/components/shared/EntityList'
 
 type EmailTemplate = {
   id: number
@@ -152,38 +153,19 @@ export function EmailTemplatesList({ templates }: EmailTemplatesListProps) {
     },
   ]
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Email Templates</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage email templates for automated communications
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/dash/assets/email-templates/create">Create template</Link>
-        </Button>
-      </div>
+  const config: EntityListConfig<EmailTemplate> = {
+    title: 'Email Templates',
+    description: 'Manage email templates for automated communications',
+    createButtonLabel: 'Create template',
+    createHref: '/dash/assets/email-templates/create',
+    columns,
+    data: templates,
+    searchKey: 'name',
+    searchPlaceholder: 'Search email templates...',
+    emptyTitle: 'No email templates yet',
+    emptyDescription: 'Create your first email template to get started',
+    emptyActionLabel: 'Create template',
+  }
 
-      {templates.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-          <p className="text-lg font-medium">No email templates yet</p>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Create your first email template to get started
-          </p>
-          <Button asChild>
-            <Link href="/dash/assets/email-templates/create">Create template</Link>
-          </Button>
-        </div>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={templates}
-          searchKey="name"
-          searchPlaceholder="Search email templates..."
-        />
-      )}
-    </div>
-  )
+  return <EntityList config={config} />
 }

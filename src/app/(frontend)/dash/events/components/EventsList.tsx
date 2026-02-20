@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
-import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, Trash2, Eye, Plus, Loader2, MoreHorizontal } from 'lucide-react'
+import { ColumnDef, Row } from '@tanstack/react-table'
+import { Pencil, Trash2, Eye, Loader2, MoreHorizontal } from 'lucide-react'
 
 import type { Event } from '@/payload-types'
 import { Button } from '@/components/ui/button'
@@ -18,8 +18,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DataTable, createSelectColumn } from '@/components/ui/data-table'
+import { createSelectColumn, BulkAction } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
+import { EntityList, EntityListConfig } from '@/components/shared/EntityList'
+import { handleEntityDelete, handleEntityBulkDelete } from '@/lib/entity-actions'
 
 const STATUS_VARIANT: Record<
   string,
@@ -38,20 +40,64 @@ interface Props {
 export function EventsList({ events }: Props) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
 
   const handleDelete = async (id: number, name: string) => {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return
-    setDeletingId(id)
-    try {
-      const res = await fetch(`/api/events/${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Delete failed')
-      router.refresh()
-    } catch {
-      alert('Failed to delete event.')
-    } finally {
-      setDeletingId(null)
-    }
+    await handleEntityDelete(
+      { id, name } as any,
+      {
+        apiEndpoint: '/api/events',
+        entityName: 'event',
+        getEntityName: (entity) => entity.name,
+      },
+      {
+        onStart: () => setDeletingId(id),
+        onSuccess: () => {
+          router.refresh()
+          setDeletingId(null)
+        },
+        onError: () => setDeletingId(null),
+      }
+    )
   }
+
+  const handleBulkDelete = async (rows: Row<Event>[]) => {
+    await handleEntityBulkDelete(
+      rows,
+      {
+        apiEndpoint: '/api/events',
+        entityName: 'event',
+      },
+      {
+        onStart: () => setBulkDeleting(true),
+        onSuccess: () => {
+          router.refresh()
+          setBulkDeleting(false)
+        },
+        onError: () => setBulkDeleting(false),
+      }
+    )
+  }
+
+  const bulkActions: BulkAction<Event>[] = [
+    {
+      label: 'Delete',
+      icon: bulkDeleting ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <Trash2 className="mr-2 h-4 w-4" />
+      ),
+      variant: 'destructive',
+      onClick: handleBulkDelete,
+      confirmation: {
+        title: 'Delete events',
+        description: (count) =>
+          `Are you sure you want to delete ${count} event${count > 1 ? 's' : ''}? This action cannot be undone.`,
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel',
+      },
+    },
+  ]
 
   const columns: ColumnDef<Event>[] = [
     createSelectColumn<Event>(),
@@ -146,34 +192,19 @@ export function EventsList({ events }: Props) {
     },
   ]
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Events</h1>
-        <Button asChild>
-          <Link href="/dash/events/create">
-            <Plus className="mr-2 h-4 w-4" />
-            New event
-          </Link>
-        </Button>
-      </div>
+  const config: EntityListConfig<Event> = {
+    title: 'Events',
+    createButtonLabel: 'New event',
+    createHref: '/dash/events/create',
+    columns,
+    data: events,
+    searchKey: 'name',
+    searchPlaceholder: 'Search events...',
+    emptyTitle: 'No events yet',
+    emptyDescription: 'Create your first event to get started.',
+    emptyActionLabel: 'Create event',
+    bulkActions,
+  }
 
-      {events.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center text-muted-foreground">
-          <p className="text-lg font-medium">No events yet</p>
-          <p className="text-sm mt-1">Create your first event to get started.</p>
-          <Button asChild className="mt-4">
-            <Link href="/dash/events/create">Create event</Link>
-          </Button>
-        </div>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={events}
-          searchKey="name"
-          searchPlaceholder="Search events..."
-        />
-      )}
-    </div>
-  )
+  return <EntityList config={config} />
 }

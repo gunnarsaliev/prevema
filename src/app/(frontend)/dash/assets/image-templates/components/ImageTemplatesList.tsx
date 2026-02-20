@@ -12,8 +12,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { DataTable, createSelectColumn } from '@/components/ui/data-table'
+import { createSelectColumn } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
+import { EntityList, EntityListConfig } from '@/components/shared/EntityList'
 
 type ImageTemplate = {
   id: number
@@ -147,39 +148,20 @@ export function ImageTemplatesList({ templates }: ImageTemplatesListProps) {
     },
   ]
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Image Templates</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage saved canvas templates for bulk image generation
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/dash/assets/image-templates/create">Create template</Link>
-        </Button>
-      </div>
+  const config: EntityListConfig<ImageTemplate> = {
+    title: 'Image Templates',
+    description: 'Manage saved canvas templates for bulk image generation',
+    createButtonLabel: 'Create template',
+    createHref: '/dash/assets/image-templates/create',
+    columns,
+    data: templates,
+    searchKey: 'name',
+    searchPlaceholder: 'Search image templates...',
+    emptyTitle: 'No image templates yet',
+    emptyDescription: 'Create your first image template to get started',
+    emptyActionLabel: 'Create template',
+    emptyIcon: <ImageIcon className="h-12 w-12 text-muted-foreground" />,
+  }
 
-      {templates.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-          <ImageIcon className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-lg font-medium">No image templates yet</p>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Create your first image template to get started
-          </p>
-          <Button asChild>
-            <Link href="/dash/assets/image-templates/create">Create template</Link>
-          </Button>
-        </div>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={templates}
-          searchKey="name"
-          searchPlaceholder="Search image templates..."
-        />
-      )}
-    </div>
-  )
+  return <EntityList config={config} />
 }

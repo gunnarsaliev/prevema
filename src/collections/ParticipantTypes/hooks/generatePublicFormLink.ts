@@ -10,6 +10,12 @@ export const generatePublicFormLink: CollectionAfterChangeHook = async ({ doc, r
 
   // Clear the link when no event is linked
   if (!hasEvent && doc.publicFormLink) {
+    // During create, just return the modified doc
+    if (operation === 'create') {
+      return { ...doc, publicFormLink: null }
+    }
+
+    // For update operations, make the database call
     try {
       await req.payload.update({
         collection: 'participant-types',
@@ -28,6 +34,12 @@ export const generatePublicFormLink: CollectionAfterChangeHook = async ({ doc, r
     const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
     const publicFormLink = `${baseUrl}/register/${doc.id}`
 
+    // During create, just return the modified doc
+    if (operation === 'create') {
+      return { ...doc, publicFormLink }
+    }
+
+    // For update operations, make the database call
     try {
       await req.payload.update({
         collection: 'participant-types',

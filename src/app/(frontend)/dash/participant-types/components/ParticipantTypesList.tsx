@@ -3,8 +3,17 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, Trash2, Plus, Loader2, CheckCircle2, XCircle, Copy, Check, MoreHorizontal } from 'lucide-react'
+import { ColumnDef, Row } from '@tanstack/react-table'
+import {
+  Pencil,
+  Trash2,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Copy,
+  Check,
+  MoreHorizontal,
+} from 'lucide-react'
 
 import type { ParticipantType } from '@/payload-types'
 import { Button } from '@/components/ui/button'
@@ -17,8 +26,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DataTable, createSelectColumn } from '@/components/ui/data-table'
+import { createSelectColumn, BulkAction } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
+import { EntityList, EntityListConfig } from '@/components/shared/EntityList'
+import {
+  handleEntityDelete,
+  handleEntityBulkDelete,
+  handleCopyToClipboard,
+  getRelationName,
+} from '@/lib/entity-actions'
 
 interface Props {
   participantTypes: ParticipantType[]
@@ -27,37 +43,79 @@ interface Props {
 export function ParticipantTypesList({ participantTypes }: Props) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
   const [copiedId, setCopiedId] = useState<number | null>(null)
 
   const handleCopy = async (id: number, url: string) => {
-    try {
-      await navigator.clipboard.writeText(url)
-      setCopiedId(id)
-      setTimeout(() => setCopiedId(null), 2000)
-    } catch {
-      alert('Failed to copy URL.')
-    }
+    await handleCopyToClipboard(
+      { id } as any,
+      {
+        getCopyText: () => url,
+      },
+      {
+        onStart: () => {},
+        onSuccess: () => setCopiedId(id),
+        onError: () => setCopiedId(null),
+      }
+    )
   }
 
   const handleDelete = async (id: number, name: string) => {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return
-    setDeletingId(id)
-    try {
-      const res = await fetch(`/api/participant-types/${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Delete failed')
-      router.refresh()
-    } catch {
-      alert('Failed to delete participant type.')
-    } finally {
-      setDeletingId(null)
-    }
+    await handleEntityDelete(
+      { id, name } as any,
+      {
+        apiEndpoint: '/api/participant-types',
+        entityName: 'participant type',
+        getEntityName: (entity) => entity.name,
+      },
+      {
+        onStart: () => setDeletingId(id),
+        onSuccess: () => {
+          router.refresh()
+          setDeletingId(null)
+        },
+        onError: () => setDeletingId(null),
+      }
+    )
   }
 
-  const getEventName = (rel: unknown): string => {
-    if (!rel) return '—'
-    if (typeof rel === 'object' && rel !== null && 'name' in rel) return (rel as { name: string }).name
-    return '—'
+  const handleBulkDelete = async (rows: Row<ParticipantType>[]) => {
+    await handleEntityBulkDelete(
+      rows,
+      {
+        apiEndpoint: '/api/participant-types',
+        entityName: 'participant type',
+      },
+      {
+        onStart: () => setBulkDeleting(true),
+        onSuccess: () => {
+          router.refresh()
+          setBulkDeleting(false)
+        },
+        onError: () => setBulkDeleting(false),
+      }
+    )
   }
+
+  const bulkActions: BulkAction<ParticipantType>[] = [
+    {
+      label: 'Delete',
+      icon: bulkDeleting ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <Trash2 className="mr-2 h-4 w-4" />
+      ),
+      variant: 'destructive',
+      onClick: handleBulkDelete,
+      confirmation: {
+        title: 'Delete participant types',
+        description: (count) =>
+          `Are you sure you want to delete ${count} participant type${count > 1 ? 's' : ''}? This action cannot be undone.`,
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel',
+      },
+    },
+  ]
 
   const columns: ColumnDef<ParticipantType>[] = [
     createSelectColumn<ParticipantType>(),
@@ -69,7 +127,7 @@ export function ParticipantTypesList({ participantTypes }: Props) {
     {
       accessorKey: 'event',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Event" />,
-      cell: ({ row }) => getEventName(row.getValue('event')),
+      cell: ({ row }) => getRelationName(row.getValue('event')),
       enableSorting: false,
     },
     {
@@ -118,7 +176,9 @@ export function ParticipantTypesList({ participantTypes }: Props) {
                 {participantType.publicFormLink && (
                   <>
                     <DropdownMenuItem
-                      onClick={() => handleCopy(participantType.id, participantType.publicFormLink!)}
+                      onClick={() =>
+                        handleCopy(participantType.id, participantType.publicFormLink!)
+                      }
                     >
                       {isCopied ? (
                         <Check className="mr-2 h-4 w-4 text-green-500" />
@@ -157,34 +217,19 @@ export function ParticipantTypesList({ participantTypes }: Props) {
     },
   ]
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Participant types</h1>
-        <Button asChild>
-          <Link href="/dash/participant-types/create">
-            <Plus className="mr-2 h-4 w-4" />
-            New participant type
-          </Link>
-        </Button>
-      </div>
+  const config: EntityListConfig<ParticipantType> = {
+    title: 'Participant types',
+    createButtonLabel: 'New participant type',
+    createHref: '/dash/participant-types/create',
+    columns,
+    data: participantTypes,
+    searchKey: 'name',
+    searchPlaceholder: 'Search participant types...',
+    emptyTitle: 'No participant types yet',
+    emptyDescription: 'Create your first participant type to get started.',
+    emptyActionLabel: 'Create participant type',
+    bulkActions,
+  }
 
-      {participantTypes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center text-muted-foreground">
-          <p className="text-lg font-medium">No participant types yet</p>
-          <p className="text-sm mt-1">Create your first participant type to get started.</p>
-          <Button asChild className="mt-4">
-            <Link href="/dash/participant-types/create">Create participant type</Link>
-          </Button>
-        </div>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={participantTypes}
-          searchKey="name"
-          searchPlaceholder="Search participant types..."
-        />
-      )}
-    </div>
-  )
+  return <EntityList config={config} />
 }

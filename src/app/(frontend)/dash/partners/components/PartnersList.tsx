@@ -3,19 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ColumnDef } from '@tanstack/react-table'
-import { Pencil, Trash2, Plus, Loader2, MoreHorizontal } from 'lucide-react'
+import { ColumnDef, Row } from '@tanstack/react-table'
+import { Pencil, Trash2, Loader2, MoreHorizontal } from 'lucide-react'
 
 import type { Partner } from '@/payload-types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,8 +16,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DataTable, createSelectColumn } from '@/components/ui/data-table'
+import { createSelectColumn, BulkAction } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
+import { EntityList, EntityListConfig } from '@/components/shared/EntityList'
+import {
+  handleEntityDelete,
+  handleEntityBulkDelete,
+  getRelationName,
+} from '@/lib/entity-actions'
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   default: 'secondary',
@@ -47,6 +46,7 @@ interface Props {
 export function PartnersList({ partners, events, eventId }: Props) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
 
   const handleEventChange = (value: string) => {
     if (value === 'all') {
@@ -56,29 +56,62 @@ export function PartnersList({ partners, events, eventId }: Props) {
     }
   }
 
-  const handleDelete = async (id: number, name: string) => {
-    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return
-    setDeletingId(id)
-    try {
-      const res = await fetch(`/api/partners/${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Delete failed')
-      router.refresh()
-    } catch {
-      alert('Failed to delete partner.')
-    } finally {
-      setDeletingId(null)
-    }
+  const handleDelete = async (id: number, companyName: string) => {
+    await handleEntityDelete(
+      { id, companyName } as any,
+      {
+        apiEndpoint: '/api/partners',
+        entityName: 'partner',
+        getEntityName: (entity) => entity.companyName,
+      },
+      {
+        onStart: () => setDeletingId(id),
+        onSuccess: () => {
+          router.refresh()
+          setDeletingId(null)
+        },
+        onError: () => setDeletingId(null),
+      }
+    )
   }
 
-  const getRelationName = (rel: unknown): string => {
-    if (!rel) return '—'
-    if (typeof rel === 'object' && rel !== null && 'name' in rel) return (rel as { name: string }).name
-    return '—'
+  const handleBulkDelete = async (rows: Row<Partner>[]) => {
+    await handleEntityBulkDelete(
+      rows,
+      {
+        apiEndpoint: '/api/partners',
+        entityName: 'partner',
+      },
+      {
+        onStart: () => setBulkDeleting(true),
+        onSuccess: () => {
+          router.refresh()
+          setBulkDeleting(false)
+        },
+        onError: () => setBulkDeleting(false),
+      }
+    )
   }
 
-  const createHref = eventId
-    ? `/dash/partners/create?eventId=${eventId}`
-    : '/dash/partners/create'
+  const bulkActions: BulkAction<Partner>[] = [
+    {
+      label: 'Delete',
+      icon: bulkDeleting ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <Trash2 className="mr-2 h-4 w-4" />
+      ),
+      variant: 'destructive',
+      onClick: handleBulkDelete,
+      confirmation: {
+        title: 'Delete partners',
+        description: (count) =>
+          `Are you sure you want to delete ${count} partner${count > 1 ? 's' : ''}? This action cannot be undone.`,
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel',
+      },
+    },
+  ]
 
   const columns: ColumnDef<Partner>[] = [
     createSelectColumn<Partner>(),
@@ -160,56 +193,34 @@ export function PartnersList({ partners, events, eventId }: Props) {
     },
   ]
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Partners</h1>
-        <Button asChild>
-          <Link href={createHref}>
-            <Plus className="mr-2 h-4 w-4" />
-            New partner
-          </Link>
-        </Button>
-      </div>
+  const createHref = eventId
+    ? `/dash/partners/create?eventId=${eventId}`
+    : '/dash/partners/create'
 
-      {/* Event filter */}
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">Filter by event</span>
-        <Select value={eventId ?? 'all'} onValueChange={handleEventChange}>
-          <SelectTrigger className="w-64">
-            <SelectValue placeholder="All events" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All events</SelectItem>
-            {events.map((e) => (
-              <SelectItem key={e.id} value={String(e.id)}>
-                {e.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+  const config: EntityListConfig<Partner> = {
+    title: 'Partners',
+    createButtonLabel: 'New partner',
+    createHref,
+    columns,
+    data: partners,
+    searchKey: 'companyName',
+    searchPlaceholder: 'Search partners...',
+    emptyTitle: 'No partners yet',
+    emptyDescription: eventId
+      ? 'No partners found for this event.'
+      : 'Add your first partner to get started.',
+    emptyActionLabel: 'Add partner',
+    bulkActions,
+    filter: {
+      label: 'Filter by event',
+      value: eventId ?? 'all',
+      options: [
+        { value: 'all', label: 'All events' },
+        ...events.map((e) => ({ value: String(e.id), label: e.name })),
+      ],
+      onChange: handleEventChange,
+    },
+  }
 
-      {partners.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center text-muted-foreground">
-          <p className="text-lg font-medium">No partners yet</p>
-          <p className="text-sm mt-1">
-            {eventId
-              ? 'No partners found for this event.'
-              : 'Add your first partner to get started.'}
-          </p>
-          <Button asChild className="mt-4">
-            <Link href={createHref}>Add partner</Link>
-          </Button>
-        </div>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={partners}
-          searchKey="companyName"
-          searchPlaceholder="Search partners..."
-        />
-      )}
-    </div>
-  )
+  return <EntityList config={config} />
 }
