@@ -63,6 +63,7 @@ interface ProfileData {
   orgSenderName?: string
   orgFromEmail?: string
   orgReplyToEmail?: string
+  orgResendApiKey?: string
 }
 
 interface SettingsProfile4Props {
@@ -529,6 +530,19 @@ const SettingsProfile4 = ({
                           />
                         </div>
                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="orgResendApiKey">Resend API key</Label>
+                      <Input
+                        id="orgResendApiKey"
+                        type="password"
+                        defaultValue={defaultValues.orgResendApiKey}
+                        placeholder="re_..."
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Your secret API key from Resend for sending emails
+                      </p>
                     </div>
 
                     <Separator />

@@ -14,7 +14,7 @@ import {
   Users,
 } from 'lucide-react'
 
-export type NavItemId = 'dashboard' | 'messages' | 'analytics' | 'assets'
+export type NavItemId = 'dashboard' | 'analytics' | 'assets'
 
 export type TicketStatus = 'active' | 'pending' | 'closed'
 
@@ -88,7 +88,7 @@ export type PreviousConversation = {
 
 export const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', url: '/dash', icon: Inbox, count: 6 },
-  { id: 'messages', label: 'Messages', url: '/dash/messages', icon: MailOpen, count: 10 },
+  // { id: 'messages', label: 'Messages', url: '/dash/messages', icon: MailOpen, count: 10 },
   { id: 'analytics', label: 'Analytics', url: '/dash/analytics', icon: BarChart3, count: 3 },
   { id: 'assets', label: 'Assets', url: '/dash/assets', icon: Palette },
 ]

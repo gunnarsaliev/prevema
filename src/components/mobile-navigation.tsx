@@ -26,12 +26,12 @@ export function MobileNavigation({
       icon: Inbox,
       url: '/dash',
     },
-    {
-      id: 'messages' as NavItemId,
-      label: 'Messages',
-      icon: MailOpen,
-      url: '/dash/messages',
-    },
+    // {
+    //   id: 'messages' as NavItemId,
+    //   label: 'Messages',
+    //   icon: MailOpen,
+    //   url: '/dash/messages',
+    // },
     {
       id: 'analytics' as NavItemId,
       label: 'Analytics',

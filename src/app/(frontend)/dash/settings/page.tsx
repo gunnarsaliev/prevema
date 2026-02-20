@@ -31,6 +31,7 @@ export default async function SettingsPage() {
         orgSenderName: org?.emailConfig?.senderName ?? undefined,
         orgFromEmail: org?.emailConfig?.fromEmail ?? undefined,
         orgReplyToEmail: org?.emailConfig?.replyToEmail ?? undefined,
+        orgResendApiKey: org?.emailConfig?.resendApiKey ?? undefined,
       }}
     />
   )
