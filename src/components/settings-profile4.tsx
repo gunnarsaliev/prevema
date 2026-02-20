@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import {
   Building2,
   Camera,
@@ -18,6 +18,7 @@ import {
   X,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { updateOrganization, updateUserProfile } from '@/app/(frontend)/dash/settings/actions'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -99,6 +100,8 @@ const SettingsProfile4 = ({
 }: SettingsProfile4Props) => {
   const [activeSection, setActiveSection] = useState('personal')
   const [avatarFiles, setAvatarFiles] = useState<File[]>([])
+  const [isPending, startTransition] = useTransition()
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const { theme, setTheme } = useTheme()
 
   const initials = defaultValues.name
@@ -109,6 +112,47 @@ const SettingsProfile4 = ({
 
   const avatarPreview =
     avatarFiles.length > 0 ? URL.createObjectURL(avatarFiles[0]) : defaultValues.avatar
+
+  const handlePersonalInfoSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setMessage(null)
+
+    const formData = new FormData(e.currentTarget)
+
+    // Add avatar file if one was selected
+    if (avatarFiles.length > 0) {
+      formData.set('avatar', avatarFiles[0])
+    }
+
+    startTransition(async () => {
+      const result = await updateUserProfile(formData)
+
+      if (result.success) {
+        setMessage({ type: 'success', text: result.message })
+        // Optionally reload to show updated data
+        setTimeout(() => window.location.reload(), 1500)
+      } else {
+        setMessage({ type: 'error', text: result.error })
+      }
+    })
+  }
+
+  const handleOrganizationSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setMessage(null)
+
+    const formData = new FormData(e.currentTarget)
+
+    startTransition(async () => {
+      const result = await updateOrganization(formData)
+
+      if (result.success) {
+        setMessage({ type: 'success', text: result.message })
+      } else {
+        setMessage({ type: 'error', text: result.error })
+      }
+    })
+  }
 
   return (
     <section className={cn('py-16', className)}>
@@ -156,13 +200,27 @@ const SettingsProfile4 = ({
             <div className="rounded-xl border bg-card shadow-sm">
               {/* Personal Info Section */}
               {activeSection === 'personal' && (
-                <div className="p-6">
-                  <h2 className="text-lg font-semibold">Personal Information</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Update your photo and personal details
-                  </p>
+                <form onSubmit={handlePersonalInfoSubmit}>
+                  <div className="p-6">
+                    <h2 className="text-lg font-semibold">Personal Information</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Update your photo and personal details
+                    </p>
 
-                  <div className="mt-6 space-y-6">
+                    {message && (
+                      <div
+                        className={cn(
+                          'mt-4 rounded-lg border p-3 text-sm',
+                          message.type === 'success'
+                            ? 'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200'
+                            : 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200',
+                        )}
+                      >
+                        {message.text}
+                      </div>
+                    )}
+
+                    <div className="mt-6 space-y-6">
                     {/* Avatar */}
                     <FileUpload
                       value={avatarFiles}
@@ -232,7 +290,7 @@ const SettingsProfile4 = ({
                     <div className="grid gap-6 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="name">Full name</Label>
-                        <Input id="name" defaultValue={defaultValues.name} />
+                        <Input id="name" name="name" defaultValue={defaultValues.name} />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="username">Username</Label>
@@ -242,6 +300,7 @@ const SettingsProfile4 = ({
                           </span>
                           <Input
                             id="username"
+                            name="username"
                             className="rounded-l-none"
                             defaultValue={defaultValues.username}
                           />
@@ -253,6 +312,7 @@ const SettingsProfile4 = ({
                       <Label htmlFor="bio">Bio</Label>
                       <Textarea
                         id="bio"
+                        name="bio"
                         rows={4}
                         defaultValue={defaultValues.bio}
                         placeholder="Write a few sentences about yourself"
@@ -262,7 +322,18 @@ const SettingsProfile4 = ({
                       </p>
                     </div>
                   </div>
-                </div>
+                  </div>
+
+                  {/* Footer with actions */}
+                  <div className="flex items-center justify-end gap-3 border-t px-6 py-4">
+                    <Button type="button" variant="outline" onClick={() => window.location.reload()}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={isPending}>
+                      {isPending ? 'Saving...' : 'Save changes'}
+                    </Button>
+                  </div>
+                </form>
               )}
 
               {/* Contact Section */}
@@ -461,105 +532,138 @@ const SettingsProfile4 = ({
 
               {/* Organization Section */}
               {activeSection === 'organization' && (
-                <div className="p-6">
-                  <h2 className="text-lg font-semibold">Organization</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Manage your organization details and email settings
-                  </p>
+                <form onSubmit={handleOrganizationSubmit}>
+                  <div className="p-6">
+                    <h2 className="text-lg font-semibold">Organization</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Manage your organization details and email settings
+                    </p>
 
-                  <div className="mt-6 space-y-6">
-                    <div className="grid gap-6 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="orgName">Organization name</Label>
-                        <Input id="orgName" defaultValue={defaultValues.orgName} placeholder="Acme Inc." />
+                    {message && (
+                      <div
+                        className={cn(
+                          'mt-4 rounded-lg border p-3 text-sm',
+                          message.type === 'success'
+                            ? 'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200'
+                            : 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200',
+                        )}
+                      >
+                        {message.text}
                       </div>
+                    )}
+
+                    <div className="mt-6 space-y-6">
+                      <div className="grid gap-6 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="orgName">Organization name</Label>
+                          <Input
+                            id="orgName"
+                            name="orgName"
+                            defaultValue={defaultValues.orgName}
+                            placeholder="Acme Inc."
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="orgSlug">Slug</Label>
+                          <Input
+                            id="orgSlug"
+                            defaultValue={defaultValues.orgSlug}
+                            disabled
+                            className="bg-muted text-muted-foreground"
+                          />
+                          <p className="text-xs text-muted-foreground">Auto-generated, cannot be changed</p>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      <div>
+                        <h3 className="text-sm font-medium">Email configuration</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Used as the sender identity for outgoing emails
+                        </p>
+                      </div>
+
                       <div className="space-y-2">
-                        <Label htmlFor="orgSlug">Slug</Label>
+                        <Label htmlFor="orgSenderName">Sender name</Label>
                         <Input
-                          id="orgSlug"
-                          defaultValue={defaultValues.orgSlug}
-                          disabled
-                          className="bg-muted text-muted-foreground"
+                          id="orgSenderName"
+                          name="orgSenderName"
+                          defaultValue={defaultValues.orgSenderName}
+                          placeholder="Acme Events"
                         />
-                        <p className="text-xs text-muted-foreground">Auto-generated, cannot be changed</p>
                       </div>
-                    </div>
 
-                    <Separator />
-
-                    <div>
-                      <h3 className="text-sm font-medium">Email configuration</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Used as the sender identity for outgoing emails
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="orgSenderName">Sender name</Label>
-                      <Input
-                        id="orgSenderName"
-                        defaultValue={defaultValues.orgSenderName}
-                        placeholder="Acme Events"
-                      />
-                    </div>
-
-                    <div className="grid gap-6 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="orgFromEmail">From email</Label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                          <Input
-                            id="orgFromEmail"
-                            type="email"
-                            className="pl-10"
-                            defaultValue={defaultValues.orgFromEmail}
-                            placeholder="noreply@acme.com"
-                          />
+                      <div className="grid gap-6 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="orgFromEmail">From email</Label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                              id="orgFromEmail"
+                              name="orgFromEmail"
+                              type="email"
+                              className="pl-10"
+                              defaultValue={defaultValues.orgFromEmail}
+                              placeholder="noreply@acme.com"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="orgReplyToEmail">Reply-to email</Label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                              id="orgReplyToEmail"
+                              name="orgReplyToEmail"
+                              type="email"
+                              className="pl-10"
+                              defaultValue={defaultValues.orgReplyToEmail}
+                              placeholder="hello@acme.com"
+                            />
+                          </div>
                         </div>
                       </div>
+
                       <div className="space-y-2">
-                        <Label htmlFor="orgReplyToEmail">Reply-to email</Label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                          <Input
-                            id="orgReplyToEmail"
-                            type="email"
-                            className="pl-10"
-                            defaultValue={defaultValues.orgReplyToEmail}
-                            placeholder="hello@acme.com"
-                          />
-                        </div>
+                        <Label htmlFor="orgResendApiKey">Resend API key</Label>
+                        <Input
+                          id="orgResendApiKey"
+                          name="orgResendApiKey"
+                          type="password"
+                          defaultValue={defaultValues.orgResendApiKey}
+                          placeholder="re_..."
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Your secret API key from Resend for sending emails
+                        </p>
                       </div>
+
+                      <Separator />
+
+                      <InviteUser2 heading="Invite Users" className="py-0 [&>.container]:px-0" />
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="orgResendApiKey">Resend API key</Label>
-                      <Input
-                        id="orgResendApiKey"
-                        type="password"
-                        defaultValue={defaultValues.orgResendApiKey}
-                        placeholder="re_..."
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Your secret API key from Resend for sending emails
-                      </p>
-                    </div>
-
-                    <Separator />
-
-                    <InviteUser2
-                      heading="Invite Users"
-                      className="py-0 [&>.container]:px-0"
-                    />
                   </div>
-                </div>
+
+                  {/* Footer with actions - Only show for organization section */}
+                  <div className="flex items-center justify-end gap-3 border-t px-6 py-4">
+                    <Button type="button" variant="outline" onClick={() => window.location.reload()}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={isPending}>
+                      {isPending ? 'Saving...' : 'Save changes'}
+                    </Button>
+                  </div>
+                </form>
               )}
 
-              {/* Footer with actions */}
-              <div className="flex items-center justify-end gap-3 border-t px-6 py-4">
-                <Button variant="outline">Cancel</Button>
-                <Button>Save changes</Button>
-              </div>
+              {/* Footer with actions - Only show for sections without their own form */}
+              {activeSection !== 'organization' && activeSection !== 'personal' && (
+                <div className="flex items-center justify-end gap-3 border-t px-6 py-4">
+                  <Button variant="outline">Cancel</Button>
+                  <Button>Save changes</Button>
+                </div>
+              )}
             </div>
           </main>
         </div>
