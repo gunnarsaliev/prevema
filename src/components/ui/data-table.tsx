@@ -12,8 +12,9 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  Row,
 } from '@tanstack/react-table'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Trash2, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -33,6 +34,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+export interface BulkAction<TData> {
+  label: string
+  icon?: React.ReactNode
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+  onClick: (rows: Row<TData>[]) => void | Promise<void>
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
@@ -40,6 +48,7 @@ interface DataTableProps<TData, TValue> {
   searchPlaceholder?: string
   showColumnToggle?: boolean
   showPagination?: boolean
+  bulkActions?: BulkAction<TData>[]
 }
 
 export function DataTable<TData, TValue>({
@@ -49,6 +58,7 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = 'Search...',
   showColumnToggle = true,
   showPagination = true,
+  bulkActions = [],
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -74,8 +84,40 @@ export function DataTable<TData, TValue>({
     },
   })
 
+  const selectedRows = table.getFilteredSelectedRowModel().rows
+  const hasSelection = selectedRows.length > 0
+
   return (
     <div className="space-y-4">
+      {/* Bulk Actions Toolbar */}
+      {hasSelection && bulkActions.length > 0 && (
+        <div className="flex items-center gap-2 rounded-md border bg-muted/50 p-2">
+          <div className="flex-1 text-sm text-muted-foreground">
+            {selectedRows.length} row(s) selected
+          </div>
+          <div className="flex items-center gap-2">
+            {bulkActions.map((action, index) => (
+              <Button
+                key={index}
+                variant={action.variant ?? 'default'}
+                size="sm"
+                onClick={() => action.onClick(selectedRows)}
+              >
+                {action.icon}
+                {action.label}
+              </Button>
+            ))}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => table.toggleAllPageRowsSelected(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between gap-4">
         {searchKey && (
           <Input

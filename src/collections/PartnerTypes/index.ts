@@ -156,6 +156,6 @@ export const PartnerTypes: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [autoSelectOrganization, validatePartnerFields, syncOptionalFields],
-    beforeChange: [generatePublicFormLink],
+    afterChange: [generatePublicFormLink],
   },
 }

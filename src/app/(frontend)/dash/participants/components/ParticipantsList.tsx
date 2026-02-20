@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, Row } from '@tanstack/react-table'
 import { Pencil, Trash2, Plus, Loader2, MoreHorizontal } from 'lucide-react'
 
 import type { Participant } from '@/payload-types'
@@ -23,7 +23,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DataTable, createSelectColumn } from '@/components/ui/data-table'
+import { DataTable, createSelectColumn, BulkAction } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -54,6 +54,7 @@ interface Props {
 export function ParticipantsList({ participants, events, eventId }: Props) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
 
   const handleEventChange = (value: string) => {
     if (value === 'all') {
@@ -77,6 +78,30 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
     }
   }
 
+  const handleBulkDelete = async (rows: Row<Participant>[]) => {
+    const count = rows.length
+    if (!confirm(`Delete ${count} participant(s)? This cannot be undone.`)) return
+
+    setBulkDeleting(true)
+    try {
+      const deletePromises = rows.map((row) =>
+        fetch(`/api/participants/${row.original.id}`, { method: 'DELETE' })
+      )
+      const results = await Promise.all(deletePromises)
+
+      const failedCount = results.filter((res) => !res.ok).length
+      if (failedCount > 0) {
+        alert(`Failed to delete ${failedCount} participant(s).`)
+      }
+
+      router.refresh()
+    } catch {
+      alert('Failed to delete participants.')
+    } finally {
+      setBulkDeleting(false)
+    }
+  }
+
   const getRelationName = (rel: unknown): string => {
     if (!rel) return '—'
     if (typeof rel === 'object' && rel !== null && 'name' in rel)
@@ -87,6 +112,19 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
   const createHref = eventId
     ? `/dash/participants/create?eventId=${eventId}`
     : '/dash/participants/create'
+
+  const bulkActions: BulkAction<Participant>[] = [
+    {
+      label: 'Delete',
+      icon: bulkDeleting ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <Trash2 className="mr-2 h-4 w-4" />
+      ),
+      variant: 'destructive',
+      onClick: handleBulkDelete,
+    },
+  ]
 
   const columns: ColumnDef<Participant>[] = [
     createSelectColumn<Participant>(),
@@ -210,6 +248,7 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
           data={participants}
           searchKey="name"
           searchPlaceholder="Search participants..."
+          bulkActions={bulkActions}
         />
       )}
     </div>
