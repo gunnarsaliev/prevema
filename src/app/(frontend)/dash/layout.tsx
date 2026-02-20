@@ -28,7 +28,7 @@ export default async function DashLayout({ children }: { children: React.ReactNo
     depth: 0,
     limit: 100,
     sort: '-createdAt',
-    select: { id: true, name: true },
+    select: { name: true },
   })
 
   const initialEvents: Event[] = docs.map((doc) => ({ id: String(doc.id), name: doc.name }))

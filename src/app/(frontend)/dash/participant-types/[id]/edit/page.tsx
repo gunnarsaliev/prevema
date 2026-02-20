@@ -35,7 +35,7 @@ export default async function EditParticipantTypePage({
       depth: 0,
       limit: 200,
       sort: 'name',
-      select: { id: true, name: true },
+      select: { name: true },
     }),
     payload.find({
       collection: 'organizations',
@@ -47,7 +47,7 @@ export default async function EditParticipantTypePage({
       },
       depth: 0,
       limit: 100,
-      select: { id: true, name: true },
+      select: { name: true },
     }),
   ])
 

@@ -22,7 +22,7 @@ export default async function CreateEventPage() {
     },
     depth: 0,
     limit: 100,
-    select: { id: true, name: true },
+    select: { name: true },
   })
 
   const organizations = orgs.map((o) => ({ id: o.id, name: o.name }))

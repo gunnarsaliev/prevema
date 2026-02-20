@@ -31,7 +31,7 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
       depth: 0,
       limit: 200,
       sort: 'name',
-      select: { id: true, name: true },
+      select: { name: true },
     }),
     payload.find({
       collection: 'partner-types',
@@ -40,7 +40,7 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
       depth: 0,
       limit: 100,
       sort: 'name',
-      select: { id: true, name: true },
+      select: { name: true },
     }),
     payload.find({
       collection: 'partner-tiers',
@@ -49,7 +49,7 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
       depth: 0,
       limit: 100,
       sort: 'name',
-      select: { id: true, name: true },
+      select: { name: true },
     }),
   ])
 

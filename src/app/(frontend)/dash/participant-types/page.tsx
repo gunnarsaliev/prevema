@@ -29,7 +29,7 @@ export default async function ParticipantTypesPage() {
       depth: 0,
       limit: 200,
       sort: 'name',
-      select: { id: true, name: true },
+      select: { name: true },
     }),
   ])
 

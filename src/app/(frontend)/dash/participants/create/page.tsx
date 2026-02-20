@@ -25,7 +25,7 @@ export default async function CreateParticipantPage({
       depth: 0,
       limit: 200,
       sort: 'name',
-      select: { id: true, name: true },
+      select: { name: true },
     }),
     payload.find({
       collection: 'participant-types',
@@ -34,7 +34,7 @@ export default async function CreateParticipantPage({
       depth: 0,
       limit: 100,
       sort: 'name',
-      select: { id: true, name: true },
+      select: { name: true },
     }),
   ])
 
