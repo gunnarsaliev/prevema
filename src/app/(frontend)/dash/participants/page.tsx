@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 
 import { ParticipantsList } from './components/ParticipantsList'
+import { EmptyEventState } from '@/components/EmptyEventState'
 
 export default async function ParticipantsPage({
   searchParams,
@@ -41,6 +42,11 @@ export default async function ParticipantsPage({
   ])
 
   const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
+
+  // Show empty state if no events exist
+  if (events.length === 0) {
+    return <EmptyEventState />
+  }
 
   return (
     <div className="px-6 py-8">
