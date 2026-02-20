@@ -3,19 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Pencil, Trash2, Plus, Loader2 } from 'lucide-react'
+import { ColumnDef } from '@tanstack/react-table'
+import { Pencil, Trash2, Plus, Loader2, MoreHorizontal } from 'lucide-react'
 
 import type { Participant } from '@/payload-types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import {
   Select,
   SelectContent,
@@ -23,6 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { DataTable } from '@/components/ui/data-table'
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 const STATUS_LABEL: Record<string, string> = {
   'not-approved': 'Not Approved',
@@ -86,6 +88,79 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
     ? `/dash/participants/create?eventId=${eventId}`
     : '/dash/participants/create'
 
+  const columns: ColumnDef<Participant>[] = [
+    {
+      accessorKey: 'name',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+    },
+    {
+      accessorKey: 'participantType',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Participant type" />
+      ),
+      cell: ({ row }) => getRelationName(row.getValue('participantType')),
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'status',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+      cell: ({ row }) => {
+        const status = row.getValue('status') as string
+        return (
+          <Badge variant={STATUS_VARIANT[status ?? 'not-approved']}>
+            {STATUS_LABEL[status ?? 'not-approved']}
+          </Badge>
+        )
+      },
+    },
+    {
+      accessorKey: 'email',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const participant = row.original
+        const isDeleting = deletingId === participant.id
+
+        return (
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                  <Link href={`/dash/participants/${participant.id}/edit`}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={isDeleting}
+                  onClick={() => handleDelete(participant.id, participant.name)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="mr-2 h-4 w-4" />
+                  )}
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )
+      },
+    },
+  ]
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -129,54 +204,12 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
           </Button>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Participant type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {participants.map((participant) => (
-              <TableRow key={participant.id}>
-                <TableCell className="font-medium">{participant.name}</TableCell>
-                <TableCell>{getRelationName(participant.participantType)}</TableCell>
-                <TableCell>
-                  <Badge variant={STATUS_VARIANT[participant.status ?? 'not-approved']}>
-                    {STATUS_LABEL[participant.status ?? 'not-approved']}
-                  </Badge>
-                </TableCell>
-                <TableCell>{participant.email}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/dash/participants/${participant.id}/edit`}>
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">Edit</span>
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={deletingId === participant.id}
-                      onClick={() => handleDelete(participant.id, participant.name)}
-                    >
-                      {deletingId === participant.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      )}
-                      <span className="sr-only">Delete</span>
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable
+          columns={columns}
+          data={participants}
+          searchKey="name"
+          searchPlaceholder="Search participants..."
+        />
       )}
     </div>
   )

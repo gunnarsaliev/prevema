@@ -57,7 +57,7 @@ export function ImageTemplateForm(props: Props) {
     control,
     formState: { isSubmitting },
   } = useForm<ImageTemplateFormValues>({
-    resolver: zodResolver(imageTemplateSchema),
+    resolver: zodResolver(imageTemplateSchema) as any,
     defaultValues,
     mode: 'onBlur',
   })

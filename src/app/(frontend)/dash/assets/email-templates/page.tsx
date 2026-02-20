@@ -23,7 +23,7 @@ export default async function EmailTemplatesPage() {
 
   return (
     <div className="px-6 py-8">
-      <EmailTemplatesList templates={templates} />
+      <EmailTemplatesList templates={templates as any} />
     </div>
   )
 }

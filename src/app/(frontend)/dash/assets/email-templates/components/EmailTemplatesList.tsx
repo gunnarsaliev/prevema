@@ -1,32 +1,28 @@
 'use client'
 
 import Link from 'next/link'
+import { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal, Pencil, Eye, Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { DataTable } from '@/components/ui/data-table'
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 type EmailTemplate = {
   id: number
   name: string
   subject: string
   description?: string | null
-  isActive: boolean
+  isActive?: boolean
   automationTriggers?: {
-    triggerEvent?: string
+    triggerEvent?: string | null
   }
   updatedAt: string
 }
@@ -36,13 +32,124 @@ interface EmailTemplatesListProps {
 }
 
 export function EmailTemplatesList({ templates }: EmailTemplatesListProps) {
-  const formatTriggerEvent = (event?: string) => {
+  const formatTriggerEvent = (event?: string | null) => {
     if (!event || event === 'none') return 'Manual'
     return event
       .split('.')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ')
   }
+
+  const columns: ColumnDef<EmailTemplate>[] = [
+    {
+      accessorKey: 'name',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+      cell: ({ row }) => {
+        const template = row.original
+        return (
+          <div>
+            <Link
+              href={`/dash/assets/email-templates/${template.id}`}
+              className="font-medium hover:underline"
+            >
+              {row.getValue('name')}
+            </Link>
+            {template.description && (
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {template.description}
+              </p>
+            )}
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: 'subject',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Subject" />,
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">{row.getValue('subject')}</div>
+      ),
+    },
+    {
+      id: 'trigger',
+      accessorFn: (row) => row.automationTriggers?.triggerEvent,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Trigger" />,
+      cell: ({ row }) => {
+        const template = row.original
+        return (
+          <span className="text-sm text-muted-foreground">
+            {formatTriggerEvent(template.automationTriggers?.triggerEvent)}
+          </span>
+        )
+      },
+    },
+    {
+      accessorKey: 'isActive',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+      cell: ({ row }) => {
+        const isActive = row.getValue('isActive') as boolean | undefined
+        return (
+          <Badge variant={isActive !== false ? 'default' : 'secondary'}>
+            {isActive !== false ? 'Active' : 'Inactive'}
+          </Badge>
+        )
+      },
+    },
+    {
+      accessorKey: 'updatedAt',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Updated" />,
+      cell: ({ row }) => {
+        const date = row.getValue('updatedAt') as string
+        return (
+          <span className="text-sm text-muted-foreground">
+            {new Date(date).toLocaleDateString()}
+          </span>
+        )
+      },
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const template = row.original
+
+        return (
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                  <Link href={`/dash/assets/email-templates/${template.id}`}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    View
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/dash/assets/email-templates/${template.id}/edit`}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={`/dash/assets/email-templates/create?clone=${template.id}`}
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    Duplicate
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )
+      },
+    },
+  ]
 
   return (
     <div className="space-y-4">
@@ -69,85 +176,12 @@ export function EmailTemplatesList({ templates }: EmailTemplatesListProps) {
           </Button>
         </div>
       ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Trigger</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Updated</TableHead>
-                <TableHead className="w-[70px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {templates.map((template) => (
-                <TableRow key={template.id}>
-                  <TableCell className="font-medium">
-                    <Link
-                      href={`/dash/assets/email-templates/${template.id}`}
-                      className="hover:underline"
-                    >
-                      {template.name}
-                    </Link>
-                    {template.description && (
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        {template.description}
-                      </p>
-                    )}
-                  </TableCell>
-                  <TableCell className="max-w-xs truncate">{template.subject}</TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">
-                      {formatTriggerEvent(template.automationTriggers?.triggerEvent)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={template.isActive ? 'default' : 'secondary'}>
-                      {template.isActive ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {new Date(template.updatedAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Open menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dash/assets/email-templates/${template.id}`}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dash/assets/email-templates/${template.id}/edit`}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href={`/dash/assets/email-templates/create?clone=${template.id}`}
-                          >
-                            <Copy className="mr-2 h-4 w-4" />
-                            Duplicate
-                          </Link>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable
+          columns={columns}
+          data={templates}
+          searchKey="name"
+          searchPlaceholder="Search email templates..."
+        />
       )}
     </div>
   )

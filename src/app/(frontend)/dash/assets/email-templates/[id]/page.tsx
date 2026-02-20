@@ -32,7 +32,7 @@ export default async function EmailTemplateDetailPage({
 
   if (!template) notFound()
 
-  const formatTriggerEvent = (event?: string) => {
+  const formatTriggerEvent = (event?: string | null) => {
     if (!event || event === 'none') return 'Manual'
     return event
       .split('.')

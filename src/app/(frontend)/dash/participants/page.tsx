@@ -5,6 +5,7 @@ import config from '@/payload.config'
 
 import { ParticipantsList } from './components/ParticipantsList'
 import { EmptyEventState } from '@/components/EmptyEventState'
+import { EmptyParticipantTypeState } from '@/components/EmptyParticipantTypeState'
 
 export default async function ParticipantsPage({
   searchParams,
@@ -18,7 +19,7 @@ export default async function ParticipantsPage({
 
   if (!user) redirect('/admin/login')
 
-  const [{ docs: participants }, { docs: eventDocs }] = await Promise.all([
+  const [{ docs: participants }, { docs: eventDocs }, { docs: participantTypes }] = await Promise.all([
     payload.find({
       collection: 'participants',
       overrideAccess: false,
@@ -39,6 +40,14 @@ export default async function ParticipantsPage({
       sort: 'name',
       select: { id: true, name: true },
     }),
+    payload.find({
+      collection: 'participant-types',
+      overrideAccess: false,
+      user,
+      depth: 0,
+      limit: 1,
+      select: { id: true },
+    }),
   ])
 
   const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
@@ -46,6 +55,11 @@ export default async function ParticipantsPage({
   // Show empty state if no events exist
   if (events.length === 0) {
     return <EmptyEventState />
+  }
+
+  // Show empty state if no participant types exist
+  if (participantTypes.length === 0) {
+    return <EmptyParticipantTypeState />
   }
 
   return (

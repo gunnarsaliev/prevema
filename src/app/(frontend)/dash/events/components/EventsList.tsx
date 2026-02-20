@@ -4,19 +4,22 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
-import { Pencil, Trash2, Eye, Plus, Loader2 } from 'lucide-react'
+import { ColumnDef } from '@tanstack/react-table'
+import { Pencil, Trash2, Eye, Plus, Loader2, MoreHorizontal } from 'lucide-react'
 
 import type { Event } from '@/payload-types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { DataTable } from '@/components/ui/data-table'
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 const STATUS_VARIANT: Record<
   string,
@@ -50,6 +53,98 @@ export function EventsList({ events }: Props) {
     }
   }
 
+  const columns: ColumnDef<Event>[] = [
+    {
+      accessorKey: 'name',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+    },
+    {
+      accessorKey: 'eventType',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
+      cell: ({ row }) => {
+        const type = row.getValue('eventType') as string
+        return <span className="capitalize">{type ?? '—'}</span>
+      },
+    },
+    {
+      accessorKey: 'status',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+      cell: ({ row }) => {
+        const status = row.getValue('status') as string
+        return (
+          <Badge variant={STATUS_VARIANT[status ?? 'planning']}>
+            {status ?? 'planning'}
+          </Badge>
+        )
+      },
+    },
+    {
+      accessorKey: 'startDate',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Start date" />,
+      cell: ({ row }) => {
+        const date = row.getValue('startDate') as string
+        return date ? format(new Date(date), 'dd MMM yyyy, HH:mm') : '—'
+      },
+    },
+    {
+      accessorKey: 'endDate',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="End date" />,
+      cell: ({ row }) => {
+        const date = row.getValue('endDate') as string
+        return date ? format(new Date(date), 'dd MMM yyyy, HH:mm') : '—'
+      },
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const event = row.original
+        const isDeleting = deletingId === event.id
+
+        return (
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                  <Link href={`/dash/events/${event.id}`}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    View
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/dash/events/${event.id}/edit`}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  disabled={isDeleting}
+                  onClick={() => handleDelete(event.id, event.name)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="mr-2 h-4 w-4" />
+                  )}
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )
+      },
+    },
+  ]
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -71,66 +166,12 @@ export function EventsList({ events }: Props) {
           </Button>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Start date</TableHead>
-              <TableHead>End date</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {events.map((event) => (
-              <TableRow key={event.id}>
-                <TableCell className="font-medium">{event.name}</TableCell>
-                <TableCell className="capitalize">{event.eventType ?? '—'}</TableCell>
-                <TableCell>
-                  <Badge variant={STATUS_VARIANT[event.status ?? 'planning']}>
-                    {event.status ?? 'planning'}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {event.startDate ? format(new Date(event.startDate), 'dd MMM yyyy, HH:mm') : '—'}
-                </TableCell>
-                <TableCell>
-                  {event.endDate ? format(new Date(event.endDate), 'dd MMM yyyy, HH:mm') : '—'}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/dash/events/${event.id}`}>
-                        <Eye className="h-4 w-4" />
-                        <span className="sr-only">View</span>
-                      </Link>
-                    </Button>
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/dash/events/${event.id}/edit`}>
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">Edit</span>
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={deletingId === event.id}
-                      onClick={() => handleDelete(event.id, event.name)}
-                    >
-                      {deletingId === event.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      )}
-                      <span className="sr-only">Delete</span>
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable
+          columns={columns}
+          data={events}
+          searchKey="name"
+          searchPlaceholder="Search events..."
+        />
       )}
     </div>
   )

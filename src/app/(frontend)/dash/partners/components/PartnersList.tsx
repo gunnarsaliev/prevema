@@ -3,19 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Pencil, Trash2, Plus, Loader2 } from 'lucide-react'
+import { ColumnDef } from '@tanstack/react-table'
+import { Pencil, Trash2, Plus, Loader2, MoreHorizontal } from 'lucide-react'
 
 import type { Partner } from '@/payload-types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import {
   Select,
   SelectContent,
@@ -23,6 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { DataTable } from '@/components/ui/data-table'
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   default: 'secondary',
@@ -78,6 +80,85 @@ export function PartnersList({ partners, events, eventId }: Props) {
     ? `/dash/partners/create?eventId=${eventId}`
     : '/dash/partners/create'
 
+  const columns: ColumnDef<Partner>[] = [
+    {
+      accessorKey: 'companyName',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Company" />,
+      cell: ({ row }) => <div className="font-medium">{row.getValue('companyName')}</div>,
+    },
+    {
+      accessorKey: 'partnerType',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Partner type" />
+      ),
+      cell: ({ row }) => getRelationName(row.getValue('partnerType')),
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'tier',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Tier" />,
+      cell: ({ row }) => getRelationName(row.getValue('tier')),
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'status',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+      cell: ({ row }) => {
+        const status = row.getValue('status') as string
+        return (
+          <Badge variant={STATUS_VARIANT[status ?? 'default']}>
+            {status ?? 'default'}
+          </Badge>
+        )
+      },
+    },
+    {
+      accessorKey: 'contactPerson',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Contact" />,
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const partner = row.original
+        const isDeleting = deletingId === partner.id
+
+        return (
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                  <Link href={`/dash/partners/${partner.id}/edit`}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={isDeleting}
+                  onClick={() => handleDelete(partner.id, partner.companyName)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="mr-2 h-4 w-4" />
+                  )}
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )
+      },
+    },
+  ]
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -121,56 +202,12 @@ export function PartnersList({ partners, events, eventId }: Props) {
           </Button>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Company</TableHead>
-              <TableHead>Partner type</TableHead>
-              <TableHead>Tier</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {partners.map((partner) => (
-              <TableRow key={partner.id}>
-                <TableCell className="font-medium">{partner.companyName}</TableCell>
-                <TableCell>{getRelationName(partner.partnerType)}</TableCell>
-                <TableCell>{getRelationName(partner.tier)}</TableCell>
-                <TableCell>
-                  <Badge variant={STATUS_VARIANT[partner.status ?? 'default']}>
-                    {partner.status ?? 'default'}
-                  </Badge>
-                </TableCell>
-                <TableCell>{partner.contactPerson}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/dash/partners/${partner.id}/edit`}>
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">Edit</span>
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={deletingId === partner.id}
-                      onClick={() => handleDelete(partner.id, partner.companyName)}
-                    >
-                      {deletingId === partner.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      )}
-                      <span className="sr-only">Delete</span>
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable
+          columns={columns}
+          data={partners}
+          searchKey="companyName"
+          searchPlaceholder="Search partners..."
+        />
       )}
     </div>
   )

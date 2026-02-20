@@ -39,18 +39,18 @@ export function EmailTemplateForm(props: Props) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
 
-  const defaultValues: Partial<EmailTemplateFormValues> =
+  const defaultValues =
     props.mode === 'edit'
       ? props.defaultValues
-      : {
+      : ({
           name: '',
           description: '',
           subject: '',
           htmlBody: '',
           isActive: true,
-          triggerEvent: 'none',
+          triggerEvent: 'none' as const,
           delayMinutes: 0,
-        }
+        } as EmailTemplateFormValues)
 
   const {
     handleSubmit,
@@ -58,7 +58,7 @@ export function EmailTemplateForm(props: Props) {
     watch,
     formState: { isSubmitting },
   } = useForm<EmailTemplateFormValues>({
-    resolver: zodResolver(emailTemplateSchema),
+    resolver: zodResolver(emailTemplateSchema) as any,
     defaultValues,
     mode: 'onBlur',
   })

@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
-export const imageTemplateSchema = z.object({
+const imageTemplateSchemaBase = z.object({
   name: z.string().min(1, 'Template name is required'),
-  usageType: z.enum(['participant', 'partner', 'both']).default('participant'),
-  isActive: z.boolean().default(true),
+  usageType: z.enum(['participant', 'partner', 'both']),
+  isActive: z.boolean(),
   width: z.number().min(1, 'Width must be greater than 0'),
   height: z.number().min(1, 'Height must be greater than 0'),
   backgroundImage: z.number().nullish(), // Media ID
@@ -12,4 +12,9 @@ export const imageTemplateSchema = z.object({
   previewImage: z.number().nullish(), // Media ID
 })
 
-export type ImageTemplateFormValues = z.infer<typeof imageTemplateSchema>
+export const imageTemplateSchema = imageTemplateSchemaBase.extend({
+  usageType: z.enum(['participant', 'partner', 'both']).default('participant'),
+  isActive: z.boolean().default(true),
+})
+
+export type ImageTemplateFormValues = z.infer<typeof imageTemplateSchemaBase>

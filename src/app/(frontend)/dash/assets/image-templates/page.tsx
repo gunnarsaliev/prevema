@@ -23,7 +23,7 @@ export default async function ImageTemplatesPage() {
 
   return (
     <div className="px-6 py-8">
-      <ImageTemplatesList templates={templates} />
+      <ImageTemplatesList templates={templates as any} />
     </div>
   )
 }
