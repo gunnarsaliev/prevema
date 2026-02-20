@@ -14,7 +14,7 @@ import {
   Users,
 } from 'lucide-react'
 
-export type NavItemId = 'dashboard' | 'analytics' | 'assets'
+export type NavItemId = 'dashboard' | 'analytics' | 'assets' | 'messages'
 
 export type TicketStatus = 'active' | 'pending' | 'closed'
 
