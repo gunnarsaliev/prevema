@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from './ui/button'
+import { Button } from '@/components/ui/button'
 import { Upload } from 'lucide-react'
 import type { Template } from '@/components/canvas/types/canvas-element'
 

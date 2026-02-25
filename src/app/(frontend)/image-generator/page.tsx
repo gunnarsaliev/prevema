@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
-import { Card, CardContent } from './components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Menubar,
   MenubarContent,
@@ -16,7 +16,7 @@ import {
   MenubarRadioGroup,
   MenubarRadioItem,
 } from './components/ui/menubar'
-import { Button } from './components/ui/button'
+import { Button } from '@/components/ui/button'
 import CanvasEditor from './components/canvas-editor'
 import LayersPanel from './components/layers-panel'
 import FormattingToolbar from './components/formatting-toolbar'

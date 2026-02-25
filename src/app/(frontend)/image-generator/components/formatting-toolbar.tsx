@@ -1,9 +1,9 @@
 'use client'
 
-import { Button } from './ui/button'
-import { Input } from './ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-import { Separator } from './ui/separator'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 import { Bold, Italic, Minus, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { CanvasElement } from '@/components/canvas/types/canvas-element'

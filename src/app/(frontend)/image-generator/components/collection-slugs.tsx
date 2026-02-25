@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { ScrollArea } from './ui/scroll-area'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 const COLLECTION_SLUGS = [
   'users',

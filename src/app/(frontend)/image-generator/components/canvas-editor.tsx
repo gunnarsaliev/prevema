@@ -8,7 +8,7 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from './ui/context-menu'
+} from '@/components/ui/context-menu'
 import type { CanvasElement, Template } from '@/components/canvas/types/canvas-element'
 import { useDebounce } from '../hooks/use-debounce'
 import type { AlignmentState } from '../utils/alignment-guides'
