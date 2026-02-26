@@ -1,5 +1,9 @@
 import type { CollectionConfig } from 'payload'
-import { checkRole, getOrganizationRole, getUserOrganizationIds } from '@/access/utilities'
+import {
+  checkRole,
+  hasOrganizationRole,
+  getUserOrganizationIdsWithMinRole,
+} from '@/access/utilities'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import crypto from 'crypto'
@@ -16,41 +20,47 @@ export const Invitations: CollectionConfig = {
     },
   },
   access: {
-    // Super-admins, admins, and tenant owners can create invitations
+    // Super-admins, system admins, organization owners, and organization admins can create invitations
     create: async ({ req: { user, payload }, data }) => {
       if (!user) return false
 
-      // Super-admins and admins can create any invitation
+      // Super-admins and system admins can create any invitation
       if (checkRole(['super-admin', 'admin'], user)) {
         return true
       }
 
-      // Organization owners can create invitations for their organizations
+      // Organization owners and admins can create invitations for their organizations
       if (data?.organization) {
         const organizationId =
           typeof data.organization === 'object' ? data.organization.id : data.organization
-        const userRole = await getOrganizationRole(payload, user, organizationId)
 
-        if (userRole === 'owner') {
+        // Check if user has at least 'admin' role (includes owner and admin)
+        const hasAdminAccess = await hasOrganizationRole(payload, user, organizationId, 'admin')
+
+        if (hasAdminAccess) {
           return true
         }
       }
 
       return false
     },
-    // Super-admins and admins can read all invitations, organization owners can see invitations for their organizations, users can see invitations sent to their email
+    // Super-admins, system admins can read all invitations, organization owners/admins can see invitations for their organizations, users can see invitations sent to their email
     read: async ({ req: { user, payload } }) => {
       if (!user) return false
 
-      // Super-admins and admins can see all invitations
+      // Super-admins and system admins can see all invitations
       if (checkRole(['super-admin', 'admin'], user)) {
         return true
       }
 
-      // Get organizations where user is an owner
-      const ownedTenantIds = await getUserOrganizationIds(payload, user, 'owner')
+      // Get organizations where user is owner or admin
+      const managedOrganizationIds = await getUserOrganizationIdsWithMinRole(
+        payload,
+        user,
+        'admin',
+      )
 
-      // Build query: user's email OR organization they own
+      // Build query: user's email OR organizations they manage (owner/admin)
       const orConditions: any[] = [
         {
           email: {
@@ -59,10 +69,10 @@ export const Invitations: CollectionConfig = {
         },
       ]
 
-      if (ownedTenantIds.length > 0) {
+      if (managedOrganizationIds.length > 0) {
         orConditions.push({
           organization: {
-            in: ownedTenantIds,
+            in: managedOrganizationIds,
           },
         })
       }
@@ -71,44 +81,52 @@ export const Invitations: CollectionConfig = {
         or: orConditions,
       }
     },
-    // Super-admins, admins, and organization owners can update invitations
+    // Super-admins, system admins, organization owners, and organization admins can update invitations
     update: async ({ req: { user, payload } }) => {
       if (!user) return false
 
-      // Super-admins and admins can update any invitation
+      // Super-admins and system admins can update any invitation
       if (checkRole(['super-admin', 'admin'], user)) {
         return true
       }
 
-      // Organization owners can update invitations for their organizations
-      const ownedTenantIds = await getUserOrganizationIds(payload, user, 'owner')
+      // Organization owners and admins can update invitations for their organizations
+      const managedOrganizationIds = await getUserOrganizationIdsWithMinRole(
+        payload,
+        user,
+        'admin',
+      )
 
-      if (ownedTenantIds.length > 0) {
+      if (managedOrganizationIds.length > 0) {
         return {
           organization: {
-            in: ownedTenantIds,
+            in: managedOrganizationIds,
           },
         }
       }
 
       return false
     },
-    // Super-admins, admins, and organization owners can delete invitations
+    // Super-admins, system admins, organization owners, and organization admins can delete invitations
     delete: async ({ req: { user, payload } }) => {
       if (!user) return false
 
-      // Super-admins and admins can delete any invitation
+      // Super-admins and system admins can delete any invitation
       if (checkRole(['super-admin', 'admin'], user)) {
         return true
       }
 
-      // Organization owners can delete invitations for their organizations
-      const ownedTenantIds = await getUserOrganizationIds(payload, user, 'owner')
+      // Organization owners and admins can delete invitations for their organizations
+      const managedOrganizationIds = await getUserOrganizationIdsWithMinRole(
+        payload,
+        user,
+        'admin',
+      )
 
-      if (ownedTenantIds.length > 0) {
+      if (managedOrganizationIds.length > 0) {
         return {
           organization: {
-            in: ownedTenantIds,
+            in: managedOrganizationIds,
           },
         }
       }
