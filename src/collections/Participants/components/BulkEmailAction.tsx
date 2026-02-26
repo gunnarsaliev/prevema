@@ -60,7 +60,7 @@ export const BulkEmailAction: React.FC = () => {
 
       // Fetch the first participant to get tenant ID
       console.log('📡 Fetching participant:', ids[0])
-      const response = await fetch(`/api/participants/${ids[0]}`)
+      const response = await fetch(`/api/participants/${ids[0]}?depth=1`)
       console.log('📡 Response status:', response.status)
 
       if (!response.ok) {

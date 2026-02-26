@@ -43,11 +43,20 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
         const url = `/api/email-templates?where[organization][equals]=${organizationId}&where[isActive][equals]=true&limit=100`
         console.log('📡 Fetch URL:', url)
         const response = await fetch(url)
+        console.log('📡 Response status:', response.status, response.statusText)
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error('❌ Failed to fetch templates - Status:', response.status, 'Body:', errorText)
+          throw new Error(`Failed to fetch templates: ${response.status} ${response.statusText}`)
+        }
+
         const data = (await response.json()) as { docs?: any[] }
-        console.log('📧 Templates fetched:', data.docs?.length || 0)
+        console.log('📧 Templates fetched:', data.docs?.length || 0, 'Templates:', data.docs)
         setTemplates(data.docs || [])
       } catch (error) {
         console.error('❌ Failed to fetch templates:', error)
+        alert(`Failed to load email templates: ${error instanceof Error ? error.message : 'Unknown error'}. Check console for details.`)
       } finally {
         setLoading(false)
       }
