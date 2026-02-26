@@ -1,210 +1,103 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { format } from 'date-fns'
-import { ColumnDef, Row } from '@tanstack/react-table'
-import { Pencil, Trash2, Eye, Loader2, MoreHorizontal } from 'lucide-react'
+import { Plus, Calendar } from 'lucide-react'
 
 import type { Event } from '@/payload-types'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { EventCard } from '@/components/event-card'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { createSelectColumn, BulkAction } from '@/components/ui/data-table'
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
-import { EntityList, EntityListConfig } from '@/components/shared/EntityList'
-import { handleEntityDelete, handleEntityBulkDelete } from '@/lib/entity-actions'
-
-const STATUS_VARIANT: Record<
-  string,
-  'default' | 'secondary' | 'destructive' | 'outline'
-> = {
-  planning: 'secondary',
-  open: 'default',
-  closed: 'outline',
-  archived: 'destructive',
-}
+  getEventDay,
+  getEventMonth,
+  getEventLocation,
+  getEventDescription,
+  getEventImageUrl,
+  getEventPrice,
+} from '../utils/event-card-helpers'
 
 interface Props {
   events: Event[]
 }
 
 export function EventsList({ events }: Props) {
-  const router = useRouter()
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
-  const handleDelete = async (id: number, name: string) => {
-    await handleEntityDelete(
-      { id, name } as any,
-      {
-        apiEndpoint: '/api/events',
-        entityName: 'event',
-        getEntityName: (entity) => entity.name,
-      },
-      {
-        onStart: () => setDeletingId(id),
-        onSuccess: () => {
-          router.refresh()
-          setDeletingId(null)
-        },
-        onError: () => setDeletingId(null),
-      }
-    )
-  }
+  // Filter events based on search query
+  const filteredEvents = events.filter((event) =>
+    event.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
-  const handleBulkDelete = async (rows: Row<Event>[]) => {
-    await handleEntityBulkDelete(
-      rows,
-      {
-        apiEndpoint: '/api/events',
-        entityName: 'event',
-      },
-      {
-        onStart: () => setBulkDeleting(true),
-        onSuccess: () => {
-          router.refresh()
-          setBulkDeleting(false)
-        },
-        onError: () => setBulkDeleting(false),
-      }
-    )
-  }
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Events</h1>
+          <p className="text-muted-foreground">Manage and view your events</p>
+        </div>
+        <Button asChild>
+          <Link href="/dash/events/create">
+            <Plus className="mr-2 h-4 w-4" />
+            New event
+          </Link>
+        </Button>
+      </div>
 
-  const bulkActions: BulkAction<Event>[] = [
-    {
-      label: 'Delete',
-      icon: bulkDeleting ? (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-      ) : (
-        <Trash2 className="mr-2 h-4 w-4" />
-      ),
-      variant: 'destructive',
-      onClick: handleBulkDelete,
-      confirmation: {
-        title: 'Delete events',
-        description: (count) =>
-          `Are you sure you want to delete ${count} event${count > 1 ? 's' : ''}? This action cannot be undone.`,
-        confirmLabel: 'Delete',
-        cancelLabel: 'Cancel',
-      },
-    },
-  ]
+      {/* Search Bar */}
+      {events.length > 0 && (
+        <div className="flex items-center gap-4">
+          <input
+            type="text"
+            placeholder="Search events..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 max-w-sm"
+          />
+        </div>
+      )}
 
-  const columns: ColumnDef<Event>[] = [
-    createSelectColumn<Event>(),
-    {
-      accessorKey: 'name',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
-      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
-    },
-    {
-      accessorKey: 'eventType',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
-      cell: ({ row }) => {
-        const type = row.getValue('eventType') as string
-        return <span className="capitalize">{type ?? '—'}</span>
-      },
-    },
-    {
-      accessorKey: 'status',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-      cell: ({ row }) => {
-        const status = row.getValue('status') as string
-        return (
-          <Badge variant={STATUS_VARIANT[status ?? 'planning']}>
-            {status ?? 'planning'}
-          </Badge>
-        )
-      },
-    },
-    {
-      accessorKey: 'startDate',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Start date" />,
-      cell: ({ row }) => {
-        const date = row.getValue('startDate') as string
-        return date ? format(new Date(date), 'dd MMM yyyy, HH:mm') : '—'
-      },
-    },
-    {
-      accessorKey: 'endDate',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="End date" />,
-      cell: ({ row }) => {
-        const date = row.getValue('endDate') as string
-        return date ? format(new Date(date), 'dd MMM yyyy, HH:mm') : '—'
-      },
-    },
-    {
-      id: 'actions',
-      cell: ({ row }) => {
-        const event = row.original
-        const isDeleting = deletingId === event.id
-
-        return (
-          <div className="flex justify-end">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem asChild>
-                  <Link href={`/dash/events/${event.id}`}>
-                    <Eye className="mr-2 h-4 w-4" />
-                    View
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href={`/dash/events/${event.id}/edit`}>
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Edit
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  disabled={isDeleting}
-                  onClick={() => handleDelete(event.id, event.name)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  {isDeleting ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="mr-2 h-4 w-4" />
-                  )}
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+      {/* Events Grid */}
+      {filteredEvents.length > 0 ? (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filteredEvents.map((event) => (
+            <Link key={event.id} href={`/dash/events/${event.id}`} className="block">
+              <EventCard
+                image={getEventImageUrl(event.image)}
+                day={getEventDay(event.startDate)}
+                month={getEventMonth(event.startDate)}
+                location={getEventLocation(event)}
+                title={event.name}
+                description={getEventDescription(event)}
+                startingPrice={getEventPrice(event)}
+              />
+            </Link>
+          ))}
+        </div>
+      ) : events.length === 0 ? (
+        <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+          <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
+            <Calendar className="h-10 w-10 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-semibold">No events yet</h3>
+            <p className="mb-4 mt-2 text-sm text-muted-foreground">
+              Create your first event to get started.
+            </p>
+            <Button asChild>
+              <Link href="/dash/events/create">Create event</Link>
+            </Button>
           </div>
-        )
-      },
-    },
-  ]
-
-  const config: EntityListConfig<Event> = {
-    title: 'Events',
-    createButtonLabel: 'New event',
-    createHref: '/dash/events/create',
-    columns,
-    data: events,
-    searchKey: 'name',
-    searchPlaceholder: 'Search events...',
-    emptyTitle: 'No events yet',
-    emptyDescription: 'Create your first event to get started.',
-    emptyActionLabel: 'Create event',
-    bulkActions,
-  }
-
-  return <EntityList config={config} />
+        </div>
+      ) : (
+        <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+          <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
+            <Calendar className="h-10 w-10 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-semibold">No events found</h3>
+            <p className="mb-4 mt-2 text-sm text-muted-foreground">
+              No events match &quot;{searchQuery}&quot;
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }

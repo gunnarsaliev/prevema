@@ -16,7 +16,7 @@ export default async function EventsPage() {
     collection: 'events',
     overrideAccess: false,
     user,
-    depth: 0,
+    depth: 1,
     limit: 200,
     sort: '-createdAt',
   })
