@@ -265,6 +265,8 @@ export async function POST(request: Request) {
                 collection: 'email-logs',
                 data: {
                   template: Number(templateId),
+                  templateName: template.name,
+                  templateSubject: template.subject,
                   organization: Number(organizationId),
                   recipientEmail: recipient.email,
                   triggerEvent: 'manual',
@@ -280,6 +282,8 @@ export async function POST(request: Request) {
                 collection: 'email-logs',
                 data: {
                   template: Number(templateId),
+                  templateName: template.name,
+                  templateSubject: template.subject,
                   organization: Number(organizationId),
                   recipientEmail: recipient.email,
                   triggerEvent: 'manual',

@@ -54,9 +54,27 @@ export const EmailLogs: CollectionConfig = {
       name: 'template',
       type: 'relationship',
       relationTo: 'email-templates',
+      required: false,
+      admin: {
+        description: 'The template used for this email (may be deleted)',
+      },
+    },
+    {
+      name: 'templateName',
+      type: 'text',
       required: true,
       admin: {
-        description: 'The template used for this email',
+        description: 'Name of the template at time of sending',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'templateSubject',
+      type: 'text',
+      required: true,
+      admin: {
+        description: 'Subject line from the template at time of sending',
+        readOnly: true,
       },
     },
     {

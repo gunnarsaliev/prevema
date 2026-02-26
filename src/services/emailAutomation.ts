@@ -263,6 +263,8 @@ async function logEmailSent({
   recipientEmail,
   triggerEvent,
   variables,
+  templateName,
+  templateSubject,
 }: {
   payload: Payload
   templateId: string | number
@@ -270,12 +272,29 @@ async function logEmailSent({
   recipientEmail: string
   triggerEvent: string
   variables: Record<string, any>
+  templateName?: string
+  templateSubject?: string
 }): Promise<void> {
   try {
+    // Fetch template details if not provided
+    let name = templateName
+    let subject = templateSubject
+
+    if (!name || !subject) {
+      const template = await payload.findByID({
+        collection: 'email-templates',
+        id: templateId,
+      })
+      name = template.name
+      subject = template.subject
+    }
+
     await payload.create({
       collection: 'email-logs',
       data: {
         template: templateId as any,
+        templateName: name,
+        templateSubject: subject,
         organization: organizationId as any,
         recipientEmail,
         triggerEvent: triggerEvent as any,

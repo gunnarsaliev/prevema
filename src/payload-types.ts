@@ -258,9 +258,17 @@ export interface EmailLog {
    */
   organization: number | Organization;
   /**
-   * The template used for this email
+   * The template used for this email (may be deleted)
    */
-  template: number | EmailTemplate;
+  template?: (number | null) | EmailTemplate;
+  /**
+   * Name of the template at time of sending
+   */
+  templateName: string;
+  /**
+   * Subject line from the template at time of sending
+   */
+  templateSubject: string;
   /**
    * Email address of the recipient
    */
@@ -1022,6 +1030,8 @@ export interface OrganizationsSelect<T extends boolean = true> {
 export interface EmailLogsSelect<T extends boolean = true> {
   organization?: T;
   template?: T;
+  templateName?: T;
+  templateSubject?: T;
   recipientEmail?: T;
   triggerEvent?: T;
   variables?: T;
