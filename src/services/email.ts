@@ -20,6 +20,19 @@ interface TenantEmailConfig {
 }
 
 /**
+ * Organization-Level Email Service
+ *
+ * This service handles emails triggered WITHIN the platform by organizations,
+ * such as participant notifications, event updates, etc.
+ *
+ * Key Features:
+ * - Uses organization-specific Resend API keys (if configured)
+ * - Falls back to system email config if organization doesn't have custom config
+ * - Uses custom email templates from the EmailTemplates collection
+ *
+ * NOTE: System emails (password reset, invitations) use the global Resend adapter
+ * configured in payload.config.ts, NOT this service.
+ *
  * Send an email using an organization's custom template and email configuration
  */
 export async function sendTenantEmail({

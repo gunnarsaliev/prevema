@@ -69,3 +69,67 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
+
+/**
+ * DELETE /api/events
+ * Deletes events based on query parameters (bulk delete support).
+ * This handler is required because the custom GET route above shadows
+ * Payload's catch-all at (payload)/api/[...slug] for this path.
+ */
+export async function DELETE(req: NextRequest) {
+  try {
+    const payload = await getPayload({ config: configPromise })
+
+    const { user } = await payload.auth({ headers: req.headers })
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Parse query parameters to extract event IDs
+    const { searchParams } = new URL(req.url)
+
+    // Collect all IDs from the query parameters (bulk delete support)
+    const eventIds: string[] = []
+    let index = 0
+    while (true) {
+      const id = searchParams.get(`where[and][0][id][in][${index}]`)
+      if (!id) break
+      eventIds.push(id)
+      index++
+    }
+
+    if (eventIds.length === 0) {
+      return NextResponse.json({ error: 'Missing event ID(s)' }, { status: 400 })
+    }
+
+    // Delete events and collect results
+    const docs: any[] = []
+    const errors: any[] = []
+
+    for (const id of eventIds) {
+      try {
+        const result = await payload.delete({
+          collection: 'events',
+          id,
+          overrideAccess: false,
+          user,
+        })
+        docs.push(result)
+      } catch (error: unknown) {
+        console.error(`[DELETE /api/events] Failed to delete event ${id}:`, error)
+        errors.push({
+          id,
+          message: error instanceof Error ? error.message : 'Unknown error',
+        })
+      }
+    }
+
+    // Return bulk operation response format
+    return NextResponse.json({ docs, errors }, { status: 200 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to delete event(s)'
+    console.error('[DELETE /api/events]', error)
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}

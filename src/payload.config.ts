@@ -51,6 +51,21 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
+  /**
+   * System Email Configuration
+   *
+   * This adapter is used for ALL system-level emails including:
+   * - Password reset emails
+   * - User invitations
+   * - System notifications
+   *
+   * IMPORTANT: Use a PRODUCTION Resend API key with a VERIFIED DOMAIN
+   * Test keys (onboarding@resend.dev) can only send to the account owner's email.
+   *
+   * Organization-specific emails (triggered within the platform) use custom
+   * Resend configurations stored in Organizations.emailConfig, not this adapter.
+   * See: src/services/email.ts for tenant email implementation.
+   */
   email: resendAdapter({
     defaultFromAddress: process.env.RESEND_DEFAULT_FROM_ADDRESS || 'onboarding@resend.dev',
     defaultFromName: process.env.RESEND_DEFAULT_FROM_NAME || 'Prevema',
