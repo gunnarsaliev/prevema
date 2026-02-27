@@ -4,12 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { ParticipantTypeForm } from '@/app/(frontend)/dash/participant-types/components/ParticipantTypeForm'
 import type { ParticipantTypeFormValues } from '@/lib/schemas/participant-type'
 
@@ -72,14 +67,16 @@ export function ParticipantTypesSection({ items, eventId, orgId, organizations, 
         description: editing.description ?? null,
         event: editing.event ?? null,
         isActive: editing.isActive ?? true,
-        requiredFields: (editing.requiredFields ?? []) as ParticipantTypeFormValues['requiredFields'],
+        requiredFields: (editing.requiredFields ??
+          []) as ParticipantTypeFormValues['requiredFields'],
         showOptionalFields: editing.showOptionalFields ?? false,
-        optionalFields: (editing.optionalFields ?? []) as ParticipantTypeFormValues['optionalFields'],
+        optionalFields: (editing.optionalFields ??
+          []) as ParticipantTypeFormValues['optionalFields'],
       }
     : undefined
 
   return (
-    <div className="space-y-3 max-w-2xl mx-auto">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
           Participant types
@@ -101,9 +98,13 @@ export function ParticipantTypesSection({ items, eventId, orgId, organizations, 
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">{item.name}</span>
                   {item.isActive ? (
-                    <Badge variant="default" className="text-xs">Active</Badge>
+                    <Badge variant="default" className="text-xs">
+                      Active
+                    </Badge>
                   ) : (
-                    <Badge variant="secondary" className="text-xs">Inactive</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      Inactive
+                    </Badge>
                   )}
                   {Array.isArray(item.requiredFields) && item.requiredFields.length > 0 && (
                     <Badge variant="outline" className="text-xs">
@@ -134,7 +135,13 @@ export function ParticipantTypesSection({ items, eventId, orgId, organizations, 
         </div>
       )}
 
-      <Drawer open={open} onOpenChange={(v) => { if (!v) handleClose() }} direction="right">
+      <Drawer
+        open={open}
+        onOpenChange={(v) => {
+          if (!v) handleClose()
+        }}
+        direction="right"
+      >
         <DrawerContent className="overflow-hidden sm:max-w-lg!">
           <DrawerHeader className="border-b shrink-0">
             <DrawerTitle>

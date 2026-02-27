@@ -4,12 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { PartnerTypeForm } from '@/app/(frontend)/dash/partner-types/components/PartnerTypeForm'
 import type { PartnerTypeFormValues } from '@/lib/schemas/partner-type'
 
@@ -79,7 +74,7 @@ export function PartnerTypesSection({ items, eventId, orgId, organizations, even
     : undefined
 
   return (
-    <div className="space-y-3 max-w-2xl mx-auto">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
           Partner types
@@ -101,9 +96,13 @@ export function PartnerTypesSection({ items, eventId, orgId, organizations, even
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">{item.name}</span>
                   {item.isActive ? (
-                    <Badge variant="default" className="text-xs">Active</Badge>
+                    <Badge variant="default" className="text-xs">
+                      Active
+                    </Badge>
                   ) : (
-                    <Badge variant="secondary" className="text-xs">Inactive</Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      Inactive
+                    </Badge>
                   )}
                   {Array.isArray(item.requiredFields) && item.requiredFields.length > 0 && (
                     <Badge variant="outline" className="text-xs">
@@ -134,12 +133,16 @@ export function PartnerTypesSection({ items, eventId, orgId, organizations, even
         </div>
       )}
 
-      <Drawer open={open} onOpenChange={(v) => { if (!v) handleClose() }} direction="right">
+      <Drawer
+        open={open}
+        onOpenChange={(v) => {
+          if (!v) handleClose()
+        }}
+        direction="right"
+      >
         <DrawerContent className="overflow-hidden sm:max-w-lg!">
           <DrawerHeader className="border-b shrink-0">
-            <DrawerTitle>
-              {isCreate ? 'Add partner type' : `Edit: ${editing?.name}`}
-            </DrawerTitle>
+            <DrawerTitle>{isCreate ? 'Add partner type' : `Edit: ${editing?.name}`}</DrawerTitle>
           </DrawerHeader>
           <div className="p-4 flex-1 overflow-y-auto overflow-x-hidden min-h-0">
             {isCreate && (
