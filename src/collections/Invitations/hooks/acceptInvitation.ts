@@ -58,40 +58,53 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
       ? invitation.organization.id
       : invitation.organization
 
-  // Fetch the organization
-  const organization = await payload.findByID({
-    collection: 'organizations',
-    id: organizationId,
-  })
-
-  // Update the organization to add the user as a member
-  const currentMembers = organization.members || []
-
-  // Check if user is already a member
-  const existingMemberIndex = currentMembers.findIndex((m: any) => {
-    const userId = typeof m.user === 'object' ? m.user.id : m.user
-    return userId === user.id
-  })
-
-  if (existingMemberIndex >= 0) {
-    // Update existing member's role (in case invitation has a different role)
-    currentMembers[existingMemberIndex].role = invitation.role || 'editor'
-  } else {
-    // Add new member with role
-    currentMembers.push({
-      user: user.id,
-      role: invitation.role || 'editor',
-    })
-  }
-
-  // Update the organization
-  await payload.update({
-    collection: 'organizations',
-    id: organizationId,
-    data: {
-      members: currentMembers,
+  // Check if membership already exists
+  const existingMembership = await payload.find({
+    collection: 'members',
+    where: {
+      and: [
+        {
+          user: {
+            equals: user.id,
+          },
+        },
+        {
+          organization: {
+            equals: organizationId,
+          },
+        },
+      ],
     },
+    limit: 1,
   })
+
+  if (existingMembership.docs.length > 0) {
+    // Update existing membership role if different
+    const membership = existingMembership.docs[0]
+    if (membership.role !== invitation.role) {
+      await payload.update({
+        collection: 'members',
+        id: membership.id,
+        data: {
+          role: invitation.role || 'editor',
+          status: 'active',
+        },
+      })
+      console.log(`✅ Updated existing membership role to ${invitation.role}`)
+    }
+  } else {
+    // Create new membership
+    await payload.create({
+      collection: 'members',
+      data: {
+        user: user.id,
+        organization: organizationId,
+        role: invitation.role || 'editor',
+        status: 'active',
+      },
+    })
+    console.log(`✅ Created new membership for user ${user.email} in organization ${organizationId}`)
+  }
 
   // Mark invitation as accepted
   await payload.update({

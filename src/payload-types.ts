@@ -70,6 +70,8 @@ export interface Config {
     users: User;
     media: Media;
     organizations: Organization;
+    members: Member;
+    subscriptions: Subscription;
     'email-logs': EmailLog;
     events: Event;
     'image-templates': ImageTemplate;
@@ -90,6 +92,8 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     organizations: OrganizationsSelect<false> | OrganizationsSelect<true>;
+    members: MembersSelect<false> | MembersSelect<true>;
+    subscriptions: SubscriptionsSelect<false> | SubscriptionsSelect<true>;
     'email-logs': EmailLogsSelect<false> | EmailLogsSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
     'image-templates': ImageTemplatesSelect<false> | ImageTemplatesSelect<true>;
@@ -198,26 +202,6 @@ export interface Organization {
    */
   owner: number | User;
   /**
-   * Additional users who have access to this organization
-   */
-  members?:
-    | {
-        /**
-         * Select an existing user
-         */
-        user?: (number | null) | User;
-        /**
-         * Or invite a new user by email
-         */
-        email?: string | null;
-        /**
-         * Role within this organization (owner is set via the owner field)
-         */
-        role: 'admin' | 'editor' | 'viewer';
-        id?: string | null;
-      }[]
-    | null;
-  /**
    * Configure custom Resend settings for this organization
    */
   emailConfig?: {
@@ -242,6 +226,144 @@ export interface Organization {
      */
     replyToEmail?: string | null;
   };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Manages user memberships in organizations
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "members".
+ */
+export interface Member {
+  id: number;
+  /**
+   * The user who is a member of the organization
+   */
+  user: number | User;
+  /**
+   * The organization this membership belongs to
+   */
+  organization: number | Organization;
+  /**
+   * The role this user has in the organization
+   */
+  role: 'owner' | 'admin' | 'editor' | 'viewer';
+  /**
+   * The status of this membership
+   */
+  status: 'active' | 'inactive' | 'removed';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Manages organization subscriptions and billing
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions".
+ */
+export interface Subscription {
+  id: number;
+  /**
+   * The organization this subscription belongs to
+   */
+  organization: number | Organization;
+  /**
+   * Subscription tier
+   */
+  tier: 'system-unlimited' | 'free' | 'starter' | 'professional' | 'enterprise';
+  /**
+   * Billing cycle for the subscription
+   */
+  billingCycle: 'none' | 'monthly' | 'yearly';
+  /**
+   * True if organization owner is a super-admin/admin. Grants unlimited access without Stripe.
+   */
+  isSystemAdmin?: boolean | null;
+  /**
+   * Number of seats included in the base plan. Use -1 for unlimited.
+   */
+  seatsIncluded: number;
+  /**
+   * Additional seats purchased beyond the base plan
+   */
+  additionalSeats?: number | null;
+  /**
+   * Price per additional seat in cents (e.g., 500 = €5.00)
+   */
+  pricePerAdditionalSeat?: number | null;
+  /**
+   * Stripe Customer ID (e.g., cus_xxxxx)
+   */
+  stripeCustomerId?: string | null;
+  /**
+   * Stripe Subscription ID (e.g., sub_xxxxx)
+   */
+  stripeSubscriptionId?: string | null;
+  /**
+   * Stripe Price ID for the base plan (e.g., price_xxxxx)
+   */
+  stripePriceId?: string | null;
+  /**
+   * Subscription status synced from Stripe
+   */
+  stripeStatus:
+    | 'incomplete'
+    | 'incomplete_expired'
+    | 'trialing'
+    | 'active'
+    | 'past_due'
+    | 'canceled'
+    | 'unpaid'
+    | 'paused';
+  /**
+   * Start of the current billing period
+   */
+  currentPeriodStart?: string | null;
+  /**
+   * End of the current billing period
+   */
+  currentPeriodEnd?: string | null;
+  /**
+   * Start of trial period
+   */
+  trialStart?: string | null;
+  /**
+   * End of trial period (14 days from org creation)
+   */
+  trialEnd?: string | null;
+  /**
+   * If true, subscription will be canceled at the end of the current period
+   */
+  cancelAtPeriodEnd?: boolean | null;
+  /**
+   * When the subscription was canceled
+   */
+  canceledAt?: string | null;
+  /**
+   * When the subscription ended
+   */
+  endedAt?: string | null;
+  /**
+   * Default payment method ID in Stripe (e.g., pm_xxxxx)
+   */
+  stripePaymentMethodId?: string | null;
+  /**
+   * Last 4 digits of payment card (for display)
+   */
+  lastFourDigits?: string | null;
+  /**
+   * Additional metadata (synced with Stripe metadata)
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -873,6 +995,14 @@ export interface PayloadLockedDocument {
         value: number | Organization;
       } | null)
     | ({
+        relationTo: 'members';
+        value: number | Member;
+      } | null)
+    | ({
+        relationTo: 'subscriptions';
+        value: number | Subscription;
+      } | null)
+    | ({
         relationTo: 'email-logs';
         value: number | EmailLog;
       } | null)
@@ -1003,14 +1133,6 @@ export interface OrganizationsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   owner?: T;
-  members?:
-    | T
-    | {
-        user?: T;
-        email?: T;
-        role?: T;
-        id?: T;
-      };
   emailConfig?:
     | T
     | {
@@ -1020,6 +1142,47 @@ export interface OrganizationsSelect<T extends boolean = true> {
         fromEmail?: T;
         replyToEmail?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "members_select".
+ */
+export interface MembersSelect<T extends boolean = true> {
+  user?: T;
+  organization?: T;
+  role?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions_select".
+ */
+export interface SubscriptionsSelect<T extends boolean = true> {
+  organization?: T;
+  tier?: T;
+  billingCycle?: T;
+  isSystemAdmin?: T;
+  seatsIncluded?: T;
+  additionalSeats?: T;
+  pricePerAdditionalSeat?: T;
+  stripeCustomerId?: T;
+  stripeSubscriptionId?: T;
+  stripePriceId?: T;
+  stripeStatus?: T;
+  currentPeriodStart?: T;
+  currentPeriodEnd?: T;
+  trialStart?: T;
+  trialEnd?: T;
+  cancelAtPeriodEnd?: T;
+  canceledAt?: T;
+  endedAt?: T;
+  stripePaymentMethodId?: T;
+  lastFourDigits?: T;
+  metadata?: T;
   updatedAt?: T;
   createdAt?: T;
 }

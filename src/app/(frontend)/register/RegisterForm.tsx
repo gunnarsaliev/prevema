@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,14 +9,25 @@ import { registerAction } from '../actions'
 import { useAuth } from '@/providers/Auth'
 
 export function RegisterForm() {
+  const searchParams = useSearchParams()
+  const invitationToken = searchParams.get('invitation')
+  const invitationEmail = searchParams.get('email')
+
   const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(invitationEmail || '')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { refreshUser } = useAuth()
+
+  // Pre-fill email if invitation email is provided
+  useEffect(() => {
+    if (invitationEmail && !email) {
+      setEmail(invitationEmail)
+    }
+  }, [invitationEmail])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,7 +48,12 @@ export function RegisterForm() {
     setIsLoading(true)
 
     try {
-      const result = await registerAction({ email, password, name })
+      const result = await registerAction({
+        email,
+        password,
+        name,
+        invitationToken: invitationToken || undefined
+      })
 
       if (result.success) {
         await refreshUser()
@@ -85,8 +101,13 @@ export function RegisterForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={isLoading}
+                disabled={isLoading || !!invitationEmail}
               />
+              {invitationEmail && (
+                <p className="w-full text-xs text-muted-foreground -mt-2">
+                  Email is pre-filled from your invitation
+                </p>
+              )}
 
               <Input
                 type="password"

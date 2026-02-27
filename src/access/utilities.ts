@@ -28,45 +28,31 @@ export const checkPricingPlan = (
   return false
 }
 
+/**
+ * @deprecated This function is deprecated. All authenticated users can now create organizations.
+ * Organization limits are now managed through the Subscriptions collection.
+ * Super-admins and admins get unlimited subscriptions automatically.
+ */
 export const canCreateOrganizations = (user?: User | null): boolean => {
-  // Super-admins and admins can always create organizations
-  if (checkRole(['super-admin', 'admin'], user)) {
-    return true
-  }
-
-  // All pricing plans can create organizations (with different limits)
-  return (
-    user?.pricingPlan === 'free' ||
-    user?.pricingPlan === 'pro' ||
-    user?.pricingPlan === 'organizations' ||
-    user?.pricingPlan === 'unlimited'
-  )
+  // All authenticated users can create organizations
+  // Organization-level limits are now managed via Subscriptions
+  return !!user
 }
 
 /**
- * Get the maximum number of organizations a user can create based on their pricing plan
- * @param user - The user object
- * @returns Maximum organization count (null = unlimited)
+ * @deprecated This function is deprecated. Organization limits are now managed per-organization
+ * via the Subscriptions collection, not at the user level. Use the subscription helpers instead.
+ * @see /src/lib/stripe/subscriptionHelpers.ts
  */
 export const getOrganizationLimit = (user?: User | null): number | null => {
-  // Super-admins and admins have unlimited organizations
+  // Super-admins and admins have unlimited organizations (via system-unlimited subscription)
   if (checkRole(['super-admin', 'admin'], user)) {
     return null
   }
 
-  // Check pricing plan
-  switch (user?.pricingPlan) {
-    case 'free':
-      return 1
-    case 'pro':
-      return 3
-    case 'organizations':
-      return 20
-    case 'unlimited':
-      return null
-    default:
-      return 0
-  }
+  // Regular users can create unlimited organizations
+  // Each organization has its own subscription with seat limits
+  return null
 }
 
 export const canParticipateInOrganizations = (user?: User | null): boolean => {
@@ -94,30 +80,34 @@ export const getOrganizationRole = async (
   if (!user || !organizationId) return null
 
   try {
-    const organization = await payload.findByID({
-      collection: 'organizations',
-      id: String(organizationId),
-      depth: 0,
+    // Query the members collection for this user-organization pair
+    const membership = await payload.find({
+      collection: 'members',
+      where: {
+        and: [
+          {
+            user: {
+              equals: user.id,
+            },
+          },
+          {
+            organization: {
+              equals: organizationId,
+            },
+          },
+          {
+            status: {
+              equals: 'active',
+            },
+          },
+        ],
+      },
+      limit: 1,
     })
 
-    if (!organization) return null
+    if (membership.docs.length === 0) return null
 
-    // Check if user is the owner
-    const ownerId =
-      typeof organization.owner === 'object' ? organization.owner?.id : organization.owner
-    if (String(ownerId) === String(user.id)) {
-      return 'owner'
-    }
-
-    // Check if user is in members array
-    if (!organization.members) return null
-
-    const memberEntry = organization.members.find((m: any) => {
-      const userId = typeof m.user === 'object' ? m.user?.id : m.user
-      return String(userId) === String(user.id)
-    })
-
-    return memberEntry?.role || null
+    return membership.docs[0].role || null
   } catch (error) {
     console.error('Error fetching organization role:', error)
     return null
@@ -168,69 +158,58 @@ export const isOrganizationOwner = async (
  * Get all organization IDs where user has a specific role
  * @param payload - The Payload instance
  * @param user - The user object
- * @param role - Optional role filter ('owner' | 'editor' | 'viewer')
+ * @param role - Optional role filter ('owner' | 'admin' | 'editor' | 'viewer')
  * @returns Array of organization IDs
  */
 export const getUserOrganizationIds = async (
   payload: Payload,
   user?: User | null,
-  role?: 'owner' | 'editor' | 'viewer',
+  role?: 'owner' | 'admin' | 'editor' | 'viewer',
 ): Promise<(number | string)[]> => {
   if (!user) return []
 
   try {
-    // Query all organizations where this user is either the owner OR a member
-    const organizations = await payload.find({
-      collection: 'organizations',
-      where: {
-        or: [
-          {
-            owner: {
-              equals: user.id,
-            },
+    // Build the query
+    const whereCondition: any = {
+      and: [
+        {
+          user: {
+            equals: user.id,
           },
-          {
-            'members.user': {
-              equals: user.id,
-            },
+        },
+        {
+          status: {
+            equals: 'active',
           },
-        ],
-      },
+        },
+      ],
+    }
+
+    // Add role filter if specified
+    if (role) {
+      whereCondition.and.push({
+        role: {
+          equals: role,
+        },
+      })
+    }
+
+    // Query the members collection
+    const memberships = await payload.find({
+      collection: 'members',
+      where: whereCondition,
       depth: 0,
       limit: 1000, // Reasonable limit for user's organizations
     })
 
-    if (!organizations.docs || organizations.docs.length === 0) return []
+    if (!memberships.docs || memberships.docs.length === 0) return []
 
-    // Filter by role if specified
-    const organizationIds: (number | string)[] = []
-    for (const organization of organizations.docs) {
-      // Check if user is the owner
-      const ownerId =
-        typeof organization.owner === 'object' ? organization.owner?.id : organization.owner
-      const isOwner = String(ownerId) === String(user.id)
-
-      if (isOwner) {
-        // If user is owner, always include (owners have implicit 'owner' role)
-        if (!role || role === 'owner') {
-          organizationIds.push(organization.id)
-        }
-        continue
-      }
-
-      // Check if user is in members array
-      if (!organization.members) continue
-
-      const memberEntry = organization.members.find((m: any) => {
-        const userId = typeof m.user === 'object' ? m.user?.id : m.user
-        return String(userId) === String(user.id)
-      })
-
-      // If role filter is specified, only include if user has that role
-      if (!role || memberEntry?.role === role) {
-        organizationIds.push(organization.id)
-      }
-    }
+    // Extract organization IDs
+    const organizationIds = memberships.docs.map((membership) =>
+      typeof membership.organization === 'object'
+        ? membership.organization.id
+        : membership.organization,
+    )
 
     return organizationIds
   } catch (error) {
@@ -255,19 +234,33 @@ export const getUserOrganizationIdsWithMinRole = async (
   if (!user) return []
 
   try {
-    // Query all organizations where this user is either the owner OR a member
-    const organizations = await payload.find({
-      collection: 'organizations',
+    // Role hierarchy: owner (4) > admin (3) > editor (2) > viewer (1)
+    const roleHierarchy = { owner: 4, admin: 3, editor: 2, viewer: 1 }
+    const minRoleLevel = roleHierarchy[minRole]
+
+    // Get roles that meet the minimum requirement
+    const validRoles = (Object.keys(roleHierarchy) as Array<keyof typeof roleHierarchy>).filter(
+      (role) => roleHierarchy[role] >= minRoleLevel,
+    )
+
+    // Query the members collection for active memberships with sufficient role level
+    const memberships = await payload.find({
+      collection: 'members',
       where: {
-        or: [
+        and: [
           {
-            owner: {
+            user: {
               equals: user.id,
             },
           },
           {
-            'members.user': {
-              equals: user.id,
+            status: {
+              equals: 'active',
+            },
+          },
+          {
+            role: {
+              in: validRoles,
             },
           },
         ],
@@ -276,41 +269,14 @@ export const getUserOrganizationIdsWithMinRole = async (
       limit: 1000, // Reasonable limit for user's organizations
     })
 
-    if (!organizations.docs || organizations.docs.length === 0) return []
+    if (!memberships.docs || memberships.docs.length === 0) return []
 
-    // Role hierarchy: owner (4) > admin (3) > editor (2) > viewer (1)
-    const roleHierarchy = { owner: 4, admin: 3, editor: 2, viewer: 1 }
-    const minRoleLevel = roleHierarchy[minRole]
-
-    // Filter by role hierarchy
-    const organizationIds: (number | string)[] = []
-    for (const organization of organizations.docs) {
-      // Check if user is the owner
-      const ownerId =
-        typeof organization.owner === 'object' ? organization.owner?.id : organization.owner
-      const isOwner = String(ownerId) === String(user.id)
-
-      if (isOwner) {
-        // Owner has the highest role level (4)
-        if (roleHierarchy.owner >= minRoleLevel) {
-          organizationIds.push(organization.id)
-        }
-        continue
-      }
-
-      // Check if user is in members array
-      if (!organization.members) continue
-
-      const memberEntry = organization.members.find((m: any) => {
-        const userId = typeof m.user === 'object' ? m.user?.id : m.user
-        return String(userId) === String(user.id)
-      })
-
-      // Check if user has at least the minimum required role
-      if (memberEntry?.role && roleHierarchy[memberEntry.role] >= minRoleLevel) {
-        organizationIds.push(organization.id)
-      }
-    }
+    // Extract organization IDs
+    const organizationIds = memberships.docs.map((membership) =>
+      typeof membership.organization === 'object'
+        ? membership.organization.id
+        : membership.organization,
+    )
 
     return organizationIds
   } catch (error) {

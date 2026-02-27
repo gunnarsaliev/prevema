@@ -10,6 +10,8 @@ import sharp from 'sharp'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Organizations } from './collections/Organizations'
+import { Members } from './collections/Members'
+import { Subscriptions } from './collections/Subscriptions'
 import { EmailLogs } from './collections/EmailLogs'
 import { Events } from './collections/Events'
 import { ImageTemplates } from './collections/ImageTemplates'
@@ -35,6 +37,8 @@ export default buildConfig({
     Users,
     Media,
     Organizations,
+    Members,
+    Subscriptions,
     EmailLogs,
     Events,
     ImageTemplates,

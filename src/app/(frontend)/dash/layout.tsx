@@ -4,6 +4,8 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { DashClientLayout } from './client-layout'
 import type { Event } from '@/providers/Event'
+import { getCurrentUserRole } from '@/lib/getCurrentUserRole'
+import { getUserOrganizationIds } from '@/access/utilities'
 
 /**
  * Server-side layout for /dash routes.
@@ -21,17 +23,52 @@ export default async function DashLayout({ children }: { children: React.ReactNo
     redirect('/admin/login')
   }
 
-  const { docs } = await payload.find({
-    collection: 'events',
-    overrideAccess: false,
-    user,
-    depth: 0,
-    limit: 100,
-    sort: '-createdAt',
-    select: { name: true },
+  // Get user's organizations to determine permissions
+  const organizationIds = await getUserOrganizationIds(payload, user)
+
+  console.log('🔍 Debug - User organizations:', {
+    userId: user.id,
+    email: user.email,
+    organizationIds,
+    count: organizationIds.length,
   })
+
+  // Get the first organization the user has access to (or null if none)
+  const firstOrganizationId = organizationIds[0] || null
+
+  // Fetch user's role in their first organization for UI permissions
+  const permissions = await getCurrentUserRole(payload, user, firstOrganizationId)
+
+  console.log('🔍 Debug - User permissions:', permissions)
+
+  // Wrap the events fetch in a try-catch to provide better error messages
+  let docs: any[] = []
+  try {
+    const result = await payload.find({
+      collection: 'events',
+      overrideAccess: false,
+      user,
+      depth: 0,
+      limit: 100,
+      sort: '-createdAt',
+      select: { name: true },
+    })
+    docs = result.docs
+  } catch (error) {
+    console.error('❌ Error fetching events:', error)
+    console.error('User has access to organizations:', organizationIds)
+    // Don't fail - just show empty events list
+    docs = []
+  }
 
   const initialEvents: Event[] = docs.map((doc) => ({ id: String(doc.id), name: doc.name }))
 
-  return <DashClientLayout initialEvents={initialEvents}>{children}</DashClientLayout>
+  return (
+    <DashClientLayout
+      initialEvents={initialEvents}
+      permissions={permissions}
+    >
+      {children}
+    </DashClientLayout>
+  )
 }

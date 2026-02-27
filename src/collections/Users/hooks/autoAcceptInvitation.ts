@@ -16,11 +16,17 @@ export const autoAcceptInvitation: CollectionAfterChangeHook<User> = async ({
 
   const { payload } = req
 
-  // Check if there's an invitation token in the request data
-  const invitationToken = req.data?.invitationToken as string | undefined
+  // Check if there's an invitation token in the request context
+  console.log('🔍 autoAcceptInvitation hook - checking context:', {
+    hasContext: !!req.context,
+    contextKeys: req.context ? Object.keys(req.context) : [],
+    invitationToken: req.context?.invitationToken,
+  })
+
+  const invitationToken = req.context?.invitationToken as string | undefined
 
   if (!invitationToken) {
-    console.log('No invitation token provided during user creation')
+    console.log('⚠️  No invitation token provided during user creation')
     return doc
   }
 
@@ -78,42 +84,53 @@ export const autoAcceptInvitation: CollectionAfterChangeHook<User> = async ({
         ? invitation.organization.id
         : invitation.organization
 
-    // Fetch the organization
-    const organization = await payload.findByID({
-      collection: 'organizations',
-      id: organizationId,
-    })
-
-    // Update the organization to add the user as a member
-    const currentMembers = organization.members || []
-
-    // Check if user is already a member (shouldn't happen, but just in case)
-    const existingMemberIndex = currentMembers.findIndex((m: any) => {
-      const userId = typeof m.user === 'object' ? m.user.id : m.user
-      return userId === doc.id
-    })
-
-    if (existingMemberIndex >= 0) {
-      // Update existing member's role
-      currentMembers[existingMemberIndex].role = invitation.role || 'editor'
-      console.log('✅ Updated existing member role')
-    } else {
-      // Add new member with role
-      currentMembers.push({
-        user: doc.id,
-        role: invitation.role || 'editor',
-      })
-      console.log('✅ Added user to organization as new member')
-    }
-
-    // Update the organization
-    await payload.update({
-      collection: 'organizations',
-      id: organizationId,
-      data: {
-        members: currentMembers,
+    // Check if membership already exists
+    const existingMembership = await payload.find({
+      collection: 'members',
+      where: {
+        and: [
+          {
+            user: {
+              equals: doc.id,
+            },
+          },
+          {
+            organization: {
+              equals: organizationId,
+            },
+          },
+        ],
       },
+      limit: 1,
     })
+
+    if (existingMembership.docs.length > 0) {
+      // Update existing membership role if different
+      const membership = existingMembership.docs[0]
+      if (membership.role !== invitation.role) {
+        await payload.update({
+          collection: 'members',
+          id: membership.id,
+          data: {
+            role: invitation.role || 'editor',
+            status: 'active',
+          },
+        })
+        console.log(`✅ Updated existing member role to ${invitation.role}`)
+      }
+    } else {
+      // Create new membership
+      await payload.create({
+        collection: 'members',
+        data: {
+          user: doc.id,
+          organization: organizationId,
+          role: invitation.role || 'editor',
+          status: 'active',
+        },
+      })
+      console.log(`✅ Added user ${doc.email} to organization ${organizationId} as new member`)
+    }
 
     // Mark invitation as accepted
     await payload.update({

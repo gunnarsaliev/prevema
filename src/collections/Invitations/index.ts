@@ -14,10 +14,7 @@ export const Invitations: CollectionConfig = {
     useAsTitle: 'email',
     group: 'System',
     defaultColumns: ['email', 'organization', 'role', 'status', 'expiresAt'],
-    hidden: ({ user }) => {
-      // Hide from regular users and admins (only super-admins can see)
-      return !checkRole(['super-admin'], user)
-    },
+    // Visible to all authenticated users (access control handled by access permissions)
   },
   access: {
     // Super-admins, system admins, organization owners, and organization admins can create invitations
@@ -29,7 +26,7 @@ export const Invitations: CollectionConfig = {
         return true
       }
 
-      // Organization owners and admins can create invitations for their organizations
+      // If data.organization is provided (during actual creation), check specific org permission
       if (data?.organization) {
         const organizationId =
           typeof data.organization === 'object' ? data.organization.id : data.organization
@@ -37,12 +34,19 @@ export const Invitations: CollectionConfig = {
         // Check if user has at least 'admin' role (includes owner and admin)
         const hasAdminAccess = await hasOrganizationRole(payload, user, organizationId, 'admin')
 
-        if (hasAdminAccess) {
-          return true
-        }
+        return hasAdminAccess
       }
 
-      return false
+      // If no data.organization (e.g., checking if "Create New" button should show),
+      // check if user manages any organizations
+      const managedOrganizationIds = await getUserOrganizationIdsWithMinRole(
+        payload,
+        user,
+        'admin',
+      )
+
+      // Allow create button if user manages at least one organization
+      return managedOrganizationIds.length > 0
     },
     // Super-admins, system admins can read all invitations, organization owners/admins can see invitations for their organizations, users can see invitations sent to their email
     read: async ({ req: { user, payload } }) => {

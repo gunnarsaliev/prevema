@@ -7,13 +7,21 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { usePathname } from 'next/navigation'
 import { navItems, type NavItemId } from '@/components/layout/data'
 import { EventProvider, type Event } from '@/providers/Event'
+import { PermissionsProvider } from '@/providers/Permissions'
 
 export function DashClientLayout({
   children,
   initialEvents,
+  permissions,
 }: {
   children: React.ReactNode
   initialEvents: Event[]
+  permissions: {
+    role: 'owner' | 'admin' | 'editor' | 'viewer' | null
+    canEdit: boolean
+    canAdmin: boolean
+    isOwner: boolean
+  }
 }) {
   const pathname = usePathname()
 
@@ -28,27 +36,34 @@ export function DashClientLayout({
 
   return (
     <Suspense>
-      <EventProvider initialEvents={initialEvents}>
-      <SidebarProvider className="h-screen">
-        {/* Desktop Sidebar - hidden on mobile */}
-        <AppSidebar
-          activeNavItem={activeNavItem as NavItemId}
-          onNavItemChange={() => {}} // Navigation handled by Next.js Link
-          onSearchClick={() => console.log('Search clicked')}
-          className="hidden md:flex"
-        />
+      <PermissionsProvider
+        role={permissions.role}
+        canEdit={permissions.canEdit}
+        canAdmin={permissions.canAdmin}
+        isOwner={permissions.isOwner}
+      >
+        <EventProvider initialEvents={initialEvents}>
+          <SidebarProvider className="h-screen">
+            {/* Desktop Sidebar - hidden on mobile */}
+            <AppSidebar
+              activeNavItem={activeNavItem as NavItemId}
+              onNavItemChange={() => {}} // Navigation handled by Next.js Link
+              onSearchClick={() => console.log('Search clicked')}
+              className="hidden md:flex"
+            />
 
-        {/* Mobile Layout - only shown on mobile */}
-        <div className="md:hidden">
-          <MobileDashLayout showTicketList={showTicketList}>{children}</MobileDashLayout>
-        </div>
+            {/* Mobile Layout - only shown on mobile */}
+            <div className="md:hidden">
+              <MobileDashLayout showTicketList={showTicketList}>{children}</MobileDashLayout>
+            </div>
 
-        {/* Desktop Content - only shown on desktop */}
-        <div className="hidden md:flex flex-1 h-full">
-          <SidebarInset className="flex-1">{children}</SidebarInset>
-        </div>
-      </SidebarProvider>
-      </EventProvider>
+            {/* Desktop Content - only shown on desktop */}
+            <div className="hidden md:flex flex-1 h-full">
+              <SidebarInset className="flex-1">{children}</SidebarInset>
+            </div>
+          </SidebarProvider>
+        </EventProvider>
+      </PermissionsProvider>
     </Suspense>
   )
 }

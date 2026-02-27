@@ -55,9 +55,9 @@ function AcceptInvitationContent() {
 
         // Check if user is authenticated
         if (!data.isAuthenticated) {
-          console.log('🔐 User not authenticated, redirecting to create account...')
-          // Redirect to create account page with invitation token
-          window.location.href = `/create-account?invitation=${token}&email=${encodeURIComponent(data.email || '')}`
+          console.log('🔐 User not authenticated, redirecting to register...')
+          // Redirect to register page with invitation token
+          window.location.href = `/register?invitation=${token}&email=${encodeURIComponent(data.email || '')}`
           return
         }
 

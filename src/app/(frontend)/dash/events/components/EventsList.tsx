@@ -15,6 +15,13 @@ import {
   getEventImageUrl,
   getEventPrice,
 } from '../utils/event-card-helpers'
+import { usePermissions } from '@/providers/Permissions'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface Props {
   events: Event[]
@@ -22,6 +29,7 @@ interface Props {
 
 export function EventsList({ events }: Props) {
   const [searchQuery, setSearchQuery] = useState('')
+  const { canEdit, role } = usePermissions()
 
   // Filter events based on search query
   const filteredEvents = events.filter((event) =>
@@ -36,12 +44,25 @@ export function EventsList({ events }: Props) {
           <h1 className="text-3xl font-bold tracking-tight">Events</h1>
           <p className="text-muted-foreground">Manage and view your events</p>
         </div>
-        <Button asChild>
-          <Link href="/dash/events/create">
-            <Plus className="mr-2 h-4 w-4" />
-            New event
-          </Link>
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <Button asChild disabled={!canEdit}>
+                  <Link href={canEdit ? '/dash/events/create' : '#'} className={!canEdit ? 'pointer-events-none' : ''}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    New event
+                  </Link>
+                </Button>
+              </div>
+            </TooltipTrigger>
+            {!canEdit && (
+              <TooltipContent>
+                <p>You don't have permission to create events ({role} role)</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Search Bar */}
@@ -80,11 +101,26 @@ export function EventsList({ events }: Props) {
             <Calendar className="h-10 w-10 text-muted-foreground" />
             <h3 className="mt-4 text-lg font-semibold">No events yet</h3>
             <p className="mb-4 mt-2 text-sm text-muted-foreground">
-              Create your first event to get started.
+              {canEdit ? 'Create your first event to get started.' : 'No events have been created yet.'}
             </p>
-            <Button asChild>
-              <Link href="/dash/events/create">Create event</Link>
-            </Button>
+            {canEdit ? (
+              <Button asChild>
+                <Link href="/dash/events/create">Create event</Link>
+              </Button>
+            ) : (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <Button disabled>Create event</Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>You don't have permission to create events ({role} role)</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </div>
       ) : (

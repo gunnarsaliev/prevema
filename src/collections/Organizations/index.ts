@@ -1,54 +1,18 @@
 import type { CollectionConfig } from 'payload'
 
 import { organizationOwnerFieldAccess } from '@/access/organizationOwnerFieldAccess'
-import {
-  checkRole,
-  canCreateOrganizations,
-  getUserOrganizationIds,
-  getOrganizationLimit,
-} from '@/access/utilities'
+import { checkRole, getUserOrganizationIds } from '@/access/utilities'
 import { validateEmailConfig } from '@/services/emailValidation'
 import { formatSlugHook } from '@/utils/formatSlug'
-import { autoInviteMembers } from './hooks/autoInviteMembers'
 
 export const Organizations: CollectionConfig = {
   slug: 'organizations',
   access: {
     admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),
-    create: async ({ req: { user, payload } }) => {
-      // Super-admins and admins can always create organizations (no limit)
-      if (checkRole(['super-admin', 'admin'], user)) {
-        return true
-      }
-
-      // Check if user's pricing plan allows organization creation
-      if (!canCreateOrganizations(user)) {
-        return false
-      }
-
-      // Check if user has reached their plan's organization limit
-      if (user) {
-        const organizationLimit = getOrganizationLimit(user)
-
-        // null means unlimited
-        if (organizationLimit !== null) {
-          const organizationCount = await payload.count({
-            collection: 'organizations',
-            where: {
-              owner: {
-                equals: user.id,
-              },
-            },
-          })
-
-          // Check if user has reached their limit
-          if (organizationCount.totalDocs >= organizationLimit) {
-            return false
-          }
-        }
-      }
-
-      return true
+    create: ({ req: { user } }) => {
+      // All authenticated users can create organizations
+      // Organization-level limits (seats) are managed via Subscriptions collection
+      return !!user
     },
     read: async ({ req: { user, payload } }) => {
       // Super-admins and admins can read all organizations
@@ -59,27 +23,46 @@ export const Organizations: CollectionConfig = {
       // Regular users can only read organizations they are members of
       if (!user) return false
 
+      // Get organization IDs from members collection
       const organizationIds = await getUserOrganizationIds(payload, user)
 
-      if (organizationIds.length > 0) {
+      // Fallback: Also get organizations where user is the owner
+      // This ensures visibility even if members table doesn't exist yet or member records are missing
+      let ownedOrganizations: (number | string)[] = []
+      try {
+        const orgs = await payload.find({
+          collection: 'organizations',
+          where: {
+            owner: {
+              equals: user.id,
+            },
+          },
+          depth: 0,
+          limit: 1000,
+        })
+        ownedOrganizations = orgs.docs.map((org) => org.id)
+      } catch (error) {
+        console.error('Error fetching owned organizations:', error)
+      }
+
+      // Combine organization IDs from both sources (members + owner)
+      const allOrganizationIds = [...new Set([...organizationIds, ...ownedOrganizations])]
+
+      if (allOrganizationIds.length > 0) {
         return {
           id: {
-            in: organizationIds,
+            in: allOrganizationIds,
           },
         }
       }
 
-      // Allow users who can create organizations to access the collection
-      // even if they have no organizations yet (enables creating first organization)
-      if (canCreateOrganizations(user)) {
-        return {
-          id: {
-            in: [], // Empty array - shows collection UI but no results
-          },
-        }
+      // Allow authenticated users to access the collection even if they have no organizations yet
+      // This enables creating their first organization
+      return {
+        id: {
+          in: [], // Empty array - shows collection UI but no results
+        },
       }
-
-      return false
     },
     update: async ({ req: { user, payload } }) => {
       // Super-admins and admins can update any organization
@@ -127,7 +110,7 @@ export const Organizations: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     group: 'Event Planning',
-    defaultColumns: ['name', 'owner', 'members'],
+    defaultColumns: ['name', 'owner'],
   },
   hooks: {
     beforeValidate: [
@@ -152,7 +135,6 @@ export const Organizations: CollectionConfig = {
         return data
       },
     ],
-    afterChange: [autoInviteMembers],
   },
   fields: [
     {
@@ -182,125 +164,6 @@ export const Organizations: CollectionConfig = {
         description: 'The primary owner of this organization (cannot be changed)',
         readOnly: true,
       },
-    },
-    {
-      name: 'members',
-      type: 'array',
-      access: {
-        update: organizationOwnerFieldAccess,
-      },
-      admin: {
-        description: 'Additional users who have access to this organization',
-      },
-      fields: [
-        {
-          name: 'user',
-          type: 'relationship',
-          relationTo: 'users',
-          filterOptions: ({ data, siblingData }) => {
-            // Exclude the owner from being selectable as a member
-            const ownerId = typeof data?.owner === 'object' ? data?.owner?.id : data?.owner
-
-            // Get the current member's user ID (the one being edited)
-            const currentMember = siblingData as any
-            const currentUserId =
-              typeof currentMember?.user === 'object'
-                ? currentMember?.user?.id
-                : currentMember?.user
-
-            // Get all currently selected member user IDs
-            const selectedUserIds: (string | number)[] = []
-
-            if (data?.members && Array.isArray(data.members)) {
-              data.members.forEach((member: any) => {
-                const userId = typeof member?.user === 'object' ? member?.user?.id : member?.user
-
-                // Skip the current row being edited
-                if (userId && userId !== currentUserId) {
-                  selectedUserIds.push(userId)
-                }
-              })
-            }
-
-            const filters: any = {}
-
-            // Exclude owner if present
-            if (ownerId) {
-              filters.id = { not_equals: ownerId }
-            }
-
-            // Exclude already selected members if present
-            if (selectedUserIds.length > 0) {
-              // If we already have a not_equals filter for owner, we need to combine with AND
-              if (filters.id) {
-                return {
-                  and: [{ id: { not_equals: ownerId } }, { id: { not_in: selectedUserIds } }],
-                }
-              }
-
-              filters.id = { not_in: selectedUserIds }
-            }
-
-            return filters
-          },
-          admin: {
-            description: 'Select an existing user',
-            condition: (data, siblingData) => {
-              // Hide user field if email is provided
-              return !siblingData?.email
-            },
-          },
-        },
-        {
-          name: 'email',
-          type: 'email',
-          admin: {
-            description: 'Or invite a new user by email',
-            condition: (data, siblingData) => {
-              // Hide email field if user is selected
-              return !siblingData?.user
-            },
-          },
-          validate: (value, { siblingData }) => {
-            // Either user or email must be provided, but not both
-            const hasUser = (siblingData as any)?.user
-            const hasEmail = value && value.trim() !== ''
-
-            if (!hasUser && !hasEmail) {
-              return 'Please select a user or enter an email address'
-            }
-
-            if (hasUser && hasEmail) {
-              return 'Please select a user OR enter an email, not both'
-            }
-
-            return true
-          },
-        },
-        {
-          name: 'role',
-          type: 'select',
-          required: true,
-          defaultValue: 'editor',
-          options: [
-            {
-              label: 'Admin',
-              value: 'admin',
-            },
-            {
-              label: 'Editor',
-              value: 'editor',
-            },
-            {
-              label: 'Viewer',
-              value: 'viewer',
-            },
-          ],
-          admin: {
-            description: 'Role within this organization (owner is set via the owner field)',
-          },
-        },
-      ],
     },
     {
       name: 'emailConfig',
