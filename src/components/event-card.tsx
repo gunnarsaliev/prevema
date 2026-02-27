@@ -21,7 +21,7 @@ export function EventCard({
   startingPrice,
 }: EventCardProps) {
   return (
-    <div className="w-full md:rounded-3xl md:px-0 overflow-hidden bg-white">
+    <div className="w-full md:rounded-3xl md:px-0 overflow-hidden bg-white dark:bg-zinc-800">
       {/* Image Container */}
       <div className="relative w-full aspect-video md:rounded-3xl overflow-hidden">
         <Image
@@ -38,24 +38,32 @@ export function EventCard({
         {/* Date and Location Row */}
         <div className="flex items-start justify-between gap-4 mb-3">
           <div className="flex items-baseline gap-3">
-            <span className="text-2xl md:text-3xl font-bold text-gray-900">{month}</span>
+            <span className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+              {month}
+            </span>
             <div className="w-px h-8 bg-gray-300"></div>
-            <span className="text-3xl md:text-4xl font-bold text-gray-900">{day}</span>
+            <span className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+              {day}
+            </span>
           </div>
-          <div className="flex items-center gap-1 text-gray-600">
+          <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
             <MapPin className="w-4 h-4" />
             <span className="text-sm md:text-base">{location}</span>
           </div>
         </div>
 
         {/* Title */}
-        <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">{title}</h3>
+        <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          {title}
+        </h3>
 
         {/* Description */}
-        <p className="text-sm md:text-base text-gray-600 mb-4 line-clamp-2">{description}</p>
+        <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+          {description}
+        </p>
 
         {/* Starting Price */}
-        <div className="flex items-center gap-1 text-xs md:text-sm text-gray-500">
+        <div className="flex items-center gap-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
           <span>🎫</span>
           <span>{startingPrice}</span>
         </div>
