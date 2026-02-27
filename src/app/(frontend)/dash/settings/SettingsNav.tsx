@@ -2,18 +2,22 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, Link2, Mail, Settings, User } from 'lucide-react'
+import { Building2, CreditCard, Settings, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const sections = [
   { id: 'personal', label: 'Personal Info', icon: User, href: '/dash/settings/personal' },
-  { id: 'contact', label: 'Contact', icon: Mail, href: '/dash/settings/contact' },
-  { id: 'social', label: 'Social Links', icon: Link2, href: '/dash/settings/social' },
   {
     id: 'preferences',
     label: 'Preferences',
     icon: Settings,
     href: '/dash/settings/preferences',
+  },
+  {
+    id: 'subscription',
+    label: 'Subscription',
+    icon: CreditCard,
+    href: '/dash/settings/subscription',
   },
   {
     id: 'organization',

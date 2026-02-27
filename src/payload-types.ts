@@ -149,6 +149,10 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   name?: string | null;
+  /**
+   * User profile image
+   */
+  profileImage?: (number | null) | Media;
   roles?: ('super-admin' | 'admin' | 'user')[] | null;
   /**
    * Free: 1 tenant. Pro: 3 tenants. Organizations: 20 tenants.
@@ -1090,6 +1094,7 @@ export interface PayloadMigration {
  */
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
+  profileImage?: T;
   roles?: T;
   pricingPlan?: T;
   updatedAt?: T;

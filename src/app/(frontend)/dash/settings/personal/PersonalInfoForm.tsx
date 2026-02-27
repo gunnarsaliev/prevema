@@ -17,16 +17,13 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 
 interface PersonalInfoFormProps {
   defaultValues: {
     name?: string
-    username?: string
     email: string
     avatar?: string
-    bio?: string
   }
 }
 
@@ -148,37 +145,9 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
 
           <Separator />
 
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full name</Label>
-              <Input id="name" name="name" defaultValue={defaultValues.name} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <div className="flex">
-                <span className="inline-flex items-center rounded-l-md border border-r-0 bg-muted px-3 text-sm text-muted-foreground">
-                  @
-                </span>
-                <Input
-                  id="username"
-                  name="username"
-                  className="rounded-l-none"
-                  defaultValue={defaultValues.username}
-                />
-              </div>
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
-            <Textarea
-              id="bio"
-              name="bio"
-              rows={4}
-              defaultValue={defaultValues.bio}
-              placeholder="Write a few sentences about yourself"
-            />
-            <p className="text-xs text-muted-foreground">Brief description for your profile</p>
+            <Label htmlFor="name">Full name</Label>
+            <Input id="name" name="name" defaultValue={defaultValues.name} />
           </div>
         </div>
       </div>
