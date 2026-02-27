@@ -6,6 +6,7 @@ import {
 } from '@/access/utilities'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
+import { canAddMember } from '@/lib/stripe/subscriptionHelpers'
 import crypto from 'crypto'
 
 export const Invitations: CollectionConfig = {
@@ -139,7 +140,39 @@ export const Invitations: CollectionConfig = {
     },
   },
   hooks: {
-    beforeValidate: [autoSelectOrganization],
+    beforeValidate: [
+      autoSelectOrganization,
+      // Check seat limits before creating invitation
+      async ({ data, operation, req }) => {
+        if (operation !== 'create') {
+          return data
+        }
+
+        // Get organization ID
+        const organizationId =
+          typeof data?.organization === 'object' ? data.organization.id : data?.organization
+
+        if (!organizationId) {
+          throw new Error('Organization is required to create an invitation')
+        }
+
+        // Check if organization has available seats
+        const result = await canAddMember(req.payload, organizationId, req.user)
+
+        if (!result.canAdd) {
+          throw new Error(
+            result.reason ||
+              'Cannot send invitation: organization has no available seats. Please upgrade your subscription or remove inactive members.',
+          )
+        }
+
+        console.log(
+          `✅ Seat limit check passed for organization ${organizationId} - invitation can be sent`,
+        )
+
+        return data
+      },
+    ],
     beforeChange: [
       ({ data, operation, req }) => {
         // Generate a unique token for new invitations

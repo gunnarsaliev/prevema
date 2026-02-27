@@ -6,6 +6,8 @@ import type { PayloadRequest } from 'payload'
 export async function acceptInvitation(token: string, req: PayloadRequest) {
   const { payload, user } = req
 
+  console.log('🎫 acceptInvitation called for user:', user?.email)
+
   if (!user) {
     throw new Error('You must be logged in to accept an invitation')
   }
@@ -22,13 +24,22 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
   })
 
   if (invitations.docs.length === 0) {
+    console.warn('⚠️  Invalid invitation token:', token.substring(0, 10) + '...')
     throw new Error('Invalid invitation token')
   }
 
   const invitation = invitations.docs[0]
 
+  console.log('📧 Invitation found:', {
+    email: invitation.email,
+    organization: invitation.organization,
+    role: invitation.role,
+    status: invitation.status,
+  })
+
   // Check if invitation is still valid
   if (invitation.status !== 'pending') {
+    console.warn(`⚠️  Invitation already ${invitation.status}`)
     throw new Error(`This invitation has already been ${invitation.status}`)
   }
 
@@ -36,6 +47,7 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
   const now = new Date()
   const expiresAt = new Date(invitation.expiresAt)
   if (now > expiresAt) {
+    console.warn('⚠️  Invitation has expired')
     // Mark as expired
     await payload.update({
       collection: 'invitations',
@@ -49,6 +61,10 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
 
   // Check if the invitation email matches the user's email
   if (invitation.email !== user.email) {
+    console.warn('⚠️  Email mismatch:', {
+      invitationEmail: invitation.email,
+      userEmail: user.email,
+    })
     throw new Error('This invitation was sent to a different email address')
   }
 
@@ -57,6 +73,8 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
     typeof invitation.organization === 'object'
       ? invitation.organization.id
       : invitation.organization
+
+  console.log(`👤 Processing invitation acceptance for organization ${organizationId}`)
 
   // Check if membership already exists
   const existingMembership = await payload.find({
@@ -79,9 +97,11 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
   })
 
   if (existingMembership.docs.length > 0) {
+    console.log('🔄 Membership already exists, checking if update needed')
     // Update existing membership role if different
     const membership = existingMembership.docs[0]
     if (membership.role !== invitation.role) {
+      console.log(`📝 Updating role from ${membership.role} to ${invitation.role}`)
       await payload.update({
         collection: 'members',
         id: membership.id,
@@ -91,9 +111,12 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
         },
       })
       console.log(`✅ Updated existing membership role to ${invitation.role}`)
+    } else {
+      console.log(`✅ Membership already exists with correct role ${membership.role}`)
     }
   } else {
-    // Create new membership
+    console.log('➕ Creating new membership')
+    // Create new membership - use overrideAccess because accepting user doesn't have permissions yet
     await payload.create({
       collection: 'members',
       data: {
@@ -102,8 +125,9 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
         role: invitation.role || 'editor',
         status: 'active',
       },
+      overrideAccess: true, // Bypass access controls - invitation acceptance is authorized by the invitation itself
     })
-    console.log(`✅ Created new membership for user ${user.email} in organization ${organizationId}`)
+    console.log(`✅ Created new membership for user ${user.email} in organization ${organizationId} with role ${invitation.role}`)
   }
 
   // Mark invitation as accepted
@@ -114,6 +138,8 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
       status: 'accepted',
     },
   })
+
+  console.log(`🎉 Successfully accepted invitation for ${user.email} to organization ${organizationId}`)
 
   return {
     success: true,

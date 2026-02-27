@@ -314,6 +314,12 @@ export const Members: CollectionConfig = {
     ],
     beforeDelete: [
       async ({ req, id }) => {
+        // Skip validation if we're deleting the entire organization
+        if (req.context?.deletingOrganization === true) {
+          console.log(`⏭️  Skipping "last owner" check - organization being deleted`)
+          return
+        }
+
         // Find the membership being deleted
         const membership = await req.payload.findByID({
           collection: 'members',

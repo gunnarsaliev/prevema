@@ -119,7 +119,7 @@ export const autoAcceptInvitation: CollectionAfterChangeHook<User> = async ({
         console.log(`✅ Updated existing member role to ${invitation.role}`)
       }
     } else {
-      // Create new membership
+      // Create new membership - use overrideAccess because new user doesn't have permissions yet
       await payload.create({
         collection: 'members',
         data: {
@@ -128,8 +128,9 @@ export const autoAcceptInvitation: CollectionAfterChangeHook<User> = async ({
           role: invitation.role || 'editor',
           status: 'active',
         },
+        overrideAccess: true, // Bypass access controls - invitation acceptance is authorized by the invitation itself
       })
-      console.log(`✅ Added user ${doc.email} to organization ${organizationId} as new member`)
+      console.log(`✅ Added user ${doc.email} to organization ${organizationId} as new member with role ${invitation.role}`)
     }
 
     // Mark invitation as accepted

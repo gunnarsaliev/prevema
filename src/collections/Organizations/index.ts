@@ -135,6 +135,132 @@ export const Organizations: CollectionConfig = {
         return data
       },
     ],
+    beforeDelete: [
+      async ({ req, id }) => {
+        const { payload } = req
+
+        console.log(`🗑️  Deleting organization ${id} and all related data...`)
+
+        try {
+          // Helper function to delete all docs from a collection related to this org
+          const deleteRelatedDocs = async (collectionSlug: string, label: string) => {
+            try {
+              const docs = await payload.find({
+                collection: collectionSlug as any,
+                where: {
+                  organization: {
+                    equals: id,
+                  },
+                },
+                limit: 1000,
+              })
+
+              if (docs.docs.length > 0) {
+                for (const doc of docs.docs) {
+                  await payload.delete({
+                    collection: collectionSlug as any,
+                    id: doc.id,
+                    overrideAccess: true,
+                  })
+                }
+                console.log(`  ✅ Deleted ${docs.docs.length} ${label}`)
+              }
+            } catch (err) {
+              // Collection might not exist or might not have organization field
+              console.log(`  ⚠️  Could not delete ${label}: ${err instanceof Error ? err.message : 'Unknown error'}`)
+            }
+          }
+
+          // 1. Delete all members (bypass "last owner" check with context flag)
+          const members = await payload.find({
+            collection: 'members',
+            where: {
+              organization: {
+                equals: id,
+              },
+            },
+            limit: 1000,
+          })
+
+          if (members.docs.length > 0) {
+            for (const member of members.docs) {
+              await payload.delete({
+                collection: 'members',
+                id: member.id,
+                overrideAccess: true,
+                context: {
+                  deletingOrganization: true, // Signal to skip "last owner" check
+                },
+              })
+            }
+            console.log(`  ✅ Deleted ${members.docs.length} members`)
+          }
+
+          // 2. Delete subscription
+          const subscriptions = await payload.find({
+            collection: 'subscriptions',
+            where: {
+              organization: {
+                equals: id,
+              },
+            },
+            limit: 1,
+          })
+
+          if (subscriptions.docs.length > 0) {
+            await payload.delete({
+              collection: 'subscriptions',
+              id: subscriptions.docs[0].id,
+              overrideAccess: true,
+            })
+            console.log(`  ✅ Deleted subscription`)
+          }
+
+          // 3. Expire invitations (keep audit trail)
+          const invitations = await payload.find({
+            collection: 'invitations',
+            where: {
+              organization: {
+                equals: id,
+              },
+            },
+            limit: 1000,
+          })
+
+          for (const invitation of invitations.docs) {
+            await payload.update({
+              collection: 'invitations',
+              id: invitation.id,
+              data: {
+                status: 'expired',
+              },
+              overrideAccess: true,
+            })
+          }
+          if (invitations.docs.length > 0) {
+            console.log(`  ✅ Expired ${invitations.docs.length} invitations`)
+          }
+
+          // 4. Delete all organization-scoped data
+          await deleteRelatedDocs('events', 'events')
+          await deleteRelatedDocs('email-logs', 'email logs')
+          await deleteRelatedDocs('email-templates', 'email templates')
+          await deleteRelatedDocs('image-templates', 'image templates')
+          await deleteRelatedDocs('partners', 'partners')
+          await deleteRelatedDocs('participants', 'participants')
+          await deleteRelatedDocs('participant-types', 'participant types')
+          await deleteRelatedDocs('partner-types', 'partner types')
+          await deleteRelatedDocs('partner-tiers', 'partner tiers')
+
+          console.log(`✅ Successfully cleaned up all data for organization ${id}`)
+        } catch (error) {
+          console.error(`❌ Error cleaning up organization ${id}:`, error)
+          throw new Error(
+            `Failed to delete organization: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          )
+        }
+      },
+    ],
   },
   fields: [
     {
