@@ -126,6 +126,9 @@ export async function acceptInvitation(token: string, req: PayloadRequest) {
         status: 'active',
       },
       overrideAccess: true, // Bypass access controls - invitation acceptance is authorized by the invitation itself
+      context: {
+        isInvitationAcceptance: true, // Skip seat limit check - invitation was already validated when created
+      },
     })
     console.log(`✅ Created new membership for user ${user.email} in organization ${organizationId} with role ${invitation.role}`)
   }

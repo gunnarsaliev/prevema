@@ -9,14 +9,14 @@ import { checkRole } from '@/access/utilities'
 
 import { ensureFirstUserIsAdmin } from './hooks/ensureFirstUserIsAdmin'
 import { assignUnlimitedToAdmins } from './hooks/assignUnlimitedToAdmins'
-import { autoAcceptInvitation } from './hooks/autoAcceptInvitation'
+// import { autoAcceptInvitation } from './hooks/autoAcceptInvitation' // DISABLED: Causes foreign key violations - moved to registerAction
 import { preventDeleteIfOwnsOrganizations } from './hooks/preventDeleteIfOwnsOrganizations'
 
 export const Users: CollectionConfig = {
   slug: 'users',
   hooks: {
     beforeDelete: [preventDeleteIfOwnsOrganizations],
-    afterChange: [autoAcceptInvitation],
+    // afterChange: [autoAcceptInvitation], // DISABLED: Runs before user is committed to DB, causing FK violations
   },
   access: {
     admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),

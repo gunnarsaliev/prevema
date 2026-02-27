@@ -86,12 +86,12 @@ export const Organizations: CollectionConfig = {
       return false
     },
     delete: async ({ req: { user, payload } }) => {
-      // Super-admins and admins can delete any organization
-      if (checkRole(['super-admin', 'admin'], user)) {
+      // Only super-admins can delete any organization
+      if (checkRole(['super-admin'], user)) {
         return true
       }
 
-      // Organization owners can delete their own organizations
+      // Organization owners (with 'user' role) can delete their own organizations
       if (!user) return false
 
       const ownedOrganizationIds = await getUserOrganizationIds(payload, user, 'owner')
@@ -144,113 +144,147 @@ export const Organizations: CollectionConfig = {
         try {
           // Helper function to delete all docs from a collection related to this org
           const deleteRelatedDocs = async (collectionSlug: string, label: string) => {
-            try {
-              const docs = await payload.find({
-                collection: collectionSlug as any,
-                where: {
-                  organization: {
-                    equals: id,
-                  },
+            const docs = await payload.find({
+              collection: collectionSlug as any,
+              where: {
+                organization: {
+                  equals: id,
                 },
-                limit: 1000,
-              })
+              },
+              limit: 1000,
+            })
 
-              if (docs.docs.length > 0) {
-                for (const doc of docs.docs) {
-                  await payload.delete({
-                    collection: collectionSlug as any,
-                    id: doc.id,
-                    overrideAccess: true,
-                  })
-                }
-                console.log(`  ✅ Deleted ${docs.docs.length} ${label}`)
+            if (docs.docs.length > 0) {
+              for (const doc of docs.docs) {
+                await payload.delete({
+                  collection: collectionSlug as any,
+                  id: doc.id,
+                  overrideAccess: true,
+                })
               }
-            } catch (err) {
-              // Collection might not exist or might not have organization field
-              console.log(`  ⚠️  Could not delete ${label}: ${err instanceof Error ? err.message : 'Unknown error'}`)
+              console.log(`  ✅ Deleted ${docs.docs.length} ${label}`)
             }
           }
 
           // 1. Delete all members (bypass "last owner" check with context flag)
-          const members = await payload.find({
-            collection: 'members',
-            where: {
-              organization: {
-                equals: id,
-              },
-            },
-            limit: 1000,
-          })
-
-          if (members.docs.length > 0) {
-            for (const member of members.docs) {
-              await payload.delete({
-                collection: 'members',
-                id: member.id,
-                overrideAccess: true,
-                context: {
-                  deletingOrganization: true, // Signal to skip "last owner" check
+          try {
+            const members = await payload.find({
+              collection: 'members',
+              where: {
+                organization: {
+                  equals: id,
                 },
-              })
+              },
+              limit: 1000,
+            })
+
+            if (members.docs.length > 0) {
+              for (const member of members.docs) {
+                await payload.delete({
+                  collection: 'members',
+                  id: member.id,
+                  overrideAccess: true,
+                  context: {
+                    deletingOrganization: true, // Signal to skip "last owner" check
+                  },
+                })
+              }
+              console.log(`  ✅ Deleted ${members.docs.length} members`)
             }
-            console.log(`  ✅ Deleted ${members.docs.length} members`)
+          } catch (err) {
+            console.error(`  ❌ Error deleting members: ${err instanceof Error ? err.message : 'Unknown error'}`)
+            throw err // Re-throw to abort the entire deletion
           }
 
           // 2. Delete subscription
-          const subscriptions = await payload.find({
-            collection: 'subscriptions',
-            where: {
-              organization: {
-                equals: id,
-              },
-            },
-            limit: 1,
-          })
-
-          if (subscriptions.docs.length > 0) {
-            await payload.delete({
+          try {
+            const subscriptions = await payload.find({
               collection: 'subscriptions',
-              id: subscriptions.docs[0].id,
-              overrideAccess: true,
+              where: {
+                organization: {
+                  equals: id,
+                },
+              },
+              limit: 1,
             })
-            console.log(`  ✅ Deleted subscription`)
+
+            if (subscriptions.docs.length > 0) {
+              await payload.delete({
+                collection: 'subscriptions',
+                id: subscriptions.docs[0].id,
+                overrideAccess: true,
+              })
+              console.log(`  ✅ Deleted subscription`)
+            }
+          } catch (err) {
+            console.error(`  ❌ Error deleting subscription: ${err instanceof Error ? err.message : 'Unknown error'}`)
+            throw err // Re-throw to abort the entire deletion
           }
 
           // 3. Expire invitations (keep audit trail)
-          const invitations = await payload.find({
-            collection: 'invitations',
-            where: {
-              organization: {
-                equals: id,
-              },
-            },
-            limit: 1000,
-          })
-
-          for (const invitation of invitations.docs) {
-            await payload.update({
+          try {
+            const invitations = await payload.find({
               collection: 'invitations',
-              id: invitation.id,
-              data: {
-                status: 'expired',
+              where: {
+                organization: {
+                  equals: id,
+                },
               },
-              overrideAccess: true,
+              limit: 1000,
             })
-          }
-          if (invitations.docs.length > 0) {
-            console.log(`  ✅ Expired ${invitations.docs.length} invitations`)
+
+            for (const invitation of invitations.docs) {
+              await payload.update({
+                collection: 'invitations',
+                id: invitation.id,
+                data: {
+                  status: 'expired',
+                },
+                overrideAccess: true,
+              })
+            }
+            if (invitations.docs.length > 0) {
+              console.log(`  ✅ Expired ${invitations.docs.length} invitations`)
+            }
+          } catch (err) {
+            console.error(`  ❌ Error expiring invitations: ${err instanceof Error ? err.message : 'Unknown error'}`)
+            throw err // Re-throw to abort the entire deletion
           }
 
           // 4. Delete all organization-scoped data
-          await deleteRelatedDocs('events', 'events')
-          await deleteRelatedDocs('email-logs', 'email logs')
-          await deleteRelatedDocs('email-templates', 'email templates')
-          await deleteRelatedDocs('image-templates', 'image templates')
-          await deleteRelatedDocs('partners', 'partners')
-          await deleteRelatedDocs('participants', 'participants')
-          await deleteRelatedDocs('participant-types', 'participant types')
-          await deleteRelatedDocs('partner-types', 'partner types')
-          await deleteRelatedDocs('partner-tiers', 'partner tiers')
+          // Wrap each in try/catch to handle collections that don't exist
+          const collections = [
+            { slug: 'events', label: 'events' },
+            { slug: 'email-logs', label: 'email logs' },
+            { slug: 'email-templates', label: 'email templates' },
+            { slug: 'image-templates', label: 'image templates' },
+            { slug: 'partners', label: 'partners' },
+            { slug: 'participants', label: 'participants' },
+            { slug: 'participant-types', label: 'participant types' },
+            { slug: 'partner-types', label: 'partner types' },
+            { slug: 'partner-tiers', label: 'partner tiers' },
+          ]
+
+          for (const { slug, label } of collections) {
+            try {
+              await deleteRelatedDocs(slug, label)
+            } catch (err) {
+              // Only ignore "collection not found" type errors
+              const errMsg = err instanceof Error ? err.message.toLowerCase() : ''
+              const isCollectionNotFound =
+                errMsg.includes('no collection found') ||
+                errMsg.includes('collection with slug') ||
+                errMsg.includes('does not exist')
+
+              if (isCollectionNotFound) {
+                console.log(`  ⏭️  Skipping ${label} - collection does not exist`)
+              } else {
+                // Re-throw all other errors (including transaction errors)
+                console.error(`  ❌ Error deleting ${label}: ${err instanceof Error ? err.message : 'Unknown error'}`)
+                throw err
+              }
+            }
+          }
 
           console.log(`✅ Successfully cleaned up all data for organization ${id}`)
         } catch (error) {

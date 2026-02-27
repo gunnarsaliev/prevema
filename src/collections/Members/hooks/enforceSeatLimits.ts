@@ -33,6 +33,12 @@ export const enforceSeatLimits: CollectionBeforeValidateHook = async ({
     return data
   }
 
+  // Skip seat limit check for invitation acceptance - invitation was already validated when created
+  if (req.context?.isInvitationAcceptance === true) {
+    console.log(`✅ Bypassing seat limit check for invitation acceptance`)
+    return data
+  }
+
   console.log(`🔍 Checking seat limits for organization ${data.organization}`)
 
   const { user, payload } = req

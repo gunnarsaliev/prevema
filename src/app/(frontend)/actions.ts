@@ -3,6 +3,8 @@
 import { login, logout } from '@payloadcms/next/auth'
 import config from '@/payload.config'
 import { getPayload } from 'payload'
+import { parseInvitationError } from '@/utils/parseInvitationError'
+import { acceptInvitation } from '@/collections/Invitations/hooks/acceptInvitation'
 
 /**
  * Parse Payload errors to provide user-friendly error messages
@@ -120,10 +122,12 @@ export async function registerAction({
       }
     }
 
-    // Create the user with invitation token passed via context
-    console.log('🔍 Creating user with context:', {
+    // Create the user (without invitation handling in hook - that comes after)
+    const timestamp = new Date().toISOString()
+    console.log(`[${timestamp}] 🔍 Creating user:`, {
       hasInvitationToken: !!invitationToken,
       invitationToken: invitationToken ? invitationToken.substring(0, 10) + '...' : 'none',
+      email,
     })
 
     const user = await payload.create({
@@ -133,16 +137,53 @@ export async function registerAction({
         password,
         name,
       },
-      context: {
-        invitationToken: invitationToken,
-      },
     })
+    console.log(`[${timestamp}] ✅ User created:`, user.id, user.email)
 
-    console.log('✅ User created:', user.id, user.email)
+    // If user was created via invitation, accept it now (after user is committed to DB)
+    if (invitationToken && hasValidInvitation) {
+      console.log(`[${timestamp}] 🎫 Accepting invitation for user ${user.id}`)
+      try {
+        // Create a mock PayloadRequest object for acceptInvitation
+        const payloadReq = {
+          payload,
+          user: user,
+          headers: new Headers(),
+        } as any
+
+        // Accept the invitation - this will create the member and update invitation status
+        const result = await acceptInvitation(invitationToken, payloadReq)
+
+        console.log(`[${timestamp}] ✅ Invitation accepted successfully:`, result)
+      } catch (invitationError) {
+        console.error(`[${timestamp}] ❌ Invitation acceptance failed:`, invitationError)
+
+        // Parse the error to get user-friendly message
+        const { userMessage, technicalDetails } = parseInvitationError(invitationError)
+        console.error(`[${timestamp}] 📋 Technical details:`, technicalDetails)
+
+        // Delete the user if invitation acceptance fails
+        try {
+          await payload.delete({
+            collection: 'users',
+            id: user.id,
+            overrideAccess: true,
+          })
+          console.log(`[${timestamp}] 🗑️  Deleted user ${user.id} due to failed invitation acceptance`)
+        } catch (deleteError) {
+          console.error(`[${timestamp}] ❌ Failed to delete user:`, deleteError)
+        }
+
+        return {
+          success: false,
+          error: userMessage,
+        }
+      }
+    }
 
     // Only create a default organization if user is NOT joining via invitation
     if (!hasValidInvitation) {
-      console.log('📝 No valid invitation - creating default organization')
+      console.log(`[${timestamp}] 📝 No valid invitation - creating default organization`)
       try {
         const org = await payload.create({
           collection: 'organizations',
