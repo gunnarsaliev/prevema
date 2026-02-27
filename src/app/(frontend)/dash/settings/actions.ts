@@ -106,11 +106,58 @@ export async function updateUserProfile(
       return { success: false, error: 'Unauthorized' }
     }
 
+    // Get form values
+    const name = formData.get('name') as string | null
+    const newEmail = formData.get('newEmail') as string | null
+    const currentPassword = formData.get('currentPassword') as string | null
+    const newPassword = formData.get('newPassword') as string | null
+    const confirmPassword = formData.get('confirmPassword') as string | null
+
+    // Check if email or password change is requested
+    const isChangingEmail = newEmail && newEmail.trim() !== '' && newEmail !== user.email
+    const isChangingPassword = newPassword && newPassword.trim() !== ''
+
+    // Validate current password if changing email or password
+    if (isChangingEmail || isChangingPassword) {
+      if (!currentPassword) {
+        return { success: false, error: 'Current password is required to change email or password' }
+      }
+
+      // Verify current password
+      try {
+        const loginResult = await payload.login({
+          collection: 'users',
+          data: {
+            email: user.email,
+            password: currentPassword,
+          },
+        })
+
+        if (!loginResult.user) {
+          return { success: false, error: 'Current password is incorrect' }
+        }
+      } catch (err) {
+        return { success: false, error: 'Current password is incorrect' }
+      }
+    }
+
+    // Validate new password
+    if (isChangingPassword) {
+      if (!newPassword || newPassword.length < 8) {
+        return { success: false, error: 'New password must be at least 8 characters long' }
+      }
+
+      if (newPassword !== confirmPassword) {
+        return { success: false, error: 'New passwords do not match' }
+      }
+    }
+
     // Build user update data
     const userData: Record<string, unknown> = {}
 
-    const name = formData.get('name') as string | null
     if (name) userData.name = name
+    if (isChangingEmail) userData.email = newEmail
+    if (isChangingPassword) userData.password = newPassword
 
     // Handle avatar upload
     const avatarFile = formData.get('avatar') as File | null
@@ -128,7 +175,7 @@ export async function updateUserProfile(
       })
 
       if (imageResult) {
-        userData.avatar = imageResult.id
+        userData.profileImage = imageResult.id
       }
     }
 

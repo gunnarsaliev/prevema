@@ -43,7 +43,15 @@ export function AppSidebar({
   const isCollapsed = state === 'collapsed'
   const { user } = useAuth()
 
-  const userData = user ? { name: user.name ?? user.email, email: user.email, avatar: '' } : null
+  // Extract profileImage URL from user object
+  const profileImageUrl =
+    user?.profileImage && typeof user.profileImage === 'object'
+      ? (user.profileImage as any).url
+      : undefined
+
+  const userData = user
+    ? { name: user.name ?? user.email, email: user.email, avatar: profileImageUrl || '' }
+    : null
 
   // Helper function to preserve eventId in navigation links
   const buildUrlWithEventId = (baseUrl: string) => {

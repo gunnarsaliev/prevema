@@ -31,7 +31,9 @@ export default function SettingsLoading() {
                 <div className="mt-6 space-y-6">
                   {/* Avatar Section */}
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                    <Skeleton className="size-24 shrink-0 rounded-full" />
+                    <div className="relative size-24 shrink-0">
+                      <Skeleton className="size-24 rounded-full" />
+                    </div>
                     <div className="flex-1 space-y-3">
                       <Skeleton className="h-32 w-full rounded-lg" />
                     </div>
@@ -43,6 +45,42 @@ export default function SettingsLoading() {
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-20" />
                     <Skeleton className="h-10 w-full" />
+                  </div>
+
+                  <Separator />
+
+                  {/* Email Section */}
+                  <div className="space-y-4">
+                    <Skeleton className="h-5 w-28" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Password Section */}
+                  <div className="space-y-4">
+                    <Skeleton className="h-5 w-32" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-36" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

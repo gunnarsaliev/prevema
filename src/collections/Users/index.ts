@@ -19,7 +19,7 @@ export const Users: CollectionConfig = {
     // afterChange: [autoAcceptInvitation], // DISABLED: Runs before user is committed to DB, causing FK violations
   },
   access: {
-    admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),
+    admin: (args) => checkRole(['super-admin', 'admin', 'user'], args?.req?.user),
     create: publicAccess,
     delete: adminOnly,
     read: adminOrSelf,
@@ -37,9 +37,10 @@ export const Users: CollectionConfig = {
   auth: {
     tokenExpiration: 1209600,
     forgotPassword: {
-      generateEmailHTML: ({ req, token, user }) => {
+      generateEmailHTML: (args) => {
+        const { req, token, user } = args || {}
         // Generate the reset password URL
-        const resetPasswordURL = `${process.env.NEXT_PUBLIC_SERVER_URL || req.headers.get('origin')}/admin/reset/${token}`
+        const resetPasswordURL = `${process.env.NEXT_PUBLIC_SERVER_URL || req?.headers.get('origin')}/admin/reset/${token}`
 
         return `
           <!doctype html>
@@ -91,7 +92,7 @@ export const Users: CollectionConfig = {
                 <h1 style="margin: 0; color: #212529;">Password Reset Request</h1>
               </div>
               <div class="content">
-                <p>Hello ${user.email},</p>
+                <p>Hello ${user?.email},</p>
                 <p>We received a request to reset your password for your Prevema account. If you didn't make this request, you can safely ignore this email.</p>
                 <p>To reset your password, click the button below:</p>
                 <p style="text-align: center;">
@@ -113,7 +114,7 @@ export const Users: CollectionConfig = {
           </html>
         `
       },
-      generateEmailSubject: ({ req, user }) => {
+      generateEmailSubject: (args) => {
         return `Reset your Prevema password`
       },
     },

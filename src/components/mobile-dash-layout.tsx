@@ -10,6 +10,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { useApplicationState } from '@/hooks/useApplicationState'
 import { navItems } from '@/components/layout/data'
 import { MobileNavUser } from '@/components/layout/avatar-menu'
+import { useAuth } from '@/providers/Auth'
 import { ReactNode } from 'react'
 
 interface MobileDashLayoutProps {
@@ -35,6 +36,18 @@ export function MobileDashLayout({ children, showTicketList = false }: MobileDas
     handleTicketSelect,
   } = useApplicationState()
 
+  const { user } = useAuth()
+
+  // Extract profileImage URL from user object
+  const profileImageUrl =
+    user?.profileImage && typeof user.profileImage === 'object'
+      ? (user.profileImage as any).url
+      : undefined
+
+  const userData = user
+    ? { name: user.name ?? user.email, email: user.email, avatar: profileImageUrl || '' }
+    : null
+
   return (
     <div className="w-screen md:hidden">
       {/* Mobile Header */}
@@ -50,13 +63,7 @@ export function MobileDashLayout({ children, showTicketList = false }: MobileDas
           </span>
         </div>
         <div className="px-4">
-          <MobileNavUser
-            user={{
-              name: 'John Doe',
-              email: 'john@example.com',
-              avatar: 'https://deifkwefumgah.cloudfront.net/shadcnblocks/block/avatar-1.webp',
-            }}
-          />
+          {userData && <MobileNavUser user={userData} />}
         </div>
       </div>
 

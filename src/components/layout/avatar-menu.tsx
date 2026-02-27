@@ -52,7 +52,7 @@ export function NavUser({ user }: NavUserProps) {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="size-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={user.avatar} alt={user.name} className="object-cover" />
                 <AvatarFallback className="rounded-lg">
                   {user.name
                     .split(' ')
@@ -76,7 +76,7 @@ export function NavUser({ user }: NavUserProps) {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="size-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarImage src={user.avatar} alt={user.name} className="object-cover" />
                   <AvatarFallback className="rounded-lg">
                     {user.name
                       .split(' ')
@@ -140,7 +140,7 @@ export function MobileNavUser({ user, className }: MobileNavUserProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className={cn('h-8 w-8 rounded-full p-0', className)}>
           <Avatar className="size-8">
-            <AvatarImage src={user.avatar} alt={user.name} />
+            <AvatarImage src={user.avatar} alt={user.name} className="object-cover" />
             <AvatarFallback>
               {user.name
                 .split(' ')
@@ -155,7 +155,7 @@ export function MobileNavUser({ user, className }: MobileNavUserProps) {
         <DropdownMenuLabel className="p-0 font-normal">
           <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
             <Avatar className="size-8 rounded-lg">
-              <AvatarImage src={user.avatar} alt={user.name} />
+              <AvatarImage src={user.avatar} alt={user.name} className="object-cover" />
               <AvatarFallback className="rounded-lg">
                 {user.name
                   .split(' ')
@@ -170,14 +170,18 @@ export function MobileNavUser({ user, className }: MobileNavUserProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <User className="mr-2 size-4" />
-          Account
+        <DropdownMenuItem asChild>
+          <Link href="/dash/profile">
+            <User className="mr-2 size-4" />
+            Profile
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <User className="mr-2 size-4" />
-          Settings
+        <DropdownMenuItem asChild>
+          <Link href="/dash/settings">
+            <Settings className="mr-2 size-4" />
+            Settings
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>

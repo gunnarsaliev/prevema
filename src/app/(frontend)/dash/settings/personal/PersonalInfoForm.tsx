@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { Camera, X } from 'lucide-react'
+import { useState, useTransition, useEffect } from 'react'
+import { Camera, X, Lock, Mail, Loader2 } from 'lucide-react'
 import { updateUserProfile } from '../actions'
+import { useAuth } from '@/providers/Auth'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   FileUpload,
   FileUploadDropzone,
@@ -31,6 +33,8 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
   const [avatarFiles, setAvatarFiles] = useState<File[]>([])
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [isAvatarLoading, setIsAvatarLoading] = useState(false)
+  const { refreshUser } = useAuth()
 
   const initials = defaultValues.name
     ?.split(' ')
@@ -41,11 +45,45 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
   const avatarPreview =
     avatarFiles.length > 0 ? URL.createObjectURL(avatarFiles[0]) : defaultValues.avatar
 
+  // Set loading state when avatar files change
+  useEffect(() => {
+    if (avatarFiles.length > 0) {
+      setIsAvatarLoading(true)
+    }
+  }, [avatarFiles])
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setMessage(null)
 
     const formData = new FormData(e.currentTarget)
+
+    // Client-side validation
+    const newPassword = formData.get('newPassword') as string
+    const confirmPassword = formData.get('confirmPassword') as string
+    const newEmail = formData.get('newEmail') as string
+    const currentPassword = formData.get('currentPassword') as string
+
+    // Check if trying to change email or password without current password
+    if ((newEmail || newPassword) && !currentPassword) {
+      setMessage({
+        type: 'error',
+        text: 'Current password is required to change email or password',
+      })
+      return
+    }
+
+    // Validate password match
+    if (newPassword && newPassword !== confirmPassword) {
+      setMessage({ type: 'error', text: 'New passwords do not match' })
+      return
+    }
+
+    // Validate password length
+    if (newPassword && newPassword.length < 8) {
+      setMessage({ type: 'error', text: 'New password must be at least 8 characters long' })
+      return
+    }
 
     // Add avatar file if one was selected
     if (avatarFiles.length > 0) {
@@ -57,7 +95,9 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
 
       if (result.success) {
         setMessage({ type: 'success', text: result.message })
-        // Optionally reload to show updated data
+        // Refresh user data in Auth context to update avatar immediately
+        await refreshUser()
+        // Reload to show updated data and clear password fields
         setTimeout(() => window.location.reload(), 1500)
       } else {
         setMessage({ type: 'error', text: result.error })
@@ -94,8 +134,19 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
             maxSize={2 * 1024 * 1024}
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-              <Avatar className="size-24 shrink-0">
-                <AvatarImage src={avatarPreview} alt={defaultValues.name} className="object-cover" />
+              <Avatar className="relative size-24 shrink-0">
+                {isAvatarLoading && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-muted/80 backdrop-blur-sm">
+                    <Loader2 className="size-8 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                <AvatarImage
+                  src={avatarPreview}
+                  alt={defaultValues.name}
+                  className="object-cover"
+                  onLoad={() => setIsAvatarLoading(false)}
+                  onError={() => setIsAvatarLoading(false)}
+                />
                 <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-3">
@@ -148,6 +199,107 @@ export function PersonalInfoForm({ defaultValues }: PersonalInfoFormProps) {
           <div className="space-y-2">
             <Label htmlFor="name">Full name</Label>
             <Input id="name" name="name" defaultValue={defaultValues.name} />
+          </div>
+
+          <Separator />
+
+          {/* Email Section */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium">Email Address</h3>
+              <p className="text-xs text-muted-foreground">Update your email address</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="currentEmail">Current Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="currentEmail"
+                  type="email"
+                  className="pl-10 bg-muted"
+                  value={defaultValues.email}
+                  disabled
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="newEmail">New Email (optional)</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="newEmail"
+                  name="newEmail"
+                  type="email"
+                  className="pl-10"
+                  placeholder="Enter new email address"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Leave blank to keep current email
+              </p>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Password Section */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium">Change Password</h3>
+              <p className="text-xs text-muted-foreground">Update your password</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="currentPassword">Current Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="currentPassword"
+                  name="currentPassword"
+                  type="password"
+                  className="pl-10"
+                  placeholder="Enter current password"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Required to change email or password
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password (optional)</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="newPassword"
+                    name="newPassword"
+                    type="password"
+                    className="pl-10"
+                    placeholder="Enter new password"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    className="pl-10"
+                    placeholder="Confirm new password"
+                  />
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Leave blank to keep current password. Minimum 8 characters.
+            </p>
           </div>
         </div>
       </div>

@@ -25,7 +25,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchMe = useCallback(async () => {
     try {
-      const res = await fetch(`${getClientSideURL()}/api/users/me`, {
+      // Fetch with depth=1 to populate profileImage relationship
+      const res = await fetch(`${getClientSideURL()}/api/users/me?depth=1`, {
         credentials: 'include',
       })
 
