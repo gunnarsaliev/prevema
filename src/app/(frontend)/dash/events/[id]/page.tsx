@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import { format } from 'date-fns'
 import Link from 'next/link'
 import config from '@/payload.config'
+import { getUserOrganizationIds } from '@/access/utilities'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -35,6 +36,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const { user } = await payload.auth({ headers })
 
   if (!user) redirect('/admin/login')
+
+  // Get all organization IDs where user is a member (including as owner)
+  const organizationIds = await getUserOrganizationIds(payload, user)
 
   const [event, { docs: participantTypes }, { docs: partnerTypes }, { docs: orgDocs }] =
     await Promise.all([
@@ -70,7 +74,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         overrideAccess: false,
         user,
         where: {
-          or: [{ owner: { equals: user.id } }, { 'members.user': { equals: user.id } }],
+          id: {
+            in: organizationIds,
+          },
         },
         depth: 0,
         limit: 50,

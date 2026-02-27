@@ -12,6 +12,29 @@ type UpdateUserProfileResult =
   | { success: true; message: string }
   | { success: false; error: string }
 
+type Member = {
+  id: string
+  user: {
+    id: string
+    name: string
+    email: string
+    profileImage?: {
+      url: string
+    }
+  }
+  role: string
+  status: string
+  createdAt: string
+}
+
+type GetMembersResult =
+  | { success: true; members: Member[] }
+  | { success: false; error: string }
+
+type CreateInvitationResult =
+  | { success: true; message: string }
+  | { success: false; error: string }
+
 function parsePayloadError(err: unknown): string {
   if (!(err instanceof Error)) return 'Failed to update organization'
 
@@ -192,6 +215,167 @@ export async function updateUserProfile(
 
     return { success: true, message: 'Profile updated successfully' }
   } catch (err) {
+    return { success: false, error: parsePayloadError(err) }
+  }
+}
+
+export async function getOrganizationMembers(): Promise<GetMembersResult> {
+  try {
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: configPromise })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    // Find the organization owned by the current user
+    const { docs } = await payload.find({
+      collection: 'organizations',
+      where: { owner: { equals: user.id } },
+      limit: 1,
+      depth: 0,
+    })
+
+    const org = docs[0]
+
+    if (!org) {
+      return { success: false, error: 'Organization not found' }
+    }
+
+    // Fetch members with user details
+    const membersResult = await payload.find({
+      collection: 'members',
+      where: {
+        organization: { equals: org.id },
+      },
+      depth: 1,
+      limit: 100,
+      sort: '-createdAt',
+    })
+
+    const members = membersResult.docs.map((member: any) => ({
+      id: member.id,
+      user: {
+        id: member.user.id,
+        name: member.user.name || member.user.email,
+        email: member.user.email,
+        profileImage: member.user.profileImage?.url
+          ? { url: member.user.profileImage.url }
+          : undefined,
+      },
+      role: member.role,
+      status: member.status,
+      createdAt: member.createdAt,
+    }))
+
+    return { success: true, members }
+  } catch (err) {
+    console.error('Failed to fetch members:', err)
+    return { success: false, error: parsePayloadError(err) }
+  }
+}
+
+export async function createInvitation(formData: FormData): Promise<CreateInvitationResult> {
+  try {
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: configPromise })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    // Find the organization owned by the current user
+    const { docs } = await payload.find({
+      collection: 'organizations',
+      where: { owner: { equals: user.id } },
+      limit: 1,
+      depth: 0,
+    })
+
+    const org = docs[0]
+
+    if (!org) {
+      return { success: false, error: 'Organization not found' }
+    }
+
+    // Get form values
+    const email = formData.get('email') as string | null
+    const role = formData.get('role') as string | null
+
+    if (!email) {
+      return { success: false, error: 'Email is required' }
+    }
+
+    if (!role) {
+      return { success: false, error: 'Role is required' }
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return { success: false, error: 'Invalid email format' }
+    }
+
+    // Check if user with this email exists and is already a member
+    const existingUser = await payload.find({
+      collection: 'users',
+      where: {
+        email: { equals: email },
+      },
+      limit: 1,
+    })
+
+    if (existingUser.docs.length > 0) {
+      // User exists, check if they're already a member
+      const existingMember = await payload.find({
+        collection: 'members',
+        where: {
+          and: [
+            { organization: { equals: org.id } },
+            { user: { equals: existingUser.docs[0].id } },
+          ],
+        },
+        limit: 1,
+      })
+
+      if (existingMember.docs.length > 0) {
+        return { success: false, error: 'User is already a member of this organization' }
+      }
+    }
+
+    // Check for existing pending invitation
+    const existingInvitation = await payload.find({
+      collection: 'invitations',
+      where: {
+        and: [
+          { organization: { equals: org.id } },
+          { email: { equals: email } },
+          { status: { equals: 'pending' } },
+        ],
+      },
+      limit: 1,
+    })
+
+    if (existingInvitation.docs.length > 0) {
+      return { success: false, error: 'An invitation has already been sent to this email' }
+    }
+
+    // Create invitation
+    await payload.create({
+      collection: 'invitations',
+      data: {
+        email,
+        organization: org.id,
+        role,
+        invitedBy: user.id,
+      },
+    })
+
+    return { success: true, message: 'Invitation sent successfully' }
+  } catch (err) {
+    console.error('Failed to create invitation:', err)
     return { success: false, error: parsePayloadError(err) }
   }
 }

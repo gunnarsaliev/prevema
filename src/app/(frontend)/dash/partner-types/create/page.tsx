@@ -2,6 +2,7 @@ import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { getUserOrganizationIds } from '@/access/utilities'
 
 import { PartnerTypeForm } from '../components/PartnerTypeForm'
 
@@ -11,6 +12,9 @@ export default async function CreatePartnerTypePage() {
   const { user } = await payload.auth({ headers })
 
   if (!user) redirect('/admin/login')
+
+  // Get all organization IDs where user is a member (including as owner)
+  const organizationIds = await getUserOrganizationIds(payload, user)
 
   const [{ docs: eventDocs }, { docs: orgDocs }] = await Promise.all([
     payload.find({
@@ -25,10 +29,9 @@ export default async function CreatePartnerTypePage() {
     payload.find({
       collection: 'organizations',
       where: {
-        or: [
-          { owner: { equals: user.id } },
-          { 'members.user': { equals: user.id } },
-        ],
+        id: {
+          in: organizationIds,
+        },
       },
       depth: 0,
       limit: 100,

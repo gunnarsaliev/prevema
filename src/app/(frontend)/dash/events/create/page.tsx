@@ -2,6 +2,7 @@ import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { getUserOrganizationIds } from '@/access/utilities'
 
 import { EventForm } from '../components/EventForm'
 
@@ -12,13 +13,16 @@ export default async function CreateEventPage() {
 
   if (!user) redirect('/admin/login')
 
+  // Get all organization IDs where user is a member (including as owner)
+  const organizationIds = await getUserOrganizationIds(payload, user)
+
+  // Fetch the organizations
   const { docs: orgs } = await payload.find({
     collection: 'organizations',
     where: {
-      or: [
-        { owner: { equals: user.id } },
-        { 'members.user': { equals: user.id } },
-      ],
+      id: {
+        in: organizationIds,
+      },
     },
     depth: 0,
     limit: 100,

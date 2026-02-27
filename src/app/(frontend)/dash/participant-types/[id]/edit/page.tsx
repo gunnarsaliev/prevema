@@ -2,6 +2,7 @@ import { headers as getHeaders } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { getUserOrganizationIds } from '@/access/utilities'
 
 import { ParticipantTypeForm } from '../../components/ParticipantTypeForm'
 import type { ParticipantTypeFormValues } from '@/lib/schemas/participant-type'
@@ -17,6 +18,9 @@ export default async function EditParticipantTypePage({
   const { user } = await payload.auth({ headers })
 
   if (!user) redirect('/admin/login')
+
+  // Get all organization IDs where user is a member (including as owner)
+  const organizationIds = await getUserOrganizationIds(payload, user)
 
   const [participantType, { docs: eventDocs }, { docs: orgDocs }] = await Promise.all([
     payload
@@ -40,10 +44,9 @@ export default async function EditParticipantTypePage({
     payload.find({
       collection: 'organizations',
       where: {
-        or: [
-          { owner: { equals: user.id } },
-          { 'members.user': { equals: user.id } },
-        ],
+        id: {
+          in: organizationIds,
+        },
       },
       depth: 0,
       limit: 100,
