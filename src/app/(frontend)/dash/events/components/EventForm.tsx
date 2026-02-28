@@ -56,7 +56,6 @@ export function EventForm(props: Props) {
           // Auto-select the only org; if multiple, the user will pick via the selector below
           organization: organizations.length === 1 ? organizations[0].id : undefined,
           name: '',
-          status: 'planning',
           eventType: 'online',
           startDate: '',
         }
@@ -148,44 +147,23 @@ export function EventForm(props: Props) {
             )}
           </Field>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Field data-invalid={!!state?.errors?.status}>
-              <FieldLabel htmlFor="status">Status</FieldLabel>
-              <select
-                id="status"
-                name="status"
-                defaultValue={defaultValues.status}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                aria-invalid={!!state?.errors?.status}
-              >
-                <option value="planning">Planning</option>
-                <option value="open">Open</option>
-                <option value="closed">Closed</option>
-                <option value="archived">Archived</option>
-              </select>
-              {state?.errors?.status && (
-                <p className="text-sm text-destructive mt-1">{state.errors.status[0]}</p>
-              )}
-            </Field>
-
-            <Field data-invalid={!!state?.errors?.eventType}>
-              <FieldLabel htmlFor="eventType">Event type</FieldLabel>
-              <select
-                id="eventType"
-                name="eventType"
-                defaultValue={defaultValues.eventType}
-                onChange={(e) => setEventType(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                aria-invalid={!!state?.errors?.eventType}
-              >
-                <option value="online">Online</option>
-                <option value="physical">Physical</option>
-              </select>
-              {state?.errors?.eventType && (
-                <p className="text-sm text-destructive mt-1">{state.errors.eventType[0]}</p>
-              )}
-            </Field>
-          </div>
+          <Field data-invalid={!!state?.errors?.eventType}>
+            <FieldLabel htmlFor="eventType">Event type</FieldLabel>
+            <select
+              id="eventType"
+              name="eventType"
+              defaultValue={defaultValues.eventType}
+              onChange={(e) => setEventType(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-invalid={!!state?.errors?.eventType}
+            >
+              <option value="online">Online</option>
+              <option value="physical">Physical</option>
+            </select>
+            {state?.errors?.eventType && (
+              <p className="text-sm text-destructive mt-1">{state.errors.eventType[0]}</p>
+            )}
+          </Field>
 
           {eventType === 'physical' && (
             <Field data-invalid={!!state?.errors?.address}>
