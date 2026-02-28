@@ -85,7 +85,7 @@ export const PartnerTypes: CollectionConfig = {
             },
           }
         }
-        return {}
+        return true
       },
       admin: {
         description:

@@ -87,7 +87,7 @@ export const ParticipantTypes: CollectionConfig = {
             },
           }
         }
-        return {}
+        return true
       },
       admin: {
         description:

@@ -51,7 +51,7 @@ export function useHistory(
   ])
   const [currentIndex, setCurrentIndex] = useState(0)
   const lastPushTime = useRef<number>(0)
-  const debounceTimeout = useRef<NodeJS.Timeout>()
+  const debounceTimeout = useRef<NodeJS.Timeout | undefined>(undefined)
   const pendingState = useRef<HistoryState | null>(null)
 
   const currentState = history[currentIndex] || { elements: [], selectedElementId: null }

@@ -153,7 +153,15 @@ export async function getUserOrganizationAction(): Promise<
       data: {
         id: orgId,
         name: org.name,
-        emailConfig: org.emailConfig,
+        emailConfig: org.emailConfig
+          ? {
+              isActive: org.emailConfig.isActive ?? undefined,
+              senderName: org.emailConfig.senderName || undefined,
+              fromEmail: org.emailConfig.fromEmail || undefined,
+              replyToEmail: org.emailConfig.replyToEmail || undefined,
+              resendApiKey: org.emailConfig.resendApiKey || undefined,
+            }
+          : undefined,
       },
     }
   } catch (error) {
@@ -535,6 +543,7 @@ export async function createPartnerTypeAction(
  */
 export async function createEmailTemplateAction(
   organizationId: number,
+  prevState: OnboardingActionState | undefined,
   formData: FormData,
 ): Promise<OnboardingActionState<{ id: number; name: string }>> {
   try {
@@ -550,13 +559,14 @@ export async function createEmailTemplateAction(
     }
 
     // Parse htmlBody from rich text format if needed
-    let htmlBodyValue = formData.get('htmlBody')
+    let htmlBodyValue: any = formData.get('htmlBody')
     if (typeof htmlBodyValue === 'string') {
       try {
         // If it's JSON string, parse it (Lexical format)
         htmlBodyValue = JSON.parse(htmlBodyValue)
       } catch {
         // If parsing fails, wrap it in a simple Lexical structure
+        const textValue = htmlBodyValue
         htmlBodyValue = {
           root: {
             type: 'root',
@@ -566,7 +576,7 @@ export async function createEmailTemplateAction(
                 children: [
                   {
                     type: 'text',
-                    text: htmlBodyValue,
+                    text: textValue,
                   },
                 ],
               },

@@ -30,7 +30,23 @@ async function SubscriptionData() {
       limit: 1,
       depth: 0,
     })
-    subscription = subs[0] ?? null
+    const sub = subs[0]
+    if (sub) {
+      // Normalize the subscription data to ensure all fields have proper types
+      // Convert null to undefined for optional fields, and set defaults for required fields
+      subscription = {
+        tier: sub.tier,
+        billingCycle: sub.billingCycle,
+        isSystemAdmin: sub.isSystemAdmin ?? false,
+        seatsIncluded: sub.seatsIncluded ?? 0,
+        additionalSeats: sub.additionalSeats ?? 0,
+        stripeStatus: sub.stripeStatus,
+        cancelAtPeriodEnd: sub.cancelAtPeriodEnd ?? false,
+        currentPeriodEnd: sub.currentPeriodEnd || undefined,
+        lastFourDigits: sub.lastFourDigits || undefined,
+        trialEnd: sub.trialEnd || undefined,
+      }
+    }
   }
 
   return (
