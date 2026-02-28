@@ -23,7 +23,7 @@ async function PersonalInfoData() {
   // Get the profile image URL if it exists
   const profileImageUrl =
     fullUser?.profileImage && typeof fullUser.profileImage === 'object'
-      ? fullUser.profileImage.url
+      ? fullUser.profileImage.url ?? undefined
       : undefined
 
   // User is guaranteed to exist due to layout auth check

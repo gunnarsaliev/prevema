@@ -302,7 +302,7 @@ export async function createInvitation(formData: FormData): Promise<CreateInvita
 
     // Get form values
     const email = formData.get('email') as string | null
-    const role = formData.get('role') as string | null
+    const role = formData.get('role') as 'admin' | 'editor' | 'viewer' | null
 
     if (!email) {
       return { success: false, error: 'Email is required' }
@@ -363,14 +363,16 @@ export async function createInvitation(formData: FormData): Promise<CreateInvita
     }
 
     // Create invitation
+    const invitationData: any = {
+      email,
+      organization: org.id,
+      role,
+      invitedBy: user.id,
+    }
+
     await payload.create({
       collection: 'invitations',
-      data: {
-        email,
-        organization: org.id,
-        role,
-        invitedBy: user.id,
-      },
+      data: invitationData,
     })
 
     return { success: true, message: 'Invitation sent successfully' }
