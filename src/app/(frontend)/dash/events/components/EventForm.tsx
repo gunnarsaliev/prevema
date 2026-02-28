@@ -38,7 +38,7 @@ type OrgOption = { id: number; name: string }
 
 type Props =
   | { mode: 'create'; organizations: OrgOption[] }
-  | { mode: 'edit'; eventId: string; defaultValues: EventFormValues }
+  | { mode: 'edit'; eventId: string; defaultValues: EventFormValues; existingImageUrl?: string | null }
 
 export function EventForm(props: Props) {
   const router = useRouter()
@@ -46,8 +46,10 @@ export function EventForm(props: Props) {
     props.mode === 'edit' ? props.defaultValues.eventType : 'online',
   )
   const [imageFiles, setImageFiles] = useState<File[]>([])
+  const [keepExistingImage, setKeepExistingImage] = useState(true)
 
   const organizations = props.mode === 'create' ? props.organizations : []
+  const existingImageUrl = props.mode === 'edit' ? props.existingImageUrl : null
 
   const defaultValues: Partial<EventFormValues> =
     props.mode === 'edit'
@@ -113,9 +115,7 @@ export function EventForm(props: Props) {
                 ))}
               </select>
               {state?.errors?.organization && (
-                <p className="text-sm text-destructive mt-1">
-                  {state.errors.organization[0]}
-                </p>
+                <p className="text-sm text-destructive mt-1">{state.errors.organization[0]}</p>
               )}
             </Field>
           </FieldGroup>
@@ -129,79 +129,53 @@ export function EventForm(props: Props) {
 
       {/* Basic info */}
       <FieldSet>
-        <FieldLegend>Basic info</FieldLegend>
         <FieldGroup>
-          <Field data-invalid={!!state?.errors?.name}>
-            <FieldLabel htmlFor="name">Event name *</FieldLabel>
-            <Input
-              id="name"
-              name="name"
-              defaultValue={defaultValues.name}
-              required
-              className="bg-background"
-              placeholder="My Event"
-              aria-invalid={!!state?.errors?.name}
-            />
-            {state?.errors?.name && (
-              <p className="text-sm text-destructive mt-1">{state.errors.name[0]}</p>
-            )}
-          </Field>
-
-          <Field data-invalid={!!state?.errors?.eventType}>
-            <FieldLabel htmlFor="eventType">Event type</FieldLabel>
-            <select
-              id="eventType"
-              name="eventType"
-              defaultValue={defaultValues.eventType}
-              onChange={(e) => setEventType(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              aria-invalid={!!state?.errors?.eventType}
-            >
-              <option value="online">Online</option>
-              <option value="physical">Physical</option>
-            </select>
-            {state?.errors?.eventType && (
-              <p className="text-sm text-destructive mt-1">{state.errors.eventType[0]}</p>
-            )}
-          </Field>
-
-          {eventType === 'physical' && (
-            <Field data-invalid={!!state?.errors?.address}>
-              <FieldLabel htmlFor="address">Address</FieldLabel>
-              <Input
-                id="address"
-                name="address"
-                defaultValue={defaultValues.address ?? ''}
-                className="bg-background"
-                placeholder="123 Main St, City"
-                aria-invalid={!!state?.errors?.address}
-              />
-              {state?.errors?.address && (
-                <p className="text-sm text-destructive mt-1">{state.errors.address[0]}</p>
-              )}
-            </Field>
-          )}
-
-          <Field data-invalid={!!state?.errors?.theme}>
-            <FieldLabel htmlFor="theme">Theme / tagline</FieldLabel>
-            <Input
-              id="theme"
-              name="theme"
-              defaultValue={defaultValues.theme ?? ''}
-              className="bg-background"
-              placeholder="Inspiring the future of tech"
-              aria-invalid={!!state?.errors?.theme}
-            />
-            {state?.errors?.theme && (
-              <p className="text-sm text-destructive mt-1">{state.errors.theme[0]}</p>
-            )}
-          </Field>
-
           <Field>
-            <FieldLabel>Event image</FieldLabel>
+            {/* Show existing image in edit mode */}
+            {existingImageUrl && keepExistingImage && imageFiles.length === 0 && (
+              <div className="mb-4">
+                <div className="relative flex items-center gap-2.5 rounded-md border p-3 bg-background">
+                  <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded border bg-accent/50">
+                    <img src={existingImageUrl} alt="Current event image" className="size-full object-cover" />
+                  </div>
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate font-medium text-sm">Current event image</span>
+                    <span className="truncate text-muted-foreground text-xs">
+                      Upload a new image to replace
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setKeepExistingImage(false)}
+                    className="ml-auto hover:text-destructive transition-colors"
+                    aria-label="Remove current image"
+                  >
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+
             <FileUpload
               value={imageFiles}
-              onValueChange={setImageFiles}
+              onValueChange={(files) => {
+                setImageFiles(files)
+                if (files.length > 0) {
+                  setKeepExistingImage(false)
+                }
+              }}
               accept="image/png, image/jpeg, image/jpg, image/webp"
               maxFiles={1}
               maxSize={5 * 1024 * 1024}
@@ -256,13 +230,23 @@ export function EventForm(props: Props) {
               </FileUploadList>
             </FileUpload>
           </Field>
-        </FieldGroup>
-      </FieldSet>
 
-      {/* Dates */}
-      <FieldSet>
-        <FieldLegend>Dates</FieldLegend>
-        <FieldGroup>
+          <Field data-invalid={!!state?.errors?.name}>
+            <FieldLabel htmlFor="name">Event name *</FieldLabel>
+            <Input
+              id="name"
+              name="name"
+              defaultValue={defaultValues.name}
+              required
+              className="bg-background"
+              placeholder="My Event"
+              aria-invalid={!!state?.errors?.name}
+            />
+            {state?.errors?.name && (
+              <p className="text-sm text-destructive mt-1">{state.errors.name[0]}</p>
+            )}
+          </Field>
+
           <div className="grid grid-cols-2 gap-4">
             <Field data-invalid={!!state?.errors?.startDate}>
               <FieldLabel htmlFor="startDate">Start date *</FieldLabel>
@@ -296,18 +280,53 @@ export function EventForm(props: Props) {
             </Field>
           </div>
 
-          <Field data-invalid={!!state?.errors?.timezone}>
-            <FieldLabel htmlFor="timezone">Timezone</FieldLabel>
+          <Field data-invalid={!!state?.errors?.eventType}>
+            <FieldLabel htmlFor="eventType">Event type</FieldLabel>
+            <select
+              id="eventType"
+              name="eventType"
+              defaultValue={defaultValues.eventType}
+              onChange={(e) => setEventType(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-invalid={!!state?.errors?.eventType}
+            >
+              <option value="online">Online</option>
+              <option value="physical">Physical</option>
+            </select>
+            {state?.errors?.eventType && (
+              <p className="text-sm text-destructive mt-1">{state.errors.eventType[0]}</p>
+            )}
+          </Field>
+
+          {eventType === 'physical' && (
+            <Field data-invalid={!!state?.errors?.address}>
+              <FieldLabel htmlFor="address">Address</FieldLabel>
+              <Input
+                id="address"
+                name="address"
+                defaultValue={defaultValues.address ?? ''}
+                className="bg-background"
+                placeholder="123 Main St, City"
+                aria-invalid={!!state?.errors?.address}
+              />
+              {state?.errors?.address && (
+                <p className="text-sm text-destructive mt-1">{state.errors.address[0]}</p>
+              )}
+            </Field>
+          )}
+
+          <Field data-invalid={!!state?.errors?.theme}>
+            <FieldLabel htmlFor="theme">Theme / tagline</FieldLabel>
             <Input
-              id="timezone"
-              name="timezone"
-              defaultValue={defaultValues.timezone ?? ''}
+              id="theme"
+              name="theme"
+              defaultValue={defaultValues.theme ?? ''}
               className="bg-background"
-              placeholder="Europe/Berlin"
-              aria-invalid={!!state?.errors?.timezone}
+              placeholder="Inspiring the future of tech"
+              aria-invalid={!!state?.errors?.theme}
             />
-            {state?.errors?.timezone && (
-              <p className="text-sm text-destructive mt-1">{state.errors.timezone[0]}</p>
+            {state?.errors?.theme && (
+              <p className="text-sm text-destructive mt-1">{state.errors.theme[0]}</p>
             )}
           </Field>
         </FieldGroup>

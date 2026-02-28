@@ -20,14 +20,20 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
       id: Number(id),
       overrideAccess: false,
       user,
-      depth: 0,
+      depth: 1, // Fetch image data
     })
     .catch(() => null)
 
   if (!event) notFound()
 
-  // Resolve organization to a number (depth: 0 returns IDs, but type is number | Organization)
+  // Resolve organization to a number (depth: 1 returns objects for relationships)
   const orgId = typeof event.organization === 'object' ? event.organization.id : event.organization
+
+  // Extract image URL if it exists
+  const imageUrl =
+    event.image && typeof event.image === 'object' && 'url' in event.image
+      ? (event.image.url as string)
+      : null
 
   const defaultValues: EventFormValues = {
     organization: orgId,
@@ -53,7 +59,12 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
         <p className="text-sm text-muted-foreground mt-1">{event.name}</p>
       </div>
       {/* organizations not passed on edit — org is locked to the event's existing value */}
-      <EventForm mode="edit" eventId={String(event.id)} defaultValues={defaultValues} />
+      <EventForm
+        mode="edit"
+        eventId={String(event.id)}
+        defaultValues={defaultValues}
+        existingImageUrl={imageUrl}
+      />
     </div>
   )
 }
