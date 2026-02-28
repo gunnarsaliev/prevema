@@ -6,6 +6,7 @@ import {
   organizationAwareDelete,
 } from '../../access/organizationAwareAccess'
 import { generatePublicFormLink } from './hooks/generatePublicFormLink'
+import { generatePublicFormLinkAfterCreate } from './hooks/generatePublicFormLinkAfterCreate'
 import { syncOptionalFields } from './hooks/syncOptionalFields'
 import { validatePartnerFields } from './hooks/validateFields'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
@@ -76,6 +77,16 @@ export const PartnerTypes: CollectionConfig = {
       relationTo: 'events',
       required: false,
       defaultValue: defaultEventValue,
+      filterOptions: ({ data }) => {
+        if (data?.organization) {
+          return {
+            organization: {
+              equals: data.organization,
+            },
+          }
+        }
+        return {}
+      },
       admin: {
         description:
           'Optional: Link this partner type to a specific event. If set, the public form will be for this event only.',
@@ -156,6 +167,7 @@ export const PartnerTypes: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [autoSelectOrganization, validatePartnerFields, syncOptionalFields],
-    afterChange: [generatePublicFormLink],
+    beforeChange: [generatePublicFormLink],
+    afterChange: [generatePublicFormLinkAfterCreate],
   },
 }

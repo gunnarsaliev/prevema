@@ -53,6 +53,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Check Content-Type to determine if this is a JSON create request or form data query
+    const contentType = req.headers.get('content-type') || ''
+
+    // If not JSON, this might be a Payload relationship query - parse query params instead
+    if (!contentType.includes('application/json')) {
+      const { searchParams } = new URL(req.url)
+      const depth = searchParams.get('depth') || '0'
+      const draft = searchParams.get('draft') || 'false'
+
+      // Parse where conditions if present
+      const whereParam = searchParams.get('where')
+      let where = {}
+      if (whereParam) {
+        try {
+          where = JSON.parse(whereParam)
+        } catch (e) {
+          // If parsing fails, construct from individual params
+          const organization = searchParams.get('where[organization][equals]')
+          if (organization) {
+            where = { organization: { equals: organization } }
+          }
+        }
+      }
+
+      const events = await payload.find({
+        collection: 'events',
+        where,
+        overrideAccess: false,
+        user,
+        depth: parseInt(depth),
+        limit: 100,
+        sort: '-createdAt',
+      })
+
+      return NextResponse.json(events)
+    }
+
     const body = await req.json()
 
     const event = await payload.create({
