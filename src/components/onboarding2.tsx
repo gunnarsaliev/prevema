@@ -56,8 +56,8 @@ interface StepDef {
 const Background = () => {
   return (
     <div className="flex h-[100dvh] w-full items-start">
-      <div className="h-full w-64 shrink-0 border-r">
-        <div className="flex h-14 w-full items-center border-b p-4">
+      <div className="h-full w-64 shrink-0 border-r border-border">
+        <div className="flex h-14 w-full items-center border-b border-border p-4">
           <img
             src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblocks-logo-word.png"
             className="w-40 dark:invert"
@@ -75,7 +75,7 @@ const Background = () => {
           })}
         </ul>
       </div>
-      <div className="flex h-14 w-full items-center border-b p-4">
+      <div className="flex h-14 w-full items-center border-b border-border p-4">
         <span className="block h-8 w-full max-w-50 rounded-md bg-muted" />
       </div>
     </div>
@@ -96,7 +96,7 @@ const StepIndicator = ({ totalSteps, currentStep }: StepIndicatorProps) => {
             key={`step-indicator-${i}`}
             className={cn(
               "block size-2 rounded-full transition-colors",
-              currentStep >= i ? "bg-primary" : "border bg-muted",
+              currentStep >= i ? "bg-primary" : "border border-border bg-muted",
             )}
           />
         );
@@ -159,7 +159,7 @@ const StepDescriptionCard = ({
 }: StepDescriptionCardProps) => {
   return (
     <div className="space-y-2 md:space-y-4">
-      <h3 className="text-xl font-semibold md:text-4xl">{title}</h3>
+      <h3 className="text-xl font-semibold text-foreground md:text-4xl">{title}</h3>
       <div className="text-sm leading-tight text-muted-foreground md:text-base">
         {typeof description === "string" ? (
           <p>{description}</p>
@@ -168,8 +168,8 @@ const StepDescriptionCard = ({
             {description?.map((item, i) => {
               return (
                 <li key={`step-${i}`} className="flex items-center gap-2">
-                  <item.icon className="size-4 shrink-0" />
-                  <p>{item.title}</p>
+                  <item.icon className="size-4 shrink-0 text-foreground" />
+                  <p className="text-foreground">{item.title}</p>
                 </li>
               );
             })}
@@ -293,7 +293,7 @@ const StepTwoComponent = () => {
             <div
               role="button"
               className={cn(
-                "flex w-full cursor-pointer items-center gap-2 rounded-full md:px-6 md:py-4",
+                "flex w-full cursor-pointer items-center gap-2 rounded-full text-foreground md:px-6 md:py-4",
                 selectedGoals.includes(goal.value)
                   ? "md:bg-muted"
                   : "md:bg-muted/50",
@@ -334,7 +334,7 @@ const StepThreeComponent = ({
         onClick={() => handleConnectButtonClick("gmail")}
         disabled={!!isConnected}
       >
-        <img src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/google-icon.svg" className="size-4" alt="Google" />
+        <img src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/google-icon.svg" className="size-4 dark:brightness-110" alt="Google" />
         {isConnected === "gmail" ? "Connected" : "Continue with Google"}
       </Button>
       <Button
@@ -342,7 +342,7 @@ const StepThreeComponent = ({
         onClick={() => handleConnectButtonClick("facebook")}
         disabled={!!isConnected}
       >
-        <img src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/facebook-icon.svg" className="size-4" alt="Facebook" />
+        <img src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/facebook-icon.svg" className="size-4 dark:brightness-110" alt="Facebook" />
         {isConnected === "facebook" ? "Connected" : "Continue with Facebook"}
       </Button>
       <Button
@@ -361,22 +361,22 @@ const StepFourComponent = () => {
     <div className="flex h-full flex-col items-center justify-between md:min-h-[40.5dvh]">
       <img
         src="https://deifkwefumgah.cloudfront.net/shadcnblocks/block/dashboard-placeholder.png"
-        className="w-full"
+        className="w-full dark:opacity-80 dark:brightness-90"
         style={{
           maskImage: "linear-gradient(to bottom, black 0%, transparent 100%)",
         }}
         alt="Dashboard placeholder"
       />
-      <div className="flex w-full items-center justify-between">
+      <div className="flex w-full items-center justify-between text-foreground">
         <div className="flex items-center gap-2">
-          <Leaf className="size-4 fill-primary stroke-green-200" />
-          <p>50k+ active users</p>
+          <Leaf className="size-4 fill-primary stroke-green-500 dark:stroke-green-400" />
+          <p className="text-sm font-medium">50k+ active users</p>
         </div>
         <div className="flex items-center gap-2">
-          <p>Rated 4.9/5</p>
+          <p className="text-sm font-medium">Rated 4.9/5</p>
           <div className="flex items-center gap-1">
             {Array.from({ length: 5 }).map((_, i) => {
-              return <Star key={i} className="size-4 fill-primary" />;
+              return <Star key={i} className="size-4 fill-primary stroke-primary" />;
             })}
           </div>
         </div>
@@ -445,9 +445,9 @@ const StepFiveComponent = () => {
     <ul className="space-y-4 md:space-y-6">
       {premiumFeatures.map((feature) => (
         <li key={feature.title} className="flex items-start gap-2">
-          <feature.icon className="mt-0.5 size-5 shrink-0" />
+          <feature.icon className="mt-0.5 size-5 shrink-0 text-foreground" />
           <div className="space-y-0.5">
-            <p className="text-sm leading-tight font-medium md:text-base">
+            <p className="text-sm leading-tight font-medium text-foreground md:text-base">
               {feature.title}
             </p>
             <p className="text-xs text-muted-foreground md:text-sm">
@@ -478,14 +478,14 @@ const Onboarding2 = ({
     {
       title: "Tell us about yourself",
       description: "A few quick questions to personalize your experience.",
-      className: "bg-orange-200",
+      className: "bg-orange-100 dark:bg-orange-950/40",
       component: StepOneComponent,
     },
     {
       title: "What would you like to achieve?",
       description:
         "Select all that apply. This helps us tailor your dashboard and recommendations.",
-      className: "bg-blue-200",
+      className: "bg-blue-100 dark:bg-blue-950/40",
       component: StepTwoComponent,
     },
     {
@@ -505,7 +505,7 @@ const Onboarding2 = ({
           title: "Enterprise-grade encryption",
         },
       ],
-      className: "bg-pink-200",
+      className: "bg-pink-100 dark:bg-pink-950/40",
       isBlocking: true,
       component: StepThreeComponent,
     },
@@ -513,7 +513,7 @@ const Onboarding2 = ({
       title: "Supercharge your browsing",
       description:
         "Our extension lets you save contacts and take notes from any webpage with one click.",
-      className: "bg-green-200",
+      className: "bg-green-100 dark:bg-green-950/40",
       component: StepFourComponent,
       secondaryCta: StepFourSecondaryCta,
       cta: StepFourCta,
@@ -522,7 +522,7 @@ const Onboarding2 = ({
       title: "Unlock the full experience",
       description:
         "Start your 14-day trial and explore every feature. No credit card required.",
-      className: "bg-purple-200",
+      className: "bg-purple-100 dark:bg-purple-950/40",
       component: StepFiveComponent,
       cta: StepFiveCta,
     },
