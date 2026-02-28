@@ -57,7 +57,12 @@ export function RegisterForm() {
 
       if (result.success) {
         await refreshUser()
-        router.push('/dash')
+        // Redirect to onboarding if not from invitation, otherwise go to dashboard
+        if (invitationToken) {
+          router.push('/dash')
+        } else {
+          router.push('/onboarding')
+        }
         router.refresh()
       } else {
         setError(result.error || 'Registration failed')

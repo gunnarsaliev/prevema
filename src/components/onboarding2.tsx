@@ -183,6 +183,7 @@ const StepDescriptionCard = ({
 interface StepComponentProps {
   stepIndex: number;
   onValidationChange: (stepIndex: number, isValid: boolean) => void;
+  onNext?: () => void;
 }
 
 interface StepCtaProps {
@@ -632,6 +633,7 @@ const Onboarding2 = ({
               <step.component
                 stepIndex={currentStep}
                 onValidationChange={handleStepValidChange}
+                onNext={handleNext}
               />
             </div>
           </div>

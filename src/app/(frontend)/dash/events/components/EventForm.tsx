@@ -38,7 +38,12 @@ type OrgOption = { id: number; name: string }
 
 type Props =
   | { mode: 'create'; organizations: OrgOption[] }
-  | { mode: 'edit'; eventId: string; defaultValues: EventFormValues; existingImageUrl?: string | null }
+  | {
+      mode: 'edit'
+      eventId: string
+      defaultValues: EventFormValues
+      existingImageUrl?: string | null
+    }
 
 export function EventForm(props: Props) {
   const router = useRouter()
@@ -58,6 +63,7 @@ export function EventForm(props: Props) {
           // Auto-select the only org; if multiple, the user will pick via the selector below
           organization: organizations.length === 1 ? organizations[0].id : undefined,
           name: '',
+          status: 'planning',
           eventType: 'online',
           startDate: '',
         }
@@ -91,6 +97,8 @@ export function EventForm(props: Props) {
           {state.message}
         </p>
       )}
+
+      <input type="hidden" name="status" value={defaultValues.status ?? 'planning'} />
 
       {/* Organization selector — only shown when the user belongs to 2+ organizations */}
       {props.mode === 'create' && organizations.length >= 2 && (
@@ -136,7 +144,11 @@ export function EventForm(props: Props) {
               <div className="mb-4">
                 <div className="relative flex items-center gap-2.5 rounded-md border p-3 bg-background">
                   <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded border bg-accent/50">
-                    <img src={existingImageUrl} alt="Current event image" className="size-full object-cover" />
+                    <img
+                      src={existingImageUrl}
+                      alt="Current event image"
+                      className="size-full object-cover"
+                    />
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate font-medium text-sm">Current event image</span>
@@ -150,12 +162,7 @@ export function EventForm(props: Props) {
                     className="ml-auto hover:text-destructive transition-colors"
                     aria-label="Remove current image"
                   >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"

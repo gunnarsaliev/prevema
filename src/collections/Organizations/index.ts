@@ -73,12 +73,35 @@ export const Organizations: CollectionConfig = {
       // Organization owners can update their own organizations
       if (!user) return false
 
+      // Get organization IDs from members collection
       const ownedOrganizationIds = await getUserOrganizationIds(payload, user, 'owner')
 
-      if (ownedOrganizationIds.length > 0) {
+      // Also get organizations where user is the direct owner
+      // This ensures users can update their org even if member records don't exist yet
+      let directlyOwnedOrganizations: (number | string)[] = []
+      try {
+        const orgs = await payload.find({
+          collection: 'organizations',
+          where: {
+            owner: {
+              equals: user.id,
+            },
+          },
+          depth: 0,
+          limit: 1000,
+        })
+        directlyOwnedOrganizations = orgs.docs.map((org) => org.id)
+      } catch (error) {
+        console.error('Error fetching directly owned organizations:', error)
+      }
+
+      // Combine organization IDs from both sources
+      const allOwnedOrganizationIds = [...new Set([...ownedOrganizationIds, ...directlyOwnedOrganizations])]
+
+      if (allOwnedOrganizationIds.length > 0) {
         return {
           id: {
-            in: ownedOrganizationIds,
+            in: allOwnedOrganizationIds,
           },
         }
       }
