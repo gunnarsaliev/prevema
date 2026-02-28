@@ -126,7 +126,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   }))
 
   return (
-    <div className="px-6 py-8 max-w-5xl mx-auto space-y-6">
+    <div className="px-6 py-8 space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{event.name}</h1>
@@ -144,7 +144,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
       <Separator />
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="justify-between flex">
         <Field label="Event type" value={event.eventType} />
         <Field label="Timezone" value={event.timezone} />
         <Field
