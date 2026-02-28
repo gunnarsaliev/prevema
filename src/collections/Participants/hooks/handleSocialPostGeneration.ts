@@ -62,10 +62,10 @@ export const handleSocialPostGeneration: CollectionAfterChangeHook<Participant> 
       eventTheme,
     })
 
-    // Update the participant with all generated social posts
-    await req.payload.update({
+    // Update the participant with all generated social posts using direct database access
+    await req.payload.db.updateOne({
       collection: 'participants',
-      id: doc.id,
+      where: { id: { equals: doc.id } },
       data: {
         socialPostLinkedIn: posts.linkedin,
         socialPostTwitter: posts.twitter,
@@ -73,8 +73,7 @@ export const handleSocialPostGeneration: CollectionAfterChangeHook<Participant> 
         socialPostInstagram: posts.instagram,
         socialPostGeneratedAt: new Date().toISOString(),
       },
-      context: { skipSocialPostGeneration: true }, // Prevent infinite loop
-      req, // Maintain transaction safety
+      req,
     })
 
     console.log(`✅ Generated social posts for all platforms for participant: ${doc.name}`)

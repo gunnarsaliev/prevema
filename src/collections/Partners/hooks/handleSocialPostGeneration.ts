@@ -8,9 +8,15 @@ import { generateAllPlatformPosts } from '@/services/socialPostGeneration'
 export const handleSocialPostGeneration: CollectionAfterChangeHook<Partner> = async ({
   doc,
   operation,
-  req: { payload },
+  req,
+  context,
 }) => {
   try {
+    // Skip if we're already updating to prevent infinite loops
+    if (context.skipSocialPostGeneration) {
+      return doc
+    }
+
     // Only generate on creation
     // Skip if social posts already exist (to avoid overwriting manual edits)
     if (operation !== 'create' || doc.socialPostLinkedIn) {
@@ -20,12 +26,8 @@ export const handleSocialPostGeneration: CollectionAfterChangeHook<Partner> = as
 
     console.log(`🎨 Generating social posts for partner: ${doc.companyName}`)
 
-    // Fetch the full partner with populated relationships
-    const fullDoc = await payload.findByID({
-      collection: 'partners',
-      id: doc.id,
-      depth: 2,
-    })
+    // Use the doc parameter directly instead of re-fetching to avoid NotFound errors
+    const fullDoc = doc
 
     // Get event details
     let eventName = ''
@@ -58,10 +60,10 @@ export const handleSocialPostGeneration: CollectionAfterChangeHook<Partner> = as
       eventTheme,
     })
 
-    // Update the partner with all generated social posts
-    await payload.update({
+    // Update the partner with all generated social posts using direct database access
+    await req.payload.db.updateOne({
       collection: 'partners',
-      id: doc.id,
+      where: { id: { equals: doc.id } },
       data: {
         socialPostLinkedIn: posts.linkedin,
         socialPostTwitter: posts.twitter,
@@ -69,6 +71,7 @@ export const handleSocialPostGeneration: CollectionAfterChangeHook<Partner> = as
         socialPostInstagram: posts.instagram,
         socialPostGeneratedAt: new Date().toISOString(),
       },
+      req,
     })
 
     console.log(`✅ Generated social posts for all platforms for partner: ${doc.companyName}`)
