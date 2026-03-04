@@ -62,7 +62,7 @@ export function AppSidebar({
     return baseUrl
   }
   return (
-    <Sidebar collapsible="offcanvas" variant="inset" className={cn(className)} {...props}>
+    <Sidebar collapsible="offcanvas" className={cn(className)} {...props}>
       <SidebarHeader className={cn('flex h-14 flex-row items-center justify-between')}>
         <SidebarMenu>
           <SidebarMenuItem>

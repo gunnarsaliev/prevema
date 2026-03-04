@@ -90,13 +90,13 @@ export function NavUser({ user }: NavUserProps) {
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
+            {/* <DropdownMenuSeparator /> */}
+            {/* <DropdownMenuItem asChild>
               <Link href="/dash/profile">
                 <User className="mr-2 size-4" />
                 Profile
               </Link>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/dash/settings">
@@ -169,13 +169,13 @@ export function MobileNavUser({ user, className }: MobileNavUserProps) {
             </div>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
+        {/* <DropdownMenuSeparator /> */}
+        {/* <DropdownMenuItem asChild>
           <Link href="/dash/profile">
             <User className="mr-2 size-4" />
             Profile
           </Link>
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/dash/settings">
