@@ -278,7 +278,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: participantType.description || `Register as a ${participantType.name}`,
     openGraph: mergeOpenGraph({
       title: `Register as ${participantType.name}`,
-      url: `/register/${participantTypeId}`,
+      url: `/participant-register/${participantTypeId}`,
     }),
   }
 }

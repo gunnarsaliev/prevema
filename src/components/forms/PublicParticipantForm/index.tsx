@@ -1,6 +1,6 @@
 'use client'
 
-import { registerParticipant } from '@/app/(frontend)/register/actions'
+import { registerParticipant } from '@/app/(frontend)/participant-register/actions'
 import { FormError } from '@/components/forms/FormError'
 import { FormItem } from '@/components/forms/FormItem'
 import { ImageUploadPreview } from '@/components/forms/ImageUploadPreview'

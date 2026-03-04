@@ -40,12 +40,12 @@ export function LoginForm() {
   }
 
   return (
-    <section className={cn('h-screen bg-muted')}>
+    <section className={cn('h-screen')}>
       <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-6 lg:justify-start">
           {/* Logo */}
           <form onSubmit={handleSubmit}>
-            <div className="flex w-full max-w-sm min-w-sm flex-col items-center gap-y-4 rounded-md border border-muted bg-background px-6 py-8 shadow-md">
+            <div className="flex w-full bg-muted/50 max-w-sm min-w-sm flex-col items-center gap-y-4 rounded-md border border-muted bg-background px-6 py-8 shadow-md">
               <h1 className="text-xl font-semibold">Login to Prevema</h1>
 
               {error && (
@@ -91,7 +91,7 @@ export function LoginForm() {
           <div className="flex justify-center gap-1 text-sm text-muted-foreground">
             <p>Need an account?</p>
             <a href="/register" className="font-medium text-primary hover:underline">
-              Sign up
+              Register
             </a>
           </div>
         </div>

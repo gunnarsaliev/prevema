@@ -10,7 +10,7 @@ export const generatePublicFormLink: CollectionBeforeChangeHook = async ({
   // For creates, we'll use an afterChange hook to update once ID is available
   if (operation === 'update' && !data.publicFormLink && originalDoc?.id) {
     const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
-    data.publicFormLink = `${baseUrl}/register/${originalDoc.id}`
+    data.publicFormLink = `${baseUrl}/participant-register/${originalDoc.id}`
   }
 
   return data
