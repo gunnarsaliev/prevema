@@ -26,27 +26,27 @@ const Cta7 = () => {
           </div>
           <div className="relative mb-12 2xl:mb-0">
             <h3 className="mb-6 text-2xl font-semibold md:mb-8 md:text-4xl lg:mb-12">
-              Scale your communication without scaling your team
+              Your AI Powered Event Communication
             </h3>
             <p className="text-muted-foreground mb-6 text-xs uppercase tracking-widest">
-              Orchestrate Flawless Events with Ease
+              Scale your communication without scaling your team
             </p>
             <ul className="text-muted-foreground grid gap-x-8 gap-y-4 md:grid-cols-2">
               <li className="flex items-center gap-2">
                 <Check className="text-foreground size-5" />
-                AI-Powered Email Templates
+                AI-Powered Content Templates
               </li>
               <li className="flex items-center gap-2">
                 <Check className="text-foreground size-5" />
-                Smart Automations
+                Professional Design Tool
               </li>
               <li className="flex items-center gap-2">
                 <Check className="text-foreground size-5" />
-                Custom Forms & Database
+                Automated Communication
               </li>
               <li className="flex items-center gap-2">
                 <Check className="text-foreground size-5" />
-                Professional Design Tools
+                Smart Communication Calendar
               </li>
             </ul>
           </div>

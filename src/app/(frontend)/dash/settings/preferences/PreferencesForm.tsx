@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Monitor, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
@@ -15,7 +16,13 @@ import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
 export function PreferencesForm() {
+  const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
+
+  // useEffect only runs on the client, so now we can safely show the UI
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <div>
@@ -27,30 +34,48 @@ export function PreferencesForm() {
           {/* Theme switcher */}
           <div className="space-y-2">
             <Label>Appearance</Label>
-            <div className="grid grid-cols-3 gap-3">
-              {(
-                [
-                  { value: 'light', label: 'Light', Icon: Sun },
-                  { value: 'dark', label: 'Dark', Icon: Moon },
-                  { value: 'system', label: 'System', Icon: Monitor },
-                ] as const
-              ).map(({ value, label, Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setTheme(value)}
-                  className={cn(
-                    'flex flex-col items-center gap-2 rounded-lg border px-4 py-3 text-sm transition-colors',
-                    theme === value
-                      ? 'border-primary bg-primary/5 text-primary'
-                      : 'border-border text-muted-foreground hover:border-primary/50 hover:bg-muted',
-                  )}
-                >
-                  <Icon className="size-5" />
-                  {label}
-                </button>
-              ))}
-            </div>
+            {mounted ? (
+              <div className="grid grid-cols-3 gap-3">
+                {(
+                  [
+                    { value: 'light', label: 'Light', Icon: Sun },
+                    { value: 'dark', label: 'Dark', Icon: Moon },
+                    { value: 'system', label: 'System', Icon: Monitor },
+                  ] as const
+                ).map(({ value, label, Icon }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setTheme(value)}
+                    className={cn(
+                      'flex flex-col items-center gap-2 rounded-lg border px-4 py-3 text-sm transition-colors',
+                      theme === value
+                        ? 'border-primary bg-primary/5 text-primary'
+                        : 'border-border text-muted-foreground hover:border-primary/50 hover:bg-muted',
+                    )}
+                  >
+                    <Icon className="size-5" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Light', Icon: Sun },
+                  { label: 'Dark', Icon: Moon },
+                  { label: 'System', Icon: Monitor },
+                ].map(({ label, Icon }) => (
+                  <div
+                    key={label}
+                    className="flex flex-col items-center gap-2 rounded-lg border border-border px-4 py-3 text-sm text-muted-foreground"
+                  >
+                    <Icon className="size-5" />
+                    {label}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <Separator />

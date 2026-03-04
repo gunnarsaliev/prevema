@@ -24,10 +24,10 @@ const NAV_LOGO = {
 }
 const NAV_ITEMS = [
   { name: 'Home', link: '/' },
-  { name: 'About', link: '/about' },
-  { name: 'Pricing', link: '/pricing' },
+  // { name: 'About', link: '/about' },
+  // { name: 'Pricing', link: '/pricing' },
   // { name: 'Image Generator', link: '/image-generator' },
-  { name: 'Contact', link: '/contact' },
+  { name: 'Contact us', link: '/contact' },
 ]
 
 const Navbar17 = () => {

@@ -69,13 +69,13 @@ const Footer16 = () => {
             <a href="/" className="flex flex-col gap-2">
               <img src="/logo.png" alt="Prevema" className="h-8 w-8 bg-" />
               <p className="text-muted-foreground text-sm">
-                Scale your communication without scaling your team
+                Your AI Powered Event Communication Assistant
               </p>
             </a>
             <div className="flex items-center justify-start gap-4 md:flex-row">
               {SOCIAL_LINKS.map((item, i) => (
                 <Button key={`social-link-${i}`} size="icon" variant="secondary">
-                  <a href={item.href}>
+                  <a href={item.href} target="_blank" rel="noopener noreferrer">
                     <item.icon className="size-4 lg:size-5" />
                   </a>
                 </Button>

@@ -24,9 +24,8 @@ const Feature102 = () => {
               <div className="flex flex-col justify-center gap-5 px-0 min-[960px]:gap-6 min-[960px]:px-4 min-[960px]:py-4">
                 <h3 className="text-xl min-[960px]:text-2xl">Create Your Event</h3>
                 <p className="text-muted-foreground text-sm min-[960px]:text-base">
-                  Set up the basics, including date, location, and objectives. Build your team and
-                  define attendee types like participants, partners, speakers, sponsors, and
-                  moderators.
+                  Set up the basics, including date, location, and objectives. Fill out as much
+                  information possible and be as detailed as possible.
                 </p>
               </div>
             </div>
@@ -46,14 +45,12 @@ const Feature102 = () => {
                 <span className="bg-primary h-20 w-[3px] shrink-0 opacity-70"></span>
               </div>
               <div className="flex flex-col justify-center gap-5 px-0 min-[960px]:gap-6 min-[960px]:px-4 min-[960px]:py-4">
-                <h3 className="text-xl min-[960px]:text-2xl">
-                  Manage Participants and Communications
-                </h3>
+                <h3 className="text-xl min-[960px]:text-2xl">Collect the Important Information</h3>
 
                 <p className="text-muted-foreground text-sm min-[960px]:text-base">
-                  Collect data with custom forms, handle correspondence, and curate content—all in
-                  one place. Send personalized emails, follow up with updates, and dispatch bulk
-                  campaigns to keep everyone engaged.
+                  Gather information from partners, sponsors, speakers, brand ambassadors, media and
+                  all other personas involved in your event. You can collect pictures, text, files
+                  and more.
                 </p>
               </div>
             </div>
@@ -77,7 +74,7 @@ const Feature102 = () => {
                 <span className="h-20 shrink-0"></span>
               </div>
               <div className="flex flex-col justify-center gap-5 px-0 min-[960px]:gap-6 min-[960px]:px-4 min-[960px]:py-4">
-                <h3 className="text-xl min-[960px]:text-2xl">Launch and Execute</h3>
+                <h3 className="text-xl min-[960px]:text-2xl">Personalize the data</h3>
 
                 <p className="text-muted-foreground text-sm min-[960px]:text-base">
                   Go live with confidence, knowing everything is automated, organized, and ready to
@@ -89,6 +86,30 @@ const Feature102 = () => {
             <div className="flex w-full justify-center px-8 min-[960px]:w-auto">
               <div className="bg-accent border-border flex aspect-square max-w-xs items-center justify-center rounded-xl border">
                 <Icon icon="solar:rocket-2-bold-duotone" className="text-primary size-32" />
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-between min-[960px]:flex-row min-[960px]:gap-10">
+            <div className="flex gap-4 min-[960px]:max-w-md">
+              <div className="flex flex-col items-center justify-between gap-1">
+                <span className="bg-gradient-to-t from-transparent to-primary h-20 w-[3px] shrink-0 opacity-70"></span>
+                <span className="bg-muted/50 flex size-10 shrink-0 items-center justify-center rounded-full border font-mono text-lg">
+                  4
+                </span>
+                <span className="h-20 shrink-0"></span>
+              </div>
+              <div className="flex flex-col justify-center gap-5 px-0 min-[960px]:gap-6 min-[960px]:px-4 min-[960px]:py-4">
+                <h3 className="text-xl min-[960px]:text-2xl">Let Prevema Do it's Magic</h3>
+
+                <p className="text-muted-foreground text-sm min-[960px]:text-base">
+                  Prevema will create stunning images and easy to read but powerful content. It will
+                  automatically send all the materials to your partners.
+                </p>
+              </div>
+            </div>
+            <div className="flex w-full justify-center px-8 min-[960px]:w-auto">
+              <div className="bg-accent border-border flex aspect-square max-w-xs items-center justify-center rounded-xl border">
+                <Icon icon="si:ai-fill" className="text-primary size-32" />
               </div>
             </div>
           </div>
