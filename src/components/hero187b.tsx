@@ -10,18 +10,18 @@ import type { CarouselApi } from '@/components/ui/carousel'
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel'
 
 const SLIDES = [
-  {
-    image: 'https://asset.cooksa.com/calendar.gif',
-    label: 'Event Dashboard',
-  },
+  // {
+  //   image: 'https://asset.cooksa.com/calendar.gif',
+  //   label: 'Event Dashboard',
+  // },
   {
     image: 'https://asset.cooksa.com/organize.gif',
     label: 'Participant Management',
   },
-  {
-    image: 'https://asset.cooksa.com/click.gif',
-    label: 'Email Campaigns',
-  },
+  // {
+  //   image: 'https://asset.cooksa.com/click.gif',
+  //   label: 'Email Campaigns',
+  // },
 ]
 
 const Hero187b = () => {
@@ -81,14 +81,16 @@ const Hero187b = () => {
           <div className="order-1 space-y-8 lg:order-2 lg:space-y-10">
             <div>
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-                Your All-in-One Event Planning Powerhouse
+                Your AI Powered Event Communication Assistant
               </h1>
 
               <p className="text-muted-foreground mt-6 text-xl font-medium leading-relaxed">
-                Prevema is the ultimate all-in-one event planning software designed to help you
-                orchestrate flawless events with ease. Whether you're organizing conferences,
-                webinars, workshops, or corporate gatherings, Prevema streamlines every step—from
-                team setup to seamless execution.
+                Prevema turns your event communication into a growth engine. Fully personalized,
+                AI-powered outreach tool that creates ready to use content for your sponsors,
+                speakers, partners and more.
+              </p>
+              <p className="text-muted-foreground text-sm italic mt-2">
+                Scale your communication without scaling your team
               </p>
             </div>
 
@@ -100,24 +102,23 @@ const Hero187b = () => {
                 style={{ backgroundColor: '#cebe06', color: '#000' }}
                 className="hover:opacity-90"
               >
-                <a href="/login">Get started</a>
+                <a href="/register">Get started</a>
               </Button>
-              <a href="/docs">
+              {/* <a href="/docs">
                 <Button aria-label="Documentation" variant="outline" size="lg">
                   <span className="flex items-center gap-2">
                     Documentation
                     <ArrowRight className="size-4" />
                   </span>
                 </Button>
-              </a>
+              </a> */}
             </div>
-
-            <SlideIndicator
+            {/* <SlideIndicator
               currentSlide={currentSlide}
               slides={SLIDES}
               className="max-lg:hidden"
               api={api}
-            />
+            /> */}
           </div>
         </div>
       </div>

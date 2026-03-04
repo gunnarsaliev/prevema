@@ -60,7 +60,7 @@ const Navbar17 = () => {
       <nav className="container flex items-center justify-between">
         {/* Left WordMark */}
         <Link href={NAV_LOGO.url} className="flex items-center gap-2">
-          <img src={NAV_LOGO.src} className="max-h-8 w-8" alt={NAV_LOGO.alt} />
+          <img src={NAV_LOGO.src} className="max-h-12 w-12" alt={NAV_LOGO.alt} />
           <span className="text-lg font-semibold tracking-tighter">{NAV_LOGO.title}</span>
         </Link>
 

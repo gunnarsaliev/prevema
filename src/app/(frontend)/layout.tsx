@@ -17,22 +17,22 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <HeroUIProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <HeroUIProvider>
             <AuthProvider>
-              {/* <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> */}
-              {/* <Navbar17 /> */}
-              {children}
-              {/* <Footer16 /> */}
-              {/* </main> */}
+              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* <Navbar17 /> */}
+                {children}
+                {/* <Footer16 /> */}
+              </main>
             </AuthProvider>
-          </ThemeProvider>
-        </HeroUIProvider>
+          </HeroUIProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

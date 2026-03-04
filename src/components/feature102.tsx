@@ -7,8 +7,8 @@ const Feature102 = () => {
         <div className="mx-auto flex max-w-3xl flex-col justify-center gap-7 md:text-center">
           <h2 className="text-2xl md:text-4xl">How It Works: Simple Steps to Event Success</h2>
           <p className="text-muted-foreground text-sm md:text-base">
-            Prevema's intuitive workflow turns complex planning into a breeze. Follow these simple
-            steps to orchestrate flawless events with ease.
+            Prevema centralizes your event communication, transforms key information into
+            ready-to-share content, and empowers everyone to promote your event instantly.
           </p>
         </div>
         <div className="mx-auto mt-14 flex max-w-5xl flex-col gap-4 lg:px-16">
@@ -19,7 +19,7 @@ const Feature102 = () => {
                 <span className="bg-muted/50 flex size-10 shrink-0 items-center justify-center rounded-full border font-mono text-lg">
                   1
                 </span>
-                <span className="bg-linear-to-b to-primary h-20 w-[3px] shrink-0 from-transparent opacity-70"></span>
+                <span className="bg-gradient-to-b from-transparent to-primary h-20 w-[3px] shrink-0 opacity-70"></span>
               </div>
               <div className="flex flex-col justify-center gap-5 px-0 min-[960px]:gap-6 min-[960px]:px-4 min-[960px]:py-4">
                 <h3 className="text-xl min-[960px]:text-2xl">Create Your Event</h3>
@@ -38,9 +38,7 @@ const Feature102 = () => {
           </div>
           <div className="flex flex-col items-center justify-between min-[960px]:flex-row min-[960px]:gap-10">
             <div className="flex gap-4 min-[960px]:max-w-md">
-              <div className="relative flex flex-col items-center justify-between gap-1">
-                <span className="bg-primary absolute -top-8 mx-auto h-8 w-[3px] shrink-0 opacity-70"></span>
-                <span className="bg-primary absolute -bottom-8 mx-auto h-8 w-[3px] shrink-0 opacity-70"></span>
+              <div className="flex flex-col items-center justify-between gap-1">
                 <span className="bg-primary h-20 w-[3px] shrink-0 opacity-70"></span>
                 <span className="bg-muted/50 flex size-10 shrink-0 items-center justify-center rounded-full border font-mono text-lg">
                   2
@@ -72,7 +70,7 @@ const Feature102 = () => {
           <div className="flex flex-col items-center justify-between min-[960px]:flex-row min-[960px]:gap-10">
             <div className="flex gap-4 min-[960px]:max-w-md">
               <div className="flex flex-col items-center justify-between gap-1">
-                <span className="bg-linear-to-t to-primary h-20 w-[3px] shrink-0 from-transparent opacity-70"></span>
+                <span className="bg-gradient-to-t from-transparent to-primary h-20 w-[3px] shrink-0 opacity-70"></span>
                 <span className="bg-muted/50 flex size-10 shrink-0 items-center justify-center rounded-full border font-mono text-lg">
                   3
                 </span>

@@ -67,9 +67,9 @@ const Footer16 = () => {
           <div className="flex flex-col justify-start gap-8">
             {/* Logo */}
             <a href="/" className="flex flex-col gap-2">
-              <img src="https://asset.cooksa.com/prevema.svg" alt="Prevema" className="h-8 w-8" />
+              <img src="/logo.png" alt="Prevema" className="h-8 w-8 bg-" />
               <p className="text-muted-foreground text-sm">
-                Your All-in-One Event Planning Powerhouse
+                Scale your communication without scaling your team
               </p>
             </a>
             <div className="flex items-center justify-start gap-4 md:flex-row">

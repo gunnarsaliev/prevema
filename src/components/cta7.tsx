@@ -26,7 +26,7 @@ const Cta7 = () => {
           </div>
           <div className="relative mb-12 2xl:mb-0">
             <h3 className="mb-6 text-2xl font-semibold md:mb-8 md:text-4xl lg:mb-12">
-              Your All-in-One Event Planning Powerhouse
+              Scale your communication without scaling your team
             </h3>
             <p className="text-muted-foreground mb-6 text-xs uppercase tracking-widest">
               Orchestrate Flawless Events with Ease
@@ -57,7 +57,7 @@ const Cta7 = () => {
               style={{ backgroundColor: '#cebe06', color: '#000' }}
               className="hover:opacity-90"
             >
-              <a href="/admin">Get Started</a>
+              <a href="/register">Get Started</a>
             </Button>
           </div>
         </div>
