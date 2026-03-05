@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useActionState, startTransition, useEffect } from 'react'
+import { useState } from 'react'
 import { Mail } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -30,18 +30,45 @@ export const StepEmailTemplate = ({
   const [htmlBody, setHtmlBody] = useState(
     `Hi {{firstName}},\n\nThank you for registering for ${eventName || '{{eventName}}'}!\n\nWe're excited to have you join us.\n\nBest regards,\n{{organizationName}} Team`
   )
+  const [isPending, setIsPending] = useState(false)
+  const [state, setState] = useState<any>(undefined)
 
-  const boundAction = createEmailTemplateAction.bind(null, organizationId)
-  const [state, formAction, isPending] = useActionState(boundAction, undefined)
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = e.currentTarget
     const formData = new FormData(form)
 
-    startTransition(() => {
-      formAction(formData)
-    })
+    setIsPending(true)
+
+    try {
+      const result = await createEmailTemplateAction(organizationId, state, formData)
+      console.log('[StepEmailTemplate] Email template creation result:', result)
+
+      setState(result)
+
+      if (result.success && result.data) {
+        // Notify parent of template creation
+        if (onTemplateCreated) {
+          onTemplateCreated(result.data.id, result.data.name)
+        }
+
+        // Auto-advance to next step after showing success message
+        setTimeout(() => {
+          console.log('[StepEmailTemplate] Calling onNext to advance...', { onNext })
+          onNext?.()
+        }, 1500)
+      } else {
+        console.error('[StepEmailTemplate] Operation failed:', result.message)
+      }
+    } catch (error) {
+      console.error('[StepEmailTemplate] Error submitting form:', error)
+      setState({
+        success: false,
+        message: 'An unexpected error occurred. Please try again.',
+      })
+    } finally {
+      setIsPending(false)
+    }
   }
 
   // Update validation when required fields change
@@ -60,22 +87,8 @@ export const StepEmailTemplate = ({
     updateValidation()
   }
 
-  // Handle successful template creation and auto-advance
-  useEffect(() => {
-    if (state?.success && state?.data && !isPending) {
-      if (onTemplateCreated) {
-        onTemplateCreated(state.data.id, state.data.name)
-      }
-      // Auto-advance to next step after a short delay
-      const timer = setTimeout(() => {
-        onNext?.()
-      }, 1500)
-      return () => clearTimeout(timer)
-    }
-  }, [state?.success, state?.data, isPending, onTemplateCreated, onNext])
-
   return (
-    <div className="flex min-h-[40.5dvh] w-full flex-col items-center justify-center p-4">
+    <div className="flex w-full flex-col items-center justify-center">
       <form onSubmit={handleSubmit} className="w-full max-w-lg space-y-6">
         {/* Success message */}
         {state?.success && (

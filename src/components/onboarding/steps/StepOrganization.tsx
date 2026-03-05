@@ -13,6 +13,8 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import {
+  createOrganizationAction,
+  createDefaultOrganizationAction,
   updateOrganizationAction,
   getUserOrganizationAction,
 } from '@/app/(frontend)/onboarding/actions'
@@ -31,6 +33,7 @@ export const StepOrganization = ({
   onNext,
 }: StepOrganizationProps) => {
   const [isLoading, setIsLoading] = useState(true)
+  const [hasOrganization, setHasOrganization] = useState(false)
   const [organizationId, setOrganizationId] = useState<number | null>(null)
   const [organizationName, setOrganizationName] = useState('')
   const [emailConfigIsActive, setEmailConfigIsActive] = useState(false)
@@ -52,6 +55,7 @@ export const StepOrganization = ({
         if (result.success && result.data) {
           const org = result.data
 
+          setHasOrganization(true)
           setOrganizationId(org.id)
           setOrganizationName(org.name || '')
 
@@ -68,11 +72,14 @@ export const StepOrganization = ({
           const isValid = (org.name || '').trim().length >= 3
           onValidationChange(stepIndex, isValid)
         } else {
-          console.warn('[StepOrganization] Failed to fetch organization:', result.message)
+          // No organization found - user needs to create one
+          console.log('[StepOrganization] No organization found - showing create form')
+          setHasOrganization(false)
           onValidationChange(stepIndex, false)
         }
       } catch (error) {
         console.error('[StepOrganization] Error fetching organization:', error)
+        setHasOrganization(false)
       } finally {
         setIsLoading(false)
       }
@@ -86,24 +93,45 @@ export const StepOrganization = ({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if (!organizationId) {
-      console.error('[StepOrganization] Cannot submit - missing organization ID')
-      return
-    }
-
     const form = e.currentTarget
     const formData = new FormData(form)
 
     setIsPending(true)
 
     try {
-      const result = await updateOrganizationAction(organizationId, state, formData)
-      setState(result)
+      let result
 
-      if (result.success) {
+      if (hasOrganization && organizationId) {
+        // Update existing organization
+        result = await updateOrganizationAction(organizationId, state, formData)
         console.log('[StepOrganization] Organization updated successfully')
       } else {
-        console.error('[StepOrganization] Update failed:', result.message)
+        // Create new organization
+        result = await createOrganizationAction(state, formData)
+        console.log('[StepOrganization] Organization created successfully')
+
+        // Update local state with new organization
+        if (result.success && result.data) {
+          setHasOrganization(true)
+          setOrganizationId(result.data.id)
+        }
+      }
+
+      setState(result)
+
+      if (result.success && result.data) {
+        // Notify parent of organization creation
+        if (onOrganizationCreated) {
+          onOrganizationCreated(result.data.id, result.data.name)
+        }
+
+        // Auto-advance to next step after showing success message
+        setTimeout(() => {
+          console.log('[StepOrganization] Calling onNext to advance...', { onNext })
+          onNext?.()
+        }, 1500)
+      } else {
+        console.error('[StepOrganization] Operation failed:', result.message)
       }
     } catch (error) {
       console.error('[StepOrganization] Error submitting form:', error)
@@ -123,20 +151,6 @@ export const StepOrganization = ({
     onValidationChange(stepIndex, value.trim().length >= 3)
   }
 
-  // Handle successful organization update and auto-advance
-  useEffect(() => {
-    if (state?.success && state?.data && !isPending) {
-      if (onOrganizationCreated) {
-        onOrganizationCreated(state.data.id, state.data.name)
-      }
-      // Auto-advance to next step after a short delay
-      const timer = setTimeout(() => {
-        onNext?.()
-      }, 1500)
-      return () => clearTimeout(timer)
-    }
-  }, [state?.success, state?.data, isPending, onOrganizationCreated, onNext])
-
   // Show loading state while fetching organization
   if (isLoading) {
     return (
@@ -150,13 +164,13 @@ export const StepOrganization = ({
   }
 
   return (
-    <div className="flex min-h-[40.5dvh] w-full flex-col items-center justify-center p-4">
+    <div className="flex w-full flex-col items-center justify-center">
       <form onSubmit={handleSubmit} className="w-full max-w-lg space-y-6">
         {/* Success message */}
         {state?.success && (
           <div className="rounded-md bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 p-3">
             <p className="text-sm text-green-800 dark:text-green-200">
-              Organization "{state.data?.name}" updated successfully!
+              Organization "{state.data?.name}" {hasOrganization ? 'updated' : 'created'} successfully!
             </p>
           </div>
         )}
@@ -332,7 +346,33 @@ export const StepOrganization = ({
               type="button"
               variant="ghost"
               className="w-full"
-              onClick={onNext}
+              onClick={async () => {
+                // If user doesn't have an organization, create a default one before skipping
+                if (!hasOrganization) {
+                  setIsPending(true)
+                  try {
+                    const result = await createDefaultOrganizationAction()
+                    if (result.success && result.data) {
+                      console.log('[StepOrganization] Default organization created:', result.data.name)
+                      // Update state and notify parent
+                      setHasOrganization(true)
+                      setOrganizationId(result.data.id)
+                      setOrganizationName(result.data.name)
+                      if (onOrganizationCreated) {
+                        onOrganizationCreated(result.data.id, result.data.name)
+                      }
+                    } else {
+                      console.error('[StepOrganization] Failed to create default org:', result.message)
+                    }
+                  } catch (error) {
+                    console.error('[StepOrganization] Error creating default org:', error)
+                  } finally {
+                    setIsPending(false)
+                  }
+                }
+                // Move to next step
+                onNext?.()
+              }}
               disabled={isPending}
             >
               Skip for now

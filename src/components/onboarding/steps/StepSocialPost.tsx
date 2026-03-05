@@ -42,7 +42,7 @@ export const StepSocialPost = ({
   }
 
   return (
-    <div className="flex min-h-[40.5dvh] w-full flex-col items-center justify-center p-4">
+    <div className="flex w-full flex-col items-center justify-center">
       <div className="w-full max-w-2xl space-y-6">
         <div className="flex flex-col items-center gap-3 mb-8">
           <div className="rounded-full bg-primary/10 dark:bg-primary/20 p-4">

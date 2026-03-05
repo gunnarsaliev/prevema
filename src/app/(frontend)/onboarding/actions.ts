@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { headers as getHeaders } from 'next/headers'
-import { getPayload } from 'payload'
+import { getPayload, Payload } from 'payload'
 import config from '@/payload.config'
 import {
   onboardingOrganizationSchema,
@@ -13,6 +13,7 @@ import { eventSchema, type EventFormValues } from '@/lib/schemas/event'
 import { participantTypeSchema } from '@/lib/schemas/participant-type'
 import { partnerTypeSchema } from '@/lib/schemas/partner-type'
 import { emailTemplateSchema } from '@/lib/schemas/emailTemplate'
+import { checkRole } from '@/access/utilities'
 
 // Action state types
 export type OnboardingActionState<T = any> = {
@@ -21,6 +22,159 @@ export type OnboardingActionState<T = any> = {
   data?: T
   errors?: {
     [K in keyof any]?: string[]
+  }
+}
+
+/**
+ * Helper function to set up subscription and owner member after organization creation
+ * This runs AFTER the organization is committed to the database
+ */
+async function setupOrganizationDependencies(
+  payload: Payload,
+  organizationId: number,
+  user: any,
+): Promise<void> {
+  console.log(`🔧 Setting up dependencies for organization ${organizationId}`)
+
+  try {
+    // Check if user is super-admin or admin
+    const isSystemAdmin = checkRole(['super-admin', 'admin'], user)
+
+    // Calculate trial end date (14 days from now)
+    const trialEnd = new Date()
+    trialEnd.setDate(trialEnd.getDate() + 14)
+
+    // Calculate current period end (30 days from now for monthly)
+    const periodEnd = new Date()
+    periodEnd.setDate(periodEnd.getDate() + 30)
+
+    // Create subscription
+    if (isSystemAdmin) {
+      await payload.create({
+        collection: 'subscriptions',
+        data: {
+          organization: organizationId,
+          tier: 'system-unlimited',
+          billingCycle: 'none',
+          isSystemAdmin: true,
+          seatsIncluded: -1, // Unlimited
+          additionalSeats: 0,
+          pricePerAdditionalSeat: 0,
+          stripeStatus: 'active',
+          currentPeriodStart: new Date().toISOString(),
+          currentPeriodEnd: null,
+        },
+        overrideAccess: true,
+      })
+      console.log(`✅ Created unlimited subscription for organization ${organizationId}`)
+    } else {
+      await payload.create({
+        collection: 'subscriptions',
+        data: {
+          organization: organizationId,
+          tier: 'free',
+          billingCycle: 'monthly',
+          isSystemAdmin: false,
+          seatsIncluded: 3, // Free tier: 3 seats
+          additionalSeats: 0,
+          pricePerAdditionalSeat: 0,
+          stripeStatus: 'trialing',
+          currentPeriodStart: new Date().toISOString(),
+          currentPeriodEnd: periodEnd.toISOString(),
+          trialStart: new Date().toISOString(),
+          trialEnd: trialEnd.toISOString(),
+        },
+        overrideAccess: true,
+      })
+      console.log(`✅ Created free trial subscription for organization ${organizationId}`)
+    }
+
+    // Create owner member
+    await payload.create({
+      collection: 'members',
+      data: {
+        user: user.id,
+        organization: organizationId,
+        role: 'owner',
+        status: 'active',
+      },
+      overrideAccess: true,
+      context: {
+        isInitialOwner: true,
+      },
+    })
+    console.log(`✅ Created owner membership for organization ${organizationId}`)
+  } catch (error) {
+    console.error(`❌ Failed to set up dependencies for organization ${organizationId}:`, error)
+    throw error // Re-throw so caller can handle
+  }
+}
+
+/**
+ * Create a default organization with user's name
+ * Used when user skips organization setup in onboarding
+ */
+export async function createDefaultOrganizationAction(): Promise<
+  OnboardingActionState<{ id: number; name: string }>
+> {
+  try {
+    // Get authenticated user
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: await config })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'Unauthorized. Please log in to continue.',
+      }
+    }
+
+    // Generate default organization name from user's name or email
+    const defaultName = user.name
+      ? `${user.name}'s Organization`
+      : `${user.email.split('@')[0]}'s Organization`
+
+    // Create organization
+    const organization = await payload.create({
+      collection: 'organizations',
+      data: {
+        name: defaultName,
+        owner: user.id,
+      },
+      user,
+      overrideAccess: false,
+    })
+
+    const orgId = typeof organization.id === 'number' ? organization.id : Number(organization.id)
+
+    // Set up subscription and owner member
+    await setupOrganizationDependencies(payload, orgId, user)
+
+    revalidatePath('/dash')
+
+    return {
+      success: true,
+      message: 'Default organization created successfully',
+      data: {
+        id: orgId,
+        name: organization.name,
+      },
+    }
+  } catch (error) {
+    console.error('[createDefaultOrganizationAction] Error:', error)
+
+    if (error && typeof error === 'object' && 'message' in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      }
+    }
+
+    return {
+      success: false,
+      message: 'Failed to create default organization. Please try again.',
+    }
   }
 }
 
@@ -70,6 +224,9 @@ export async function createOrganizationAction(
     })
 
     const orgId = typeof organization.id === 'number' ? organization.id : Number(organization.id)
+
+    // Set up subscription and owner member
+    await setupOrganizationDependencies(payload, orgId, user)
 
     revalidatePath('/dash')
 
@@ -333,6 +490,29 @@ export async function createEventAction(
       }
     }
 
+    // Verify user owns the organization
+    const organization = await payload.findByID({
+      collection: 'organizations',
+      id: organizationId,
+      user,
+      overrideAccess: true,
+    })
+
+    if (!organization) {
+      return {
+        success: false,
+        message: 'Organization not found.',
+      }
+    }
+
+    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    if (ownerId !== user.id) {
+      return {
+        success: false,
+        message: 'You do not have permission to create events in this organization.',
+      }
+    }
+
     // Handle image upload if provided
     const imageFile = formData.get('image') as File | null
     let imageId: number | undefined
@@ -369,11 +549,12 @@ export async function createEventAction(
       eventData.image = imageId
     }
 
+    // Create event - use overrideAccess since we've verified ownership
     const event = await payload.create({
       collection: 'events',
       data: eventData,
       user,
-      overrideAccess: false,
+      overrideAccess: true,
     })
 
     const eventId = typeof event.id === 'number' ? event.id : Number(event.id)
@@ -425,6 +606,29 @@ export async function createParticipantTypeAction(
       }
     }
 
+    // Verify user owns the organization
+    const organization = await payload.findByID({
+      collection: 'organizations',
+      id: organizationId,
+      user,
+      overrideAccess: true,
+    })
+
+    if (!organization) {
+      return {
+        success: false,
+        message: 'Organization not found.',
+      }
+    }
+
+    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    if (ownerId !== user.id) {
+      return {
+        success: false,
+        message: 'You do not have permission to create participant types in this organization.',
+      }
+    }
+
     const rawData = {
       organization: organizationId,
       event: eventId,
@@ -434,11 +638,12 @@ export async function createParticipantTypeAction(
       isActive: true,
     }
 
+    // Create participant type - use overrideAccess since we've verified ownership
     const participantType = await payload.create({
       collection: 'participant-types',
       data: rawData as any,
       user,
-      overrideAccess: false,
+      overrideAccess: true,
     })
 
     const typeId =
@@ -492,6 +697,29 @@ export async function createPartnerTypeAction(
       }
     }
 
+    // Verify user owns the organization
+    const organization = await payload.findByID({
+      collection: 'organizations',
+      id: organizationId,
+      user,
+      overrideAccess: true,
+    })
+
+    if (!organization) {
+      return {
+        success: false,
+        message: 'Organization not found.',
+      }
+    }
+
+    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    if (ownerId !== user.id) {
+      return {
+        success: false,
+        message: 'You do not have permission to create partner types in this organization.',
+      }
+    }
+
     const rawData = {
       organization: organizationId,
       event: eventId,
@@ -501,11 +729,12 @@ export async function createPartnerTypeAction(
       isActive: true,
     }
 
+    // Create partner type - use overrideAccess since we've verified ownership
     const partnerType = await payload.create({
       collection: 'partner-types',
       data: rawData as any,
       user,
-      overrideAccess: false,
+      overrideAccess: true,
     })
 
     const typeId = typeof partnerType.id === 'number' ? partnerType.id : Number(partnerType.id)
@@ -558,6 +787,29 @@ export async function createEmailTemplateAction(
       }
     }
 
+    // Verify user owns the organization
+    const organization = await payload.findByID({
+      collection: 'organizations',
+      id: organizationId,
+      user,
+      overrideAccess: true,
+    })
+
+    if (!organization) {
+      return {
+        success: false,
+        message: 'Organization not found.',
+      }
+    }
+
+    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    if (ownerId !== user.id) {
+      return {
+        success: false,
+        message: 'You do not have permission to create email templates in this organization.',
+      }
+    }
+
     // Parse htmlBody from rich text format if needed
     let htmlBodyValue: any = formData.get('htmlBody')
     if (typeof htmlBodyValue === 'string') {
@@ -595,11 +847,12 @@ export async function createEmailTemplateAction(
       isActive: true,
     }
 
+    // Create email template - use overrideAccess since we've verified ownership
     const emailTemplate = await payload.create({
       collection: 'email-templates',
       data: rawData as any,
       user,
-      overrideAccess: false,
+      overrideAccess: true,
     })
 
     const templateId =

@@ -7,6 +7,7 @@ import {
   publicParticipantCreate,
   publicParticipantRead,
 } from '../../access/publicParticipantAccess'
+import { checkRole } from '@/access/utilities'
 import { populateOrganizationFromEvent } from './hooks/populateOrganizationFromEvent'
 import { setDefaultStatus } from './hooks/setDefaultStatus'
 import { handleEmailAutomation } from './hooks/handleEmailAutomation'
@@ -26,6 +27,7 @@ export const Participants: CollectionConfig = {
     },
   },
   access: {
+    admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),
     read: publicParticipantRead,
     create: publicParticipantCreate,
     update: organizationAwareUpdate,

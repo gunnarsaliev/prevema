@@ -5,6 +5,7 @@ import {
   organizationAwareUpdate,
   organizationAwareDelete,
 } from '../../access/organizationAwareAccess'
+import { checkRole } from '@/access/utilities'
 import { populateCreatedBy } from './hooks/populateCreatedBy'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
@@ -17,6 +18,7 @@ export const Events: CollectionConfig = {
     group: 'Event Planning',
   },
   access: {
+    admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),
     read: organizationAwareRead,
     create: organizationAwareCreate,
     update: organizationAwareUpdate,

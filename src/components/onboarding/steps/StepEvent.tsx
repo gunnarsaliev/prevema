@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useActionState, startTransition, useEffect } from 'react'
+import { useState } from 'react'
 import { Calendar } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -37,11 +37,10 @@ export const StepEvent = ({
   const [eventType, setEventType] = useState('online')
   const [imageFiles, setImageFiles] = useState<File[]>([])
   const [showOptional, setShowOptional] = useState(false)
+  const [isPending, setIsPending] = useState(false)
+  const [state, setState] = useState<any>(undefined)
 
-  const boundAction = createEventAction.bind(null, organizationId)
-  const [state, formAction, isPending] = useActionState(boundAction, undefined)
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = e.currentTarget
     const formData = new FormData(form)
@@ -51,9 +50,37 @@ export const StepEvent = ({
       formData.set('image', imageFiles[0])
     }
 
-    startTransition(() => {
-      formAction(formData)
-    })
+    setIsPending(true)
+
+    try {
+      const result = await createEventAction(organizationId, state, formData)
+      console.log('[StepEvent] Event creation result:', result)
+
+      setState(result)
+
+      if (result.success && result.data) {
+        // Notify parent of event creation
+        if (onEventCreated) {
+          onEventCreated(result.data.id, result.data.name)
+        }
+
+        // Auto-advance to next step after showing success message
+        setTimeout(() => {
+          console.log('[StepEvent] Calling onNext to advance...', { onNext })
+          onNext?.()
+        }, 1500)
+      } else {
+        console.error('[StepEvent] Operation failed:', result.message)
+      }
+    } catch (error) {
+      console.error('[StepEvent] Error submitting form:', error)
+      setState({
+        success: false,
+        message: 'An unexpected error occurred. Please try again.',
+      })
+    } finally {
+      setIsPending(false)
+    }
   }
 
   // Update validation when required fields change
@@ -72,22 +99,8 @@ export const StepEvent = ({
     updateValidation()
   }
 
-  // Handle successful event creation and auto-advance
-  useEffect(() => {
-    if (state?.success && state?.data && !isPending) {
-      if (onEventCreated) {
-        onEventCreated(state.data.id, state.data.name)
-      }
-      // Auto-advance to next step after a short delay
-      const timer = setTimeout(() => {
-        onNext?.()
-      }, 1500)
-      return () => clearTimeout(timer)
-    }
-  }, [state?.success, state?.data, isPending, onEventCreated, onNext])
-
   return (
-    <div className="flex min-h-[40.5dvh] w-full flex-col items-center justify-center p-4">
+    <div className="flex w-full flex-col items-center justify-center">
       <form onSubmit={handleSubmit} className="w-full max-w-lg space-y-6">
         {/* Success message */}
         {state?.success && (

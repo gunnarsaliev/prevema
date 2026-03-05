@@ -38,6 +38,7 @@ export const OnboardingFlow = () => {
         />
       ),
       isBlocking: false, // User can skip
+      cta: () => null, // Hide default Next button - StepOrganization has its own buttons
     },
     {
       title: 'Create your event',
@@ -72,6 +73,7 @@ export const OnboardingFlow = () => {
           </div>
         ),
       isBlocking: false, // User can skip
+      cta: () => null, // Hide default Next button - StepEvent has its own buttons
     },
     {
       title: 'Add event guests',
@@ -117,6 +119,7 @@ export const OnboardingFlow = () => {
           </div>
         ),
       isBlocking: false, // Not blocking - user can skip
+      cta: () => null, // Hide default Next button - StepGuests has its own buttons
     },
     {
       title: 'Create email template',
@@ -150,6 +153,7 @@ export const OnboardingFlow = () => {
           </div>
         ),
       isBlocking: false, // Not blocking - user can skip
+      cta: () => null, // Hide default Next button - StepEmailTemplate has its own buttons
     },
     {
       title: 'Social post design',

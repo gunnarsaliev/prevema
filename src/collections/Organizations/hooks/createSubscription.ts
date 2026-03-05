@@ -56,6 +56,7 @@ export const createSubscription: CollectionAfterChangeHook = async ({
           currentPeriodStart: new Date().toISOString(),
           currentPeriodEnd: null,
         },
+        overrideAccess: true,
       })
 
       console.log(
@@ -79,6 +80,7 @@ export const createSubscription: CollectionAfterChangeHook = async ({
           trialStart: new Date().toISOString(),
           trialEnd: trialEnd.toISOString(),
         },
+        overrideAccess: true,
       })
 
       console.log(`✅ Created free trial subscription for organization ${doc.id} (14 days)`)

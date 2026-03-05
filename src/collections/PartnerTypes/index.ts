@@ -5,6 +5,7 @@ import {
   organizationAwareUpdate,
   organizationAwareDelete,
 } from '../../access/organizationAwareAccess'
+import { checkRole } from '@/access/utilities'
 import { generatePublicFormLink } from './hooks/generatePublicFormLink'
 import { generatePublicFormLinkAfterCreate } from './hooks/generatePublicFormLinkAfterCreate'
 import { syncOptionalFields } from './hooks/syncOptionalFields'
@@ -34,6 +35,7 @@ export const PartnerTypes: CollectionConfig = {
     group: 'Event Planning',
   },
   access: {
+    admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),
     read: organizationAwareRead,
     create: organizationAwareCreate,
     update: organizationAwareUpdate,

@@ -5,6 +5,7 @@ import {
   organizationAwareUpdate,
   organizationAwareDelete,
 } from '../../access/organizationAwareAccess'
+import { checkRole } from '@/access/utilities'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import { formatSlugHook } from '@/utils/formatSlug'
@@ -16,6 +17,7 @@ export const PartnerTiers: CollectionConfig = {
     group: 'Event Planning',
   },
   access: {
+    admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),
     read: organizationAwareRead,
     create: organizationAwareCreate,
     update: organizationAwareUpdate,

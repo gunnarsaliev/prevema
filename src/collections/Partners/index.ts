@@ -4,6 +4,7 @@ import {
   organizationAwareDelete,
 } from '../../access/organizationAwareAccess'
 import { publicPartnerCreate, publicPartnerRead } from '../../access/publicPartnerAccess'
+import { checkRole } from '@/access/utilities'
 import { populateOrganizationFromEvent } from './hooks/populateOrganizationFromEvent'
 import { handleEmailAutomation } from './hooks/handleEmailAutomation'
 import { handleSocialPostGeneration } from './hooks/handleSocialPostGeneration'
@@ -34,6 +35,7 @@ export const Partners: CollectionConfig = {
     },
   },
   access: {
+    admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),
     read: publicPartnerRead,
     create: publicPartnerCreate,
     update: organizationAwareUpdate,
