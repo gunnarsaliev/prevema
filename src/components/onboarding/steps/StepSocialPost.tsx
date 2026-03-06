@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Image as ImageIcon, Palette } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import { recordSocialPostPreferenceAction } from '@/app/(frontend)/onboarding/actions'
 
 interface StepSocialPostProps {
@@ -21,24 +21,39 @@ export const StepSocialPost = ({
   onPreferenceSelected,
   onNext,
 }: StepSocialPostProps) => {
+  const router = useRouter()
   const [selectedOption, setSelectedOption] = useState<'own' | 'create' | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSelectOption = async (option: 'own' | 'create') => {
+  const handleSelectOption = (option: 'own' | 'create') => {
     setSelectedOption(option)
-    setIsSubmitting(true)
+    onValidationChange(stepIndex, true)
+  }
 
+  const handleNext = async () => {
+    if (!selectedOption) return
+
+    setIsSubmitting(true)
     try {
-      await recordSocialPostPreferenceAction(organizationId, option)
-      onValidationChange(stepIndex, true)
+      await recordSocialPostPreferenceAction(organizationId, selectedOption)
       if (onPreferenceSelected) {
-        onPreferenceSelected(option)
+        onPreferenceSelected(selectedOption)
+      }
+
+      // Redirect to image generator if "create" option was selected
+      if (selectedOption === 'create') {
+        router.push('/image-generator')
+      } else {
+        onNext?.()
       }
     } catch (error) {
       console.error('Error saving preference:', error)
-    } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleSkip = () => {
+    onNext?.()
   }
 
   return (
@@ -59,86 +74,106 @@ export const StepSocialPost = ({
           <button
             type="button"
             onClick={() => handleSelectOption('own')}
-            disabled={isSubmitting}
-            className={`relative p-6 rounded-lg border-2 transition-all hover:border-primary/50 hover:shadow-lg ${
+            className={`relative p-6 rounded-xl border transition-all text-left ${
               selectedOption === 'own'
-                ? 'border-primary bg-primary/5 shadow-lg'
-                : 'border-border bg-background'
-            } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                : 'border-border/30 bg-card/30 hover:border-border/50 hover:bg-card/50'
+            }`}
           >
-            <div className="flex flex-col items-center gap-4 text-center">
-              <div className="rounded-full bg-muted p-4">
-                <ImageIcon className="h-10 w-10 text-foreground" />
+            {/* Radio button indicator - top right */}
+            <div className="absolute top-6 right-6">
+              <div
+                className={`w-6 h-6 rounded-full border-2 transition-all ${
+                  selectedOption === 'own'
+                    ? 'border-primary bg-primary'
+                    : 'border-muted-foreground/30 bg-transparent'
+                }`}
+              >
+                {selectedOption === 'own' && (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col items-start gap-4 pt-2">
+              <div
+                className={`rounded-full p-3 transition-colors ${
+                  selectedOption === 'own' ? 'bg-primary/10' : 'bg-muted/50'
+                }`}
+              >
+                <ImageIcon
+                  className={`h-8 w-8 transition-colors ${
+                    selectedOption === 'own' ? 'text-primary' : 'text-muted-foreground'
+                  }`}
+                />
               </div>
               <div>
-                <h4 className="font-semibold text-foreground mb-2">I have my own design</h4>
+                <h4 className="font-semibold text-foreground text-lg mb-1">I have my own design</h4>
                 <p className="text-sm text-muted-foreground">
-                  I'll upload my own social post template or create images manually
+                  Upload your own template
                 </p>
               </div>
-              {selectedOption === 'own' && (
-                <div className="absolute top-3 right-3">
-                  <div className="rounded-full bg-primary p-1">
-                    <svg
-                      className="h-4 w-4 text-primary-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              )}
             </div>
+
+            {/* Bottom indicator line */}
+            {selectedOption === 'own' && (
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-primary rounded-t-full" />
+            )}
           </button>
 
           {/* Option 2: Create design */}
           <button
             type="button"
             onClick={() => handleSelectOption('create')}
-            disabled={isSubmitting}
-            className={`relative p-6 rounded-lg border-2 transition-all hover:border-primary/50 hover:shadow-lg ${
+            className={`relative p-6 rounded-xl border transition-all text-left ${
               selectedOption === 'create'
-                ? 'border-primary bg-primary/5 shadow-lg'
-                : 'border-border bg-background'
-            } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                : 'border-border/30 bg-card/30 hover:border-border/50 hover:bg-card/50'
+            }`}
           >
-            <div className="flex flex-col items-center gap-4 text-center">
-              <div className="rounded-full bg-muted p-4">
-                <Palette className="h-10 w-10 text-foreground" />
+            {/* Radio button indicator - top right */}
+            <div className="absolute top-6 right-6">
+              <div
+                className={`w-6 h-6 rounded-full border-2 transition-all ${
+                  selectedOption === 'create'
+                    ? 'border-primary bg-primary'
+                    : 'border-muted-foreground/30 bg-transparent'
+                }`}
+              >
+                {selectedOption === 'create' && (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col items-start gap-4 pt-2">
+              <div
+                className={`rounded-full p-3 transition-colors ${
+                  selectedOption === 'create' ? 'bg-primary/10' : 'bg-muted/50'
+                }`}
+              >
+                <Palette
+                  className={`h-8 w-8 transition-colors ${
+                    selectedOption === 'create' ? 'text-primary' : 'text-muted-foreground'
+                  }`}
+                />
               </div>
               <div>
-                <h4 className="font-semibold text-foreground mb-2">Create design with our tool</h4>
+                <h4 className="font-semibold text-foreground text-lg mb-1">Create design with our tool</h4>
                 <p className="text-sm text-muted-foreground">
-                  Use our image generator to create beautiful social post templates
+                  Use our image generator
                 </p>
               </div>
-              {selectedOption === 'create' && (
-                <div className="absolute top-3 right-3">
-                  <div className="rounded-full bg-primary p-1">
-                    <svg
-                      className="h-4 w-4 text-primary-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              )}
             </div>
+
+            {/* Bottom indicator line */}
+            {selectedOption === 'create' && (
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-primary rounded-t-full" />
+            )}
           </button>
         </div>
 
@@ -168,7 +203,7 @@ export const StepSocialPost = ({
               <Button
                 type="button"
                 variant="outline"
-                onClick={onNext}
+                onClick={handleSkip}
                 disabled={isSubmitting}
               >
                 Skip this step
@@ -181,10 +216,10 @@ export const StepSocialPost = ({
           <div className="flex justify-center mt-4">
             <Button
               type="button"
-              onClick={onNext}
+              onClick={handleNext}
               disabled={isSubmitting}
             >
-              Continue
+              {isSubmitting ? 'Saving...' : 'Complete Setup'}
             </Button>
           </div>
         )}

@@ -193,23 +193,7 @@ export const OnboardingFlow = () => {
           </div>
         ),
       isBlocking: false, // Not blocking - user can skip
-      cta: ({ onClick, disabled }: { onClick: () => void; disabled?: boolean }) => (
-        <Button
-          className="w-full"
-          size="lg"
-          onClick={() => {
-            // Complete onboarding
-            if (onboardingState.eventId) {
-              router.push(`/dash/events/${onboardingState.eventId}`)
-            } else {
-              router.push('/dash/events')
-            }
-          }}
-          disabled={disabled}
-        >
-          Complete Setup
-        </Button>
-      ),
+      cta: () => null, // Hide default Next button - StepSocialPost has its own buttons
     },
   ]
 

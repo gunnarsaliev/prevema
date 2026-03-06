@@ -838,9 +838,17 @@ export async function createEmailTemplateAction(
       }
     }
 
+    // Generate a slug from the template name
+    const templateName = formData.get('name') as string
+    const slug = templateName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+
     const rawData = {
       organization: organizationId,
-      name: formData.get('name'),
+      name: templateName,
+      slug: slug,
       description: formData.get('description') || null,
       subject: formData.get('subject'),
       htmlBody: htmlBodyValue,
@@ -906,6 +914,332 @@ export async function recordSocialPostPreferenceAction(
     return {
       success: false,
       message: 'Failed to save preference.',
+    }
+  }
+}
+
+/**
+ * Get participant types for an event
+ */
+export async function getParticipantTypesAction(
+  organizationId: number,
+  eventId: number,
+): Promise<OnboardingActionState<Array<{ id: number; name: string; publicFormLink: string }>>> {
+  try {
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: await config })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'Unauthorized. Please log in to continue.',
+      }
+    }
+
+    // Verify user owns the organization
+    const organization = await payload.findByID({
+      collection: 'organizations',
+      id: organizationId,
+      user,
+      overrideAccess: true,
+    })
+
+    if (!organization) {
+      return {
+        success: false,
+        message: 'Organization not found.',
+      }
+    }
+
+    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    if (ownerId !== user.id) {
+      return {
+        success: false,
+        message: 'You do not have permission to view participant types in this organization.',
+      }
+    }
+
+    // Fetch participant types for this event
+    const participantTypes = await payload.find({
+      collection: 'participant-types',
+      where: {
+        and: [
+          {
+            organization: {
+              equals: organizationId,
+            },
+          },
+          {
+            event: {
+              equals: eventId,
+            },
+          },
+        ],
+      },
+      user,
+      overrideAccess: true,
+    })
+
+    const types = participantTypes.docs.map((type) => ({
+      id: typeof type.id === 'number' ? type.id : Number(type.id),
+      name: type.name,
+      publicFormLink: type.publicFormLink || '',
+    }))
+
+    return {
+      success: true,
+      data: types,
+    }
+  } catch (error) {
+    console.error('[getParticipantTypesAction] Error:', error)
+
+    if (error && typeof error === 'object' && 'message' in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      }
+    }
+
+    return {
+      success: false,
+      message: 'Failed to fetch participant types. Please try again.',
+    }
+  }
+}
+
+/**
+ * Get partner types for an event
+ */
+export async function getPartnerTypesAction(
+  organizationId: number,
+  eventId: number,
+): Promise<OnboardingActionState<Array<{ id: number; name: string; publicFormLink: string }>>> {
+  try {
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: await config })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'Unauthorized. Please log in to continue.',
+      }
+    }
+
+    // Verify user owns the organization
+    const organization = await payload.findByID({
+      collection: 'organizations',
+      id: organizationId,
+      user,
+      overrideAccess: true,
+    })
+
+    if (!organization) {
+      return {
+        success: false,
+        message: 'Organization not found.',
+      }
+    }
+
+    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    if (ownerId !== user.id) {
+      return {
+        success: false,
+        message: 'You do not have permission to view partner types in this organization.',
+      }
+    }
+
+    // Fetch partner types for this event
+    const partnerTypes = await payload.find({
+      collection: 'partner-types',
+      where: {
+        and: [
+          {
+            organization: {
+              equals: organizationId,
+            },
+          },
+          {
+            event: {
+              equals: eventId,
+            },
+          },
+        ],
+      },
+      user,
+      overrideAccess: true,
+    })
+
+    const types = partnerTypes.docs.map((type) => ({
+      id: typeof type.id === 'number' ? type.id : Number(type.id),
+      name: type.name,
+      publicFormLink: type.publicFormLink || '',
+    }))
+
+    return {
+      success: true,
+      data: types,
+    }
+  } catch (error) {
+    console.error('[getPartnerTypesAction] Error:', error)
+
+    if (error && typeof error === 'object' && 'message' in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      }
+    }
+
+    return {
+      success: false,
+      message: 'Failed to fetch partner types. Please try again.',
+    }
+  }
+}
+
+/**
+ * Delete participant type during onboarding
+ */
+export async function deleteParticipantTypeAction(
+  organizationId: number,
+  typeId: number,
+): Promise<OnboardingActionState> {
+  try {
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: await config })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'Unauthorized. Please log in to continue.',
+      }
+    }
+
+    // Verify user owns the organization
+    const organization = await payload.findByID({
+      collection: 'organizations',
+      id: organizationId,
+      user,
+      overrideAccess: true,
+    })
+
+    if (!organization) {
+      return {
+        success: false,
+        message: 'Organization not found.',
+      }
+    }
+
+    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    if (ownerId !== user.id) {
+      return {
+        success: false,
+        message: 'You do not have permission to delete participant types in this organization.',
+      }
+    }
+
+    // Delete participant type
+    await payload.delete({
+      collection: 'participant-types',
+      id: typeId,
+      user,
+      overrideAccess: true,
+    })
+
+    revalidatePath('/dash/events')
+
+    return {
+      success: true,
+      message: 'Participant type deleted successfully',
+    }
+  } catch (error) {
+    console.error('[deleteParticipantTypeAction] Error:', error)
+
+    if (error && typeof error === 'object' && 'message' in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      }
+    }
+
+    return {
+      success: false,
+      message: 'Failed to delete participant type. Please try again.',
+    }
+  }
+}
+
+/**
+ * Delete partner type during onboarding
+ */
+export async function deletePartnerTypeAction(
+  organizationId: number,
+  typeId: number,
+): Promise<OnboardingActionState> {
+  try {
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: await config })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'Unauthorized. Please log in to continue.',
+      }
+    }
+
+    // Verify user owns the organization
+    const organization = await payload.findByID({
+      collection: 'organizations',
+      id: organizationId,
+      user,
+      overrideAccess: true,
+    })
+
+    if (!organization) {
+      return {
+        success: false,
+        message: 'Organization not found.',
+      }
+    }
+
+    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    if (ownerId !== user.id) {
+      return {
+        success: false,
+        message: 'You do not have permission to delete partner types in this organization.',
+      }
+    }
+
+    // Delete partner type
+    await payload.delete({
+      collection: 'partner-types',
+      id: typeId,
+      user,
+      overrideAccess: true,
+    })
+
+    revalidatePath('/dash/events')
+
+    return {
+      success: true,
+      message: 'Partner type deleted successfully',
+    }
+  } catch (error) {
+    console.error('[deletePartnerTypeAction] Error:', error)
+
+    if (error && typeof error === 'object' && 'message' in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      }
+    }
+
+    return {
+      success: false,
+      message: 'Failed to delete partner type. Please try again.',
     }
   }
 }
