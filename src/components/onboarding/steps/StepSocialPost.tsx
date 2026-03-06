@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Image as ImageIcon, Palette } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ImageDropzone } from '@/components/ImageDropzone'
 import { recordSocialPostPreferenceAction } from '@/app/(frontend)/onboarding/actions'
 
 interface StepSocialPostProps {
@@ -23,12 +24,52 @@ export const StepSocialPost = ({
 }: StepSocialPostProps) => {
   const router = useRouter()
   const [selectedOption, setSelectedOption] = useState<'own' | 'create' | null>(null)
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSelectOption = (option: 'own' | 'create') => {
     setSelectedOption(option)
-    onValidationChange(stepIndex, true)
+    // Reset uploaded image when switching options
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+    }
+    setUploadedImage(null)
+    setPreviewUrl(null)
+    // For 'own' option, validation requires image upload
+    // For 'create' option, no image upload needed
+    if (option === 'create') {
+      onValidationChange(stepIndex, true)
+    } else {
+      // For 'own', wait for image upload
+      onValidationChange(stepIndex, false)
+    }
   }
+
+  const handleImageUpload = async (file: File) => {
+    // Revoke old preview URL if it exists
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+    }
+
+    // Create new preview URL
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
+    setUploadedImage(file)
+
+    // Mark step as valid once image is uploaded
+    onValidationChange(stepIndex, true)
+    return { success: true }
+  }
+
+  // Cleanup preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl)
+      }
+    }
+  }, [previewUrl])
 
   const handleNext = async () => {
     if (!selectedOption) return
@@ -40,8 +81,24 @@ export const StepSocialPost = ({
         onPreferenceSelected(selectedOption)
       }
 
-      // Redirect to image generator if "create" option was selected
-      if (selectedOption === 'create') {
+      // Handle image upload for "own" option
+      if (selectedOption === 'own' && uploadedImage) {
+        // Convert image to base64
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const base64 = e.target?.result as string
+          // Store in sessionStorage
+          sessionStorage.setItem('onboarding-background-image', base64)
+          // Redirect to image generator with flag
+          router.push('/image-generator?loadBackground=true')
+        }
+        reader.onerror = () => {
+          console.error('Error reading image file')
+          setIsSubmitting(false)
+        }
+        reader.readAsDataURL(uploadedImage)
+      } else if (selectedOption === 'create') {
+        // Redirect to image generator if "create" option was selected
         router.push('/image-generator')
       } else {
         onNext?.()
@@ -177,18 +234,56 @@ export const StepSocialPost = ({
           </button>
         </div>
 
-        {selectedOption && (
+        {/* Show dropzone when "own" option is selected */}
+        {selectedOption === 'own' && (
+          <div className="mt-6">
+            <p className="text-sm text-muted-foreground mb-4 text-center">
+              Upload your custom design image to use as a background in the image generator
+            </p>
+            <div className="flex justify-center">
+              <ImageDropzone onUpload={handleImageUpload} maxSizeMB={10} />
+            </div>
+            {uploadedImage && previewUrl && (
+              <div className="mt-6 space-y-4">
+                {/* Image Preview */}
+                <div className="flex justify-center">
+                  <div className="relative rounded-lg overflow-hidden border-2 border-border shadow-lg max-w-md w-full">
+                    <img
+                      src={previewUrl}
+                      alt="Preview of uploaded background"
+                      className="w-full h-auto object-contain max-h-80"
+                    />
+                    <div className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded text-xs">
+                      Preview
+                    </div>
+                  </div>
+                </div>
+
+                {/* Image Info */}
+                <div className="p-4 rounded-md bg-muted/50 border border-border">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-full bg-primary/10 p-2 mt-0.5">
+                      <ImageIcon className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-foreground">
+                        {uploadedImage.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {(uploadedImage.size / 1024 / 1024).toFixed(2)} MB • This image will be used as the background in the image generator tool
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {selectedOption === 'create' && (
           <div className="mt-6 p-4 rounded-md bg-muted/50 border border-border">
             <p className="text-sm text-foreground">
-              {selectedOption === 'own' ? (
-                <>
-                  Great! You can upload your own images later from the event dashboard. Click "Next" to complete the onboarding.
-                </>
-              ) : (
-                <>
-                  Excellent choice! After completing onboarding, you'll be redirected to the image generator tool to create your template.
-                </>
-              )}
+              Excellent choice! After completing onboarding, you'll be redirected to the image generator tool to create your template.
             </p>
           </div>
         )}
@@ -212,7 +307,8 @@ export const StepSocialPost = ({
           </>
         )}
 
-        {selectedOption && (
+        {/* Show Complete Setup button when valid */}
+        {selectedOption && (selectedOption === 'create' || (selectedOption === 'own' && uploadedImage)) && (
           <div className="flex justify-center mt-4">
             <Button
               type="button"
