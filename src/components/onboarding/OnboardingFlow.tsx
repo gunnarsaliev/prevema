@@ -76,7 +76,7 @@ export const OnboardingFlow = () => {
       cta: () => null, // Hide default Next button - StepEvent has its own buttons
     },
     {
-      title: 'Add event guests',
+      title: 'Add event guest forms',
       description: [
         {
           icon: Users,
@@ -110,7 +110,8 @@ export const OnboardingFlow = () => {
             <div className="text-center space-y-4">
               <Users className="h-12 w-12 text-muted-foreground mx-auto" />
               <p className="text-sm text-muted-foreground max-w-md">
-                You need to create an organization and event first. Go back to previous steps or skip.
+                You need to create an organization and event first. Go back to previous steps or
+                skip.
               </p>
               <Button onClick={props.onNext} variant="outline">
                 Skip this step
@@ -175,7 +176,8 @@ export const OnboardingFlow = () => {
             <div className="text-center space-y-4">
               <Palette className="h-12 w-12 text-muted-foreground mx-auto" />
               <p className="text-sm text-muted-foreground max-w-md">
-                You need to create an organization first. Go back to step 1 or complete the onboarding.
+                You need to create an organization first. Go back to step 1 or complete the
+                onboarding.
               </p>
               <Button
                 onClick={() => {

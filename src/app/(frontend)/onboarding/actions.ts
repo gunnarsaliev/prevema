@@ -664,9 +664,19 @@ export async function createParticipantTypeAction(
     console.error('[createParticipantTypeAction] Error:', error)
 
     if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = error.message as string
+
+      // Check for duplicate slug/name errors
+      if (errorMessage.includes('slug') || errorMessage.includes('unique')) {
+        return {
+          success: false,
+          message: 'A participant type with this name already exists. Please choose a different name.',
+        }
+      }
+
       return {
         success: false,
-        message: error.message as string,
+        message: errorMessage,
       }
     }
 
@@ -754,9 +764,19 @@ export async function createPartnerTypeAction(
     console.error('[createPartnerTypeAction] Error:', error)
 
     if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = error.message as string
+
+      // Check for duplicate slug/name errors
+      if (errorMessage.includes('slug') || errorMessage.includes('unique')) {
+        return {
+          success: false,
+          message: 'A partner type with this name already exists. Please choose a different name.',
+        }
+      }
+
       return {
         success: false,
-        message: error.message as string,
+        message: errorMessage,
       }
     }
 

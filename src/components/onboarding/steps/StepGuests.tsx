@@ -229,347 +229,347 @@ export const StepGuests = ({
         <div className="rounded-full bg-primary/10 dark:bg-primary/20 p-4">
           <Users className="h-8 w-8 text-primary" />
         </div>
-        <p className="text-sm text-muted-foreground text-center">Set up guest types for your event</p>
+        <p className="text-sm text-muted-foreground text-center">
+          Set up guest types for your event
+        </p>
         <p className="text-xs text-muted-foreground text-center max-w-md">
           You can skip this step and add guest types later, or add them now to get shareable
           registration links
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-4">
-        {/* Left column: Created Types */}
-        <div className="lg:col-span-1">
-          <div className="shadow-lg bg-white dark:bg-gray-950 rounded-md p-4 sticky top-4">
-        <h3 className="font-semibold text-foreground mb-4">Created Types</h3>
+      {/* Forms to add new types */}
+      <div className="space-y-4">
+        {/* Participant Types */}
+        <div className="space-y-4 shadow-lg bg-white dark:bg-gray-950 rounded-md p-4">
+          <h3 className="font-semibold text-foreground">Participant Types</h3>
+          <p className="text-xs text-muted-foreground">Speakers, attendees, presenters, etc.</p>
 
-        {/* Participant types list */}
-        {(participantTypes.length > 0 || participantLoading) && (
-          <div className="space-y-2 mb-4">
-            <Label className="text-xs text-muted-foreground">Participants</Label>
-            {participantTypes.map((type) => (
-              <div
-                key={type.id}
-                className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20"
-              >
-                <span className="text-sm font-medium truncate flex-1">{type.name}</span>
-                <div className="flex items-center gap-1">
-                  {type.publicFormLink && (
-                    <a
-                      href={type.publicFormLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:text-primary/80"
-                      title="View public form"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => removeParticipantType(type.id)}
-                    className="text-muted-foreground hover:text-destructive"
-                    aria-label="Remove"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-            {participantLoading && (
-              <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-4 w-4" />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Partner types list */}
-        {(partnerTypes.length > 0 || partnerLoading) && (
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Partners</Label>
-            {partnerTypes.map((type) => (
-              <div
-                key={type.id}
-                className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20"
-              >
-                <span className="text-sm font-medium truncate flex-1">{type.name}</span>
-                <div className="flex items-center gap-1">
-                  {type.publicFormLink && (
-                    <a
-                      href={type.publicFormLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:text-primary/80"
-                      title="View public form"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => removePartnerType(type.id)}
-                    className="text-muted-foreground hover:text-destructive"
-                    aria-label="Remove"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-            {partnerLoading && (
-              <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-4 w-4" />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Initial loading state */}
-        {isInitialLoading && (
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-24 mb-2" />
+          <div className="space-y-3">
             <div className="space-y-2">
-              <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-4 w-4" />
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="h-4 w-4" />
-              </div>
+              <Label htmlFor="participantName" className="text-sm">
+                Type name
+              </Label>
+              <Input
+                id="participantName"
+                type="text"
+                placeholder="e.g., Speaker, Attendee"
+                value={participantName}
+                onChange={(e) => setParticipantName(e.target.value)}
+                className="bg-background"
+                disabled={participantLoading}
+              />
             </div>
-          </div>
-        )}
 
-        {/* Empty state */}
-        {!isInitialLoading &&
-          participantTypes.length === 0 &&
-          partnerTypes.length === 0 &&
-          !participantLoading &&
-          !partnerLoading && (
-            <p className="text-xs text-muted-foreground text-center py-4">
-              No types created yet. Add participant or partner types to see them here.
-            </p>
-          )}
+            <div className="space-y-2">
+              {/* Advanced options collapsible */}
+              <Collapsible open={participantAdvancedOpen} onOpenChange={setParticipantAdvancedOpen}>
+                <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  <ChevronDown
+                    className={`h-3 w-3 transition-transform ${participantAdvancedOpen ? 'rotate-180' : ''}`}
+                  />
+                  Advanced options
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-2">
+                  <Label className="text-sm mb-2 block">Customize form fields</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Basic fields */}
+                    {participantBasicFields.map((option) => (
+                      <div key={option.value} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`participant-${option.value}`}
+                          checked={participantFields.includes(option.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setParticipantFields([...participantFields, option.value])
+                            } else {
+                              setParticipantFields(
+                                participantFields.filter((f) => f !== option.value),
+                              )
+                            }
+                          }}
+                          className="bg-background"
+                        />
+                        <label
+                          htmlFor={`participant-${option.value}`}
+                          className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+
+                    {/* Advanced fields */}
+                    {participantAdvancedFields.map((option) => (
+                      <div key={option.value} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`participant-${option.value}`}
+                          checked={participantFields.includes(option.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setParticipantFields([...participantFields, option.value])
+                            } else {
+                              setParticipantFields(
+                                participantFields.filter((f) => f !== option.value),
+                              )
+                            }
+                          }}
+                          className="bg-background"
+                        />
+                        <label
+                          htmlFor={`participant-${option.value}`}
+                          className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+
+            {participantError && <p className="text-xs text-destructive">{participantError}</p>}
+
+            <Button
+              type="button"
+              onClick={handleAddParticipantType}
+              size="sm"
+              className="w-full"
+              disabled={participantLoading || !participantName.trim()}
+            >
+              {participantLoading ? 'Adding...' : '+ Add Participant Type'}
+            </Button>
           </div>
         </div>
 
-        {/* Right column: Forms to add new types */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Participant Types */}
-          <div className="space-y-4 shadow-lg bg-white dark:bg-gray-950 rounded-md p-4">
-            <h3 className="font-semibold text-foreground">Participant Types</h3>
-            <p className="text-xs text-muted-foreground">Speakers, attendees, presenters, etc.</p>
+        {/* Partner Types */}
+        <div className="space-y-4 shadow-lg bg-white dark:bg-gray-950 rounded-md p-4">
+          <h3 className="font-semibold text-foreground">Partner Types</h3>
+          <p className="text-xs text-muted-foreground">Sponsors, exhibitors, vendors, etc.</p>
 
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="participantName" className="text-sm">
-                  Type name
-                </Label>
-                <Input
-                  id="participantName"
-                  type="text"
-                  placeholder="e.g., Speaker, Attendee"
-                  value={participantName}
-                  onChange={(e) => setParticipantName(e.target.value)}
-                  className="bg-background"
-                  disabled={participantLoading}
-                />
-              </div>
-
-              <div className="space-y-2">
-                {/* Advanced options collapsible */}
-                <Collapsible
-                  open={participantAdvancedOpen}
-                  onOpenChange={setParticipantAdvancedOpen}
-                >
-                  <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    <ChevronDown
-                      className={`h-3 w-3 transition-transform ${participantAdvancedOpen ? 'rotate-180' : ''}`}
-                    />
-                    Advanced options
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-2">
-                    <Label className="text-sm mb-2 block">Customize form fields</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {/* Basic fields */}
-                      {participantBasicFields.map((option) => (
-                        <div key={option.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`participant-${option.value}`}
-                            checked={participantFields.includes(option.value)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setParticipantFields([...participantFields, option.value])
-                              } else {
-                                setParticipantFields(
-                                  participantFields.filter((f) => f !== option.value),
-                                )
-                              }
-                            }}
-                            className="bg-background"
-                          />
-                          <label
-                            htmlFor={`participant-${option.value}`}
-                            className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {option.label}
-                          </label>
-                        </div>
-                      ))}
-
-                      {/* Advanced fields */}
-                      {participantAdvancedFields.map((option) => (
-                        <div key={option.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`participant-${option.value}`}
-                            checked={participantFields.includes(option.value)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setParticipantFields([...participantFields, option.value])
-                              } else {
-                                setParticipantFields(
-                                  participantFields.filter((f) => f !== option.value),
-                                )
-                              }
-                            }}
-                            className="bg-background"
-                          />
-                          <label
-                            htmlFor={`participant-${option.value}`}
-                            className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {option.label}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
-
-              {participantError && <p className="text-xs text-destructive">{participantError}</p>}
-
-              <Button
-                type="button"
-                onClick={handleAddParticipantType}
-                size="sm"
-                className="w-full"
-                disabled={participantLoading || !participantName.trim()}
-              >
-                {participantLoading ? 'Adding...' : '+ Add Participant Type'}
-              </Button>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="partnerName" className="text-sm">
+                Type name
+              </Label>
+              <Input
+                id="partnerName"
+                type="text"
+                placeholder="e.g., Sponsor, Exhibitor"
+                value={partnerName}
+                onChange={(e) => setPartnerName(e.target.value)}
+                className="bg-background"
+                disabled={partnerLoading}
+              />
             </div>
-          </div>
 
-          {/* Partner Types */}
-          <div className="space-y-4 shadow-lg bg-white dark:bg-gray-950 rounded-md p-4">
-            <h3 className="font-semibold text-foreground">Partner Types</h3>
-            <p className="text-xs text-muted-foreground">Sponsors, exhibitors, vendors, etc.</p>
+            <div className="space-y-2">
+              {/* Advanced options collapsible */}
+              <Collapsible open={partnerAdvancedOpen} onOpenChange={setPartnerAdvancedOpen}>
+                <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  <ChevronDown
+                    className={`h-3 w-3 transition-transform ${partnerAdvancedOpen ? 'rotate-180' : ''}`}
+                  />
+                  Advanced options
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-2">
+                  <Label className="text-sm mb-2 block">Customize form fields</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Basic fields */}
+                    {partnerBasicFields.map((option) => (
+                      <div key={option.value} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`partner-${option.value}`}
+                          checked={partnerFields.includes(option.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setPartnerFields([...partnerFields, option.value])
+                            } else {
+                              setPartnerFields(partnerFields.filter((f) => f !== option.value))
+                            }
+                          }}
+                          className="bg-background"
+                        />
+                        <label
+                          htmlFor={`partner-${option.value}`}
+                          className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
 
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="partnerName" className="text-sm">
-                  Type name
-                </Label>
-                <Input
-                  id="partnerName"
-                  type="text"
-                  placeholder="e.g., Sponsor, Exhibitor"
-                  value={partnerName}
-                  onChange={(e) => setPartnerName(e.target.value)}
-                  className="bg-background"
-                  disabled={partnerLoading}
-                />
-              </div>
-
-              <div className="space-y-2">
-                {/* Advanced options collapsible */}
-                <Collapsible open={partnerAdvancedOpen} onOpenChange={setPartnerAdvancedOpen}>
-                  <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    <ChevronDown
-                      className={`h-3 w-3 transition-transform ${partnerAdvancedOpen ? 'rotate-180' : ''}`}
-                    />
-                    Advanced options
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-2">
-                    <Label className="text-sm mb-2 block">Customize form fields</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {/* Basic fields */}
-                      {partnerBasicFields.map((option) => (
-                        <div key={option.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`partner-${option.value}`}
-                            checked={partnerFields.includes(option.value)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setPartnerFields([...partnerFields, option.value])
-                              } else {
-                                setPartnerFields(partnerFields.filter((f) => f !== option.value))
-                              }
-                            }}
-                            className="bg-background"
-                          />
-                          <label
-                            htmlFor={`partner-${option.value}`}
-                            className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {option.label}
-                          </label>
-                        </div>
-                      ))}
-
-                      {/* Advanced fields */}
-                      {partnerAdvancedFields.map((option) => (
-                        <div key={option.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`partner-${option.value}`}
-                            checked={partnerFields.includes(option.value)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setPartnerFields([...partnerFields, option.value])
-                              } else {
-                                setPartnerFields(partnerFields.filter((f) => f !== option.value))
-                              }
-                            }}
-                            className="bg-background"
-                          />
-                          <label
-                            htmlFor={`partner-${option.value}`}
-                            className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {option.label}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
-
-              {partnerError && <p className="text-xs text-destructive">{partnerError}</p>}
-
-              <Button
-                type="button"
-                onClick={handleAddPartnerType}
-                size="sm"
-                className="w-full"
-                disabled={partnerLoading || !partnerName.trim()}
-              >
-                {partnerLoading ? 'Adding...' : '+ Add Partner Type'}
-              </Button>
+                    {/* Advanced fields */}
+                    {partnerAdvancedFields.map((option) => (
+                      <div key={option.value} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`partner-${option.value}`}
+                          checked={partnerFields.includes(option.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setPartnerFields([...partnerFields, option.value])
+                            } else {
+                              setPartnerFields(partnerFields.filter((f) => f !== option.value))
+                            }
+                          }}
+                          className="bg-background"
+                        />
+                        <label
+                          htmlFor={`partner-${option.value}`}
+                          className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
+
+            {partnerError && <p className="text-xs text-destructive">{partnerError}</p>}
+
+            <Button
+              type="button"
+              onClick={handleAddPartnerType}
+              size="sm"
+              className="w-full"
+              disabled={partnerLoading || !partnerName.trim()}
+            >
+              {partnerLoading ? 'Adding...' : '+ Add Partner Type'}
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Skip button */}
       <div className="flex justify-center">
-        <Button type="button" variant="outline" onClick={onNext} className="min-w-[200px]">
-          {participantTypes.length > 0 || partnerTypes.length > 0 ? 'Continue' : 'Skip this step'}
-        </Button>
+        {/* Created Types */}
+        {(isInitialLoading ||
+          participantTypes.length > 0 ||
+          partnerTypes.length > 0 ||
+          participantLoading ||
+          partnerLoading) && (
+          <div className="shadow-lg p-4">
+            {/* Participant types list */}
+            {(participantTypes.length > 0 || participantLoading) && (
+              <div className="space-y-2 mb-4">
+                <Label className="text-xs text-muted-foreground">Participants</Label>
+                {participantTypes.map((type) => (
+                  <div
+                    key={type.id}
+                    className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20"
+                  >
+                    <span className="text-sm font-medium truncate flex-1">{type.name}</span>
+                    <div className="flex items-center gap-1">
+                      {type.publicFormLink && (
+                        <a
+                          href={type.publicFormLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:text-primary/80"
+                          title="View public form"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeParticipantType(type.id)}
+                        className="text-muted-foreground hover:text-destructive"
+                        aria-label="Remove"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {participantLoading && (
+                  <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-4" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Partner types list */}
+            {(partnerTypes.length > 0 || partnerLoading) && (
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Partners</Label>
+                {partnerTypes.map((type) => (
+                  <div
+                    key={type.id}
+                    className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20"
+                  >
+                    <span className="text-sm font-medium truncate flex-1">{type.name}</span>
+                    <div className="flex items-center gap-1">
+                      {type.publicFormLink && (
+                        <a
+                          href={type.publicFormLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:text-primary/80"
+                          title="View public form"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removePartnerType(type.id)}
+                        className="text-muted-foreground hover:text-destructive"
+                        aria-label="Remove"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {partnerLoading && (
+                  <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-4" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Initial loading state */}
+            {isInitialLoading && (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24 mb-2" />
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-4" />
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-4 w-4" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!isInitialLoading &&
+              participantTypes.length === 0 &&
+              partnerTypes.length === 0 &&
+              !participantLoading &&
+              !partnerLoading && (
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  No types created yet. Add participant or partner types to see them here.
+                </p>
+              )}
+            <Button type="button" variant="outline" onClick={onNext} className="min-w-[200px]">
+              {participantTypes.length > 0 || partnerTypes.length > 0
+                ? 'Continue'
+                : 'Skip this step'}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )
