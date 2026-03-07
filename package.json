@@ -90,6 +90,7 @@
     "react-icons": "^5.5.0",
     "react-resizable-panels": "^2.1.8",
     "recharts": "^3.7.0",
+    "resend": "^6.9.3",
     "sharp": "0.34.2",
     "slugify": "^1.6.6",
     "sonner": "^2.0.7",

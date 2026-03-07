@@ -1,5 +1,6 @@
 import type { Payload } from 'payload'
 import type { EmailTemplate } from '@/payload-types'
+import { Resend } from 'resend'
 import { lexicalToHtml } from '@/utils/lexicalToHtml'
 import { compileTemplate } from '@/utils/templateEngine'
 
@@ -26,9 +27,12 @@ interface TenantEmailConfig {
  * such as participant notifications, event updates, etc.
  *
  * Key Features:
- * - Uses organization-specific Resend API keys (if configured)
- * - Falls back to system email config if organization doesn't have custom config
+ * - REQUIRES organization-specific Resend API keys to be configured
  * - Uses custom email templates from the EmailTemplates collection
+ * - Sends emails directly via Resend SDK using organization's API key
+ *
+ * IMPORTANT: Organizations MUST have active emailConfig with valid resendApiKey.
+ * There is NO fallback to system email for organization-triggered emails.
  *
  * NOTE: System emails (password reset, invitations) use the global Resend adapter
  * configured in payload.config.ts, NOT this service.
@@ -113,22 +117,54 @@ export async function sendTenantEmail({
     // Get organization email config
     const emailConfig = (organization as any).emailConfig as TenantEmailConfig | undefined
 
-    // Determine which email configuration to use
-    const useCustomConfig = emailConfig?.isActive && emailConfig?.resendApiKey
+    // Validate that organization has active custom email configuration
+    if (!emailConfig?.isActive) {
+      throw new Error(
+        `Organization "${organization.name}" (ID: ${tenantId}) does not have an active email configuration. ` +
+          `Please enable custom email configuration in Organization settings.`,
+      )
+    }
 
-    // Send the email
-    await payload.sendEmail({
+    if (!emailConfig.resendApiKey) {
+      throw new Error(
+        `Organization "${organization.name}" (ID: ${tenantId}) is missing Resend API key. ` +
+          `Please add a valid Resend API key in Organization settings.`,
+      )
+    }
+
+    if (!emailConfig.fromEmail) {
+      throw new Error(
+        `Organization "${organization.name}" (ID: ${tenantId}) is missing "From Email" address. ` +
+          `Please configure the from email address in Organization settings.`,
+      )
+    }
+
+    // Create Resend instance with organization's API key
+    const resend = new Resend(emailConfig.resendApiKey)
+
+    // Prepare from address
+    const fromAddress = emailConfig.senderName
+      ? `${emailConfig.senderName} <${emailConfig.fromEmail}>`
+      : emailConfig.fromEmail
+
+    // Send the email using organization's Resend account
+    const result = await resend.emails.send({
+      from: fromAddress,
       to,
       subject,
       html,
-      from:
-        useCustomConfig && emailConfig.fromEmail
-          ? `${emailConfig.senderName || 'Notification'} <${emailConfig.fromEmail}>`
-          : undefined, // Falls back to default
-      replyTo: useCustomConfig && emailConfig.replyToEmail ? emailConfig.replyToEmail : undefined,
+      replyTo: emailConfig.replyToEmail || undefined,
     })
 
-    console.log(`✅ Email sent successfully to ${to} using template: ${templateName}`)
+    if (!result.data) {
+      throw new Error(
+        `Resend API error: ${result.error?.message || 'Unknown error sending email'}`,
+      )
+    }
+
+    console.log(
+      `✅ Email sent successfully to ${to} using template: ${templateName} (Resend ID: ${result.data.id})`,
+    )
 
     return { success: true }
   } catch (error) {
@@ -167,21 +203,53 @@ export async function sendSimpleTenantEmail({
 
     // Get organization email config
     const emailConfig = (organization as any).emailConfig as TenantEmailConfig | undefined
-    const useCustomConfig = emailConfig?.isActive && emailConfig?.resendApiKey
 
-    // Send the email
-    await payload.sendEmail({
+    // Validate that organization has active custom email configuration
+    if (!emailConfig?.isActive) {
+      throw new Error(
+        `Organization "${organization.name}" (ID: ${tenantId}) does not have an active email configuration. ` +
+          `Please enable custom email configuration in Organization settings.`,
+      )
+    }
+
+    if (!emailConfig.resendApiKey) {
+      throw new Error(
+        `Organization "${organization.name}" (ID: ${tenantId}) is missing Resend API key. ` +
+          `Please add a valid Resend API key in Organization settings.`,
+      )
+    }
+
+    if (!emailConfig.fromEmail) {
+      throw new Error(
+        `Organization "${organization.name}" (ID: ${tenantId}) is missing "From Email" address. ` +
+          `Please configure the from email address in Organization settings.`,
+      )
+    }
+
+    // Create Resend instance with organization's API key
+    const resend = new Resend(emailConfig.resendApiKey)
+
+    // Prepare from address
+    const fromAddress = emailConfig.senderName
+      ? `${emailConfig.senderName} <${emailConfig.fromEmail}>`
+      : emailConfig.fromEmail
+
+    // Send the email using organization's Resend account
+    const result = await resend.emails.send({
+      from: fromAddress,
       to,
       subject,
       html,
-      from:
-        useCustomConfig && emailConfig.fromEmail
-          ? `${emailConfig.senderName || 'Notification'} <${emailConfig.fromEmail}>`
-          : undefined,
-      replyTo: useCustomConfig && emailConfig.replyToEmail ? emailConfig.replyToEmail : undefined,
+      replyTo: emailConfig.replyToEmail || undefined,
     })
 
-    console.log(`✅ Email sent successfully to ${to}`)
+    if (!result.data) {
+      throw new Error(
+        `Resend API error: ${result.error?.message || 'Unknown error sending email'}`,
+      )
+    }
+
+    console.log(`✅ Email sent successfully to ${to} (Resend ID: ${result.data.id})`)
 
     return { success: true }
   } catch (error) {

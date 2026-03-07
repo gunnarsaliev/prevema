@@ -318,9 +318,26 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
                     )}
                   </>
                 ) : (
-                  <p className="text-sm text-red-800 dark:text-red-200">
-                    Error: {result.error || 'Failed to send emails'}
-                  </p>
+                  <>
+                    <p className="font-medium text-red-800 dark:text-red-200">
+                      Failed to send emails
+                    </p>
+                    {result.summary && (
+                      <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                        {result.summary.failed} of {result.summary.total} email(s) failed to send.
+                      </p>
+                    )}
+                    {result.results && result.results.length > 0 && result.results[0].error && (
+                      <p className="text-sm text-red-700 dark:text-red-300 mt-2">
+                        <strong>Error:</strong> {result.results[0].error}
+                      </p>
+                    )}
+                    {result.error && (
+                      <p className="text-sm text-red-700 dark:text-red-300 mt-2">
+                        <strong>Error:</strong> {result.error}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             </div>

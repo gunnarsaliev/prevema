@@ -360,7 +360,7 @@ export async function POST(request: Request) {
         // Send final result
         const finalData = {
           type: 'complete',
-          success: true,
+          success: successCount > 0, // True only if at least one email succeeded
           summary: {
             total: results.length,
             successful: successCount,

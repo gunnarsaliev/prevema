@@ -47,9 +47,9 @@ RESEND_DEFAULT_FROM_NAME=Prevema
 pnpm dev
 ```
 
-## Organization Email Setup (Optional)
+## Organization Email Setup (REQUIRED)
 
-Organizations can configure their own email branding:
+Organizations **must** configure their own Resend API key to send emails:
 
 ### Admin Panel Configuration
 
@@ -70,7 +70,7 @@ Organization emails are triggered by platform events:
 - Event updates
 - Custom email automations
 
-These use the organization's custom Resend configuration if active, otherwise fall back to system email config.
+**Important:** Organizations must have an active custom Resend configuration to send emails. There is no fallback to system email - emails will fail if the organization doesn't have valid Resend API configuration.
 
 ## Email Architecture
 
@@ -98,12 +98,13 @@ These use the organization's custom Resend configuration if active, otherwise fa
 - Custom organization emails
 
 **Configuration:**
-- Per-organization Resend keys
+- **REQUIRES** per-organization Resend API keys
 - Stored in `Organizations.emailConfig`
 - Custom email templates from `EmailTemplates` collection
+- Emails sent directly via organization's Resend account (NOT via Payload adapter)
 
 **Files:**
-- `src/services/email.ts` - Tenant email service
+- `src/services/email.ts` - Tenant email service (uses Resend SDK directly)
 - `src/collections/Organizations/index.ts` - Email config fields
 - `src/collections/EmailTemplates/` - Custom email templates
 
@@ -140,26 +141,33 @@ These use the organization's custom Resend configuration if active, otherwise fa
 User Request
     |
     ├─ System Email (password reset)
-    │   └─> Global Resend Adapter
-    │       └─> System API Key
+    │   └─> Global Resend Adapter (payload.config.ts)
+    │       └─> System API Key (RESEND_API_KEY env var)
     │           └─> RESEND_DEFAULT_FROM_ADDRESS
     │
     └─ Organization Email (notifications)
         └─> src/services/email.ts
-            ├─> Check: Organization has custom config?
-            │   ├─ Yes: Use org Resend key + from address
-            │   └─ No: Fall back to system config
-            └─> Send via Payload's sendEmail()
+            ├─> Validate: Organization has active email config?
+            │   ├─ No: Throw error (email fails)
+            │   └─ Yes: Continue
+            ├─> Validate: Organization has Resend API key?
+            │   ├─ No: Throw error (email fails)
+            │   └─ Yes: Continue
+            ├─> Create new Resend instance with org's API key
+            └─> Send directly via Resend SDK
+                └─> Organization's Resend account
 ```
 
 ## Best Practices
 
 1. **Always use production Resend keys** for system emails
-2. **Verify domains** before going live
-3. **Test password reset** with a non-admin user
-4. **Monitor Resend logs** for delivery issues
-5. **Keep API keys secret** - never commit to git
-6. **Use different keys** for development and production
+2. **Verify domains** before going live (both system and organization domains)
+3. **Each organization must have its own Resend API key** configured
+4. **Test password reset** with a non-admin user
+5. **Test organization emails** to ensure Resend config is valid
+6. **Monitor Resend logs** for delivery issues (check both system and organization Resend accounts)
+7. **Keep API keys secret** - never commit to git
+8. **Use different keys** for development and production
 
 ## Support
 
