@@ -97,7 +97,13 @@ export default async function DashboardPage() {
               location={getEventLocation(upcomingEvent)}
               title={upcomingEvent.name}
               description={getEventDescription(upcomingEvent)}
-              eventType={upcomingEvent.eventType}
+              eventType={
+                upcomingEvent.eventType === 'physical'
+                  ? 'in-person'
+                  : upcomingEvent.eventType === 'online'
+                    ? 'online'
+                    : undefined
+              }
             />
           </Link>
         </div>
