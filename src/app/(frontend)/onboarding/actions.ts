@@ -939,6 +939,130 @@ export async function recordSocialPostPreferenceAction(
 }
 
 /**
+ * Save uploaded image as an ImageTemplate during onboarding
+ */
+export async function saveOnboardingImageTemplateAction(
+  organizationId: number,
+  imageFile: File,
+): Promise<OnboardingActionState<{ id: number; name: string }>> {
+  try {
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: await config })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'Unauthorized. Please log in to continue.',
+      }
+    }
+
+    // Verify user owns the organization
+    const organization = await payload.findByID({
+      collection: 'organizations',
+      id: organizationId,
+      user,
+      overrideAccess: true,
+    })
+
+    if (!organization) {
+      return {
+        success: false,
+        message: 'Organization not found.',
+      }
+    }
+
+    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    if (ownerId !== user.id) {
+      return {
+        success: false,
+        message: 'You do not have permission to create templates in this organization.',
+      }
+    }
+
+    // Get image dimensions
+    const arrayBuffer = await imageFile.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    // Upload image to media collection
+    const mediaResult = await payload.create({
+      collection: 'media',
+      data: {
+        alt: `${organization.name} - Onboarding Background`,
+      },
+      file: {
+        data: buffer,
+        name: imageFile.name,
+        mimetype: imageFile.type,
+        size: imageFile.size,
+      },
+      user,
+      overrideAccess: true,
+    })
+
+    const mediaId = typeof mediaResult.id === 'number' ? mediaResult.id : Number(mediaResult.id)
+
+    // Get dimensions from the uploaded media
+    const uploadedMedia = await payload.findByID({
+      collection: 'media',
+      id: mediaId,
+      user,
+      overrideAccess: true,
+    })
+
+    const width = (uploadedMedia.width as number) || 1080
+    const height = (uploadedMedia.height as number) || 1080
+
+    // Create ImageTemplate with the uploaded background
+    const templateName = `${organization.name} - Onboarding Template`
+    const template = await payload.create({
+      collection: 'image-templates',
+      data: {
+        name: templateName,
+        organization: organizationId,
+        usageType: 'both', // Can be used for both participants and partners
+        width,
+        height,
+        backgroundImage: mediaId,
+        backgroundColor: '#ffffff',
+        elements: [], // Empty elements array
+        isActive: true,
+        previewImage: mediaId, // Use same image as preview
+      },
+      user,
+      overrideAccess: true,
+    })
+
+    const templateId = typeof template.id === 'number' ? template.id : Number(template.id)
+
+    revalidatePath('/dash')
+
+    return {
+      success: true,
+      message: 'Template created successfully',
+      data: {
+        id: templateId,
+        name: template.name,
+      },
+    }
+  } catch (error) {
+    console.error('[saveOnboardingImageTemplateAction] Error:', error)
+
+    if (error && typeof error === 'object' && 'message' in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      }
+    }
+
+    return {
+      success: false,
+      message: 'Failed to save image template. Please try again.',
+    }
+  }
+}
+
+/**
  * Get participant types for an event
  */
 export async function getParticipantTypesAction(

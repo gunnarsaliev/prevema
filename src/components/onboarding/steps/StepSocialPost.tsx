@@ -5,7 +5,10 @@ import { useRouter } from 'next/navigation'
 import { Image as ImageIcon, Palette } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ImageDropzone } from '@/components/ImageDropzone'
-import { recordSocialPostPreferenceAction } from '@/app/(frontend)/onboarding/actions'
+import {
+  recordSocialPostPreferenceAction,
+  saveOnboardingImageTemplateAction,
+} from '@/app/(frontend)/onboarding/actions'
 
 interface StepSocialPostProps {
   stepIndex: number
@@ -81,22 +84,19 @@ export const StepSocialPost = ({
         onPreferenceSelected(selectedOption)
       }
 
-      // Handle image upload for "own" option
+      // Handle image upload for "own" option - save as ImageTemplate
       if (selectedOption === 'own' && uploadedImage) {
-        // Convert image to base64
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          const base64 = e.target?.result as string
-          // Store in sessionStorage
-          sessionStorage.setItem('onboarding-background-image', base64)
-          // Redirect to image generator with flag
-          router.push('/image-generator?loadBackground=true')
-        }
-        reader.onerror = () => {
-          console.error('Error reading image file')
+        const result = await saveOnboardingImageTemplateAction(organizationId, uploadedImage)
+
+        if (result.success) {
+          console.log('Image template created:', result.data)
+          // Redirect to dashboard after successful upload
+          router.push('/dash')
+        } else {
+          console.error('Failed to save image template:', result.message)
+          alert(result.message || 'Failed to save image template. Please try again.')
           setIsSubmitting(false)
         }
-        reader.readAsDataURL(uploadedImage)
       } else if (selectedOption === 'create') {
         // Redirect to image generator if "create" option was selected
         router.push('/image-generator')
@@ -105,6 +105,7 @@ export const StepSocialPost = ({
       }
     } catch (error) {
       console.error('Error saving preference:', error)
+      alert('An error occurred. Please try again.')
       setIsSubmitting(false)
     }
   }
@@ -169,7 +170,7 @@ export const StepSocialPost = ({
               <div>
                 <h4 className="font-semibold text-foreground text-lg mb-1">I have my own design</h4>
                 <p className="text-sm text-muted-foreground">
-                  Upload your own template
+                  Upload and save your custom background
                 </p>
               </div>
             </div>
@@ -238,7 +239,7 @@ export const StepSocialPost = ({
         {selectedOption === 'own' && (
           <div className="mt-6">
             <p className="text-sm text-muted-foreground mb-4 text-center">
-              Upload your custom design image to use as a background in the image generator
+              Upload your custom design image to save as a template background
             </p>
             <div className="flex justify-center">
               <ImageDropzone onUpload={handleImageUpload} maxSizeMB={10} />
@@ -270,7 +271,7 @@ export const StepSocialPost = ({
                         {uploadedImage.name}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {(uploadedImage.size / 1024 / 1024).toFixed(2)} MB • This image will be used as the background in the image generator tool
+                        {(uploadedImage.size / 1024 / 1024).toFixed(2)} MB • This image will be saved as a template background
                       </p>
                     </div>
                   </div>

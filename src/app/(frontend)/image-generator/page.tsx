@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Menubar,
@@ -72,7 +71,6 @@ const templates: Template[] = [
 ]
 
 export default function ImageTemplateGenerator() {
-  const searchParams = useSearchParams()
   const [selectedTemplate, setSelectedTemplate] = useState<Template>(templates[0])
   const imageInputRef = useRef<HTMLInputElement>(null)
   const backgroundInputRef = useRef<HTMLInputElement>(null)
@@ -232,42 +230,6 @@ export default function ImageTemplateGenerator() {
 
     restoreImages()
   }, [currentElements, loadImage, getImage])
-
-  // Load background image from sessionStorage if coming from onboarding
-  useEffect(() => {
-    const loadBackground = searchParams.get('loadBackground')
-    if (loadBackground === 'true') {
-      const backgroundImageBase64 = sessionStorage.getItem('onboarding-background-image')
-      if (backgroundImageBase64) {
-        // Load the image
-        const img = new window.Image()
-        img.crossOrigin = 'anonymous'
-        img.onload = () => {
-          setSelectedTemplate((prev) => ({
-            ...prev,
-            backgroundImage: backgroundImageBase64,
-          }))
-          // Clear sessionStorage
-          sessionStorage.removeItem('onboarding-background-image')
-          // Show success toast
-          toast({
-            title: 'Background Loaded',
-            description: 'Your custom background image has been loaded successfully!',
-          })
-        }
-        img.onerror = () => {
-          // Clear sessionStorage even on error
-          sessionStorage.removeItem('onboarding-background-image')
-          toast({
-            title: 'Load Error',
-            description: 'Failed to load background image. Please try uploading again.',
-            variant: 'destructive',
-          })
-        }
-        img.src = backgroundImageBase64
-      }
-    }
-  }, [searchParams, toast])
 
   // Optimize image upload with better error handling:
   const handleImageUpload = useCallback(
@@ -1070,7 +1032,7 @@ export default function ImageTemplateGenerator() {
 
             {/* Layers Panel - Moved to the right */}
             <div className="lg:col-span-1 space-y-4">
-              <Link href={'/admin'}>
+              <Link href={'/dash'}>
                 <Button variant="outline" size="sm" className="w-full mb-4">
                   Go to dashboard
                 </Button>
