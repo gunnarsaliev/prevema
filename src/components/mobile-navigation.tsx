@@ -40,9 +40,9 @@ export function MobileNavigation({
     },
     {
       id: 'graphics' as NavItemId,
-      label: 'Graphics',
+      label: 'Assets',
       icon: Palette,
-      url: '/dash/graphics',
+      url: '/dash/assets',
     },
     {
       id: 'search' as NavItemId,
