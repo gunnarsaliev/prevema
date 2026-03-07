@@ -96,6 +96,10 @@ export default buildConfig({
         endpoint: process.env.S3_ENDPOINT || '',
         forcePathStyle: false,
       },
+      acl: 'public-read',
+      ...(process.env.S3_PUBLIC_URL && {
+        publicURL: process.env.S3_PUBLIC_URL,
+      }),
     }),
   ],
 })
