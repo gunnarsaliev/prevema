@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ColumnDef, Row } from '@tanstack/react-table'
-import { Pencil, Trash2, Loader2, MoreHorizontal, Mail } from 'lucide-react'
+import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image } from 'lucide-react'
 
 import type { Participant } from '@/payload-types'
 import { Button } from '@/components/ui/button'
@@ -25,6 +25,7 @@ import {
   getRelationName,
 } from '@/lib/entity-actions'
 import { BulkEmailModal } from '@/components/BulkEmailModal'
+import { GenerationModal } from '@/components/GenerationModal'
 
 const STATUS_LABEL: Record<string, string> = {
   'not-approved': 'Not Approved',
@@ -59,6 +60,8 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
   const [selectedParticipantIds, setSelectedParticipantIds] = useState<string[]>([])
   const [organizationId, setOrganizationId] = useState<string>('')
   const [loadingEmail, setLoadingEmail] = useState(false)
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+  const [imageParticipantIds, setImageParticipantIds] = useState<string[]>([])
 
   const handleEventChange = (value: string) => {
     if (value === 'all') {
@@ -149,7 +152,31 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
     setOrganizationId('')
   }
 
+  const handleBulkGenerateImages = (rows: Row<Participant>[]) => {
+    // Extract participant IDs from selected rows
+    const ids = rows.map((row) => String(row.original.id))
+
+    if (ids.length === 0) {
+      alert('No participants selected')
+      return
+    }
+
+    setImageParticipantIds(ids)
+    setIsImageModalOpen(true)
+  }
+
+  const handleCloseImageModal = () => {
+    setIsImageModalOpen(false)
+    setImageParticipantIds([])
+  }
+
   const bulkActions: BulkAction<Participant>[] = [
+    {
+      label: 'Generate Images',
+      icon: <Image className="mr-2 h-4 w-4" />,
+      variant: 'default',
+      onClick: handleBulkGenerateImages,
+    },
     {
       label: 'Send Email',
       icon: loadingEmail ? (
@@ -291,6 +318,14 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
           participantIds={selectedParticipantIds}
           organizationId={organizationId}
           onClose={handleCloseEmailModal}
+          entityType="participant"
+        />
+      )}
+
+      {isImageModalOpen && imageParticipantIds.length > 0 && (
+        <GenerationModal
+          participantIds={imageParticipantIds}
+          onClose={handleCloseImageModal}
           entityType="participant"
         />
       )}

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ColumnDef, Row } from '@tanstack/react-table'
-import { Pencil, Trash2, Loader2, MoreHorizontal, Mail } from 'lucide-react'
+import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image } from 'lucide-react'
 
 import type { Partner } from '@/payload-types'
 import { Button } from '@/components/ui/button'
@@ -25,6 +25,7 @@ import {
   getRelationName,
 } from '@/lib/entity-actions'
 import { BulkEmailModal } from '@/components/BulkEmailModal'
+import { GenerationModal } from '@/components/GenerationModal'
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   default: 'secondary',
@@ -52,6 +53,8 @@ export function PartnersList({ partners, events, eventId }: Props) {
   const [selectedPartnerIds, setSelectedPartnerIds] = useState<string[]>([])
   const [organizationId, setOrganizationId] = useState<string>('')
   const [loadingEmail, setLoadingEmail] = useState(false)
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+  const [imagePartnerIds, setImagePartnerIds] = useState<string[]>([])
 
   const handleEventChange = (value: string) => {
     if (value === 'all') {
@@ -142,7 +145,31 @@ export function PartnersList({ partners, events, eventId }: Props) {
     setOrganizationId('')
   }
 
+  const handleBulkGenerateImages = (rows: Row<Partner>[]) => {
+    // Extract partner IDs from selected rows
+    const ids = rows.map((row) => String(row.original.id))
+
+    if (ids.length === 0) {
+      alert('No partners selected')
+      return
+    }
+
+    setImagePartnerIds(ids)
+    setIsImageModalOpen(true)
+  }
+
+  const handleCloseImageModal = () => {
+    setIsImageModalOpen(false)
+    setImagePartnerIds([])
+  }
+
   const bulkActions: BulkAction<Partner>[] = [
+    {
+      label: 'Generate Images',
+      icon: <Image className="mr-2 h-4 w-4" />,
+      variant: 'default',
+      onClick: handleBulkGenerateImages,
+    },
     {
       label: 'Send Email',
       icon: loadingEmail ? (
@@ -290,6 +317,14 @@ export function PartnersList({ partners, events, eventId }: Props) {
           participantIds={selectedPartnerIds}
           organizationId={organizationId}
           onClose={handleCloseEmailModal}
+          entityType="partner"
+        />
+      )}
+
+      {isImageModalOpen && imagePartnerIds.length > 0 && (
+        <GenerationModal
+          participantIds={imagePartnerIds}
+          onClose={handleCloseImageModal}
           entityType="partner"
         />
       )}

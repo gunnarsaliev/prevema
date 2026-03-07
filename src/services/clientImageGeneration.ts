@@ -1,4 +1,4 @@
-import type { Participant, ImageTemplate, Media } from '@/payload-types'
+import type { Participant, Partner, ImageTemplate, Media } from '@/payload-types'
 import {
   createClientCanvas,
   getCanvasContext,
@@ -54,6 +54,11 @@ export interface GeneratedImage {
 }
 
 /**
+ * Union type for entities that can have images generated
+ */
+export type ImageEntity = Participant | Partner
+
+/**
  * Progress callback for tracking generation progress
  */
 export type ProgressCallback = (current: number, total: number) => void
@@ -63,42 +68,44 @@ export type ProgressCallback = (current: number, total: number) => void
  */
 export class ClientImageGenerationService {
   /**
-   * Generate images for multiple participants
-   * @param participants - Array of participant objects
+   * Generate images for multiple participants or partners
+   * @param entities - Array of participant or partner objects
    * @param template - Image template to use
    * @param onProgress - Optional callback to track progress
    * @returns Array of generated image results
    */
   async generateImages(
-    participants: Participant[],
+    entities: ImageEntity[],
     template: ImageTemplate,
     onProgress?: ProgressCallback,
   ): Promise<GeneratedImage[]> {
-    // Process participants in parallel with concurrency limit of 5
+    // Process entities in parallel with concurrency limit of 5
     const concurrencyLimit = 5
     const results: GeneratedImage[] = []
     let completedCount = 0
 
-    for (let i = 0; i < participants.length; i += concurrencyLimit) {
-      const batch = participants.slice(i, i + concurrencyLimit)
+    for (let i = 0; i < entities.length; i += concurrencyLimit) {
+      const batch = entities.slice(i, i + concurrencyLimit)
 
       const batchResults = await Promise.allSettled(
-        batch.map(async (participant) => {
+        batch.map(async (entity) => {
           try {
-            const blob = await this.generateSingleImage(participant, template)
-            const fileName = this.generateFileName(participant, template)
+            const blob = await this.generateSingleImage(entity, template)
+            const fileName = this.generateFileName(entity, template)
+            const entityName = this.getEntityName(entity)
 
             return {
-              participantId: String(participant.id),
-              participantName: participant.name,
+              participantId: String(entity.id),
+              participantName: entityName,
               blob,
               fileName,
               success: true,
             } as GeneratedImage
           } catch (error) {
+            const entityName = this.getEntityName(entity)
             return {
-              participantId: String(participant.id),
-              participantName: participant.name,
+              participantId: String(entity.id),
+              participantName: entityName,
               blob: new Blob(),
               fileName: '',
               success: false,
@@ -116,7 +123,7 @@ export class ClientImageGenerationService {
 
           // Call progress callback if provided
           if (onProgress) {
-            onProgress(completedCount, participants.length)
+            onProgress(completedCount, entities.length)
           }
         } else {
           // This shouldn't happen since we catch errors above, but handle it anyway
@@ -131,7 +138,7 @@ export class ClientImageGenerationService {
           completedCount++
 
           if (onProgress) {
-            onProgress(completedCount, participants.length)
+            onProgress(completedCount, entities.length)
           }
         }
       }
@@ -141,16 +148,16 @@ export class ClientImageGenerationService {
   }
 
   /**
-   * Generate a single image for one participant
-   * @param participant - Participant object
+   * Generate a single image for one participant or partner
+   * @param entity - Participant or Partner object
    * @param template - Image template to use
    * @returns PNG blob of the generated image
    */
-  async generateSingleImage(participant: Participant, template: ImageTemplate): Promise<Blob> {
+  async generateSingleImage(entity: ImageEntity, template: ImageTemplate): Promise<Blob> {
     try {
-      return await this.renderCanvas(participant, template)
+      return await this.renderCanvas(entity, template)
     } catch (error) {
-      console.error(`Error generating image for participant ${participant.id}:`, error)
+      console.error(`Error generating image for entity ${entity.id}:`, error)
       throw new Error(
         `Failed to generate image: ${error instanceof Error ? error.message : 'Unknown error'}`,
       )
@@ -158,12 +165,12 @@ export class ClientImageGenerationService {
   }
 
   /**
-   * Render canvas with participant data
-   * @param participant - Participant object
+   * Render canvas with participant/partner data
+   * @param entity - Participant or Partner object
    * @param template - Image template to use
    * @returns PNG blob of the rendered canvas
    */
-  private async renderCanvas(participant: Participant, template: ImageTemplate): Promise<Blob> {
+  private async renderCanvas(entity: ImageEntity, template: ImageTemplate): Promise<Blob> {
     // Create canvas with template dimensions
     const canvas = createClientCanvas(template.width, template.height)
     const ctx = getCanvasContext(canvas)
@@ -180,7 +187,7 @@ export class ClientImageGenerationService {
         continue
       }
 
-      await this.renderElement(ctx, element, participant)
+      await this.renderElement(ctx, element, entity)
     }
 
     // Convert to PNG blob
@@ -251,25 +258,25 @@ export class ClientImageGenerationService {
    * Render a single element on the canvas
    * @param ctx - Canvas rendering context
    * @param element - Canvas element to render
-   * @param participant - Participant data for variable substitution
+   * @param entity - Participant or Partner data for variable substitution
    */
   private async renderElement(
     ctx: CanvasRenderingContext2D,
     element: CanvasElement,
-    participant: Participant,
+    entity: ImageEntity,
   ): Promise<void> {
     switch (element.type) {
       case 'text':
         this.renderTextElement(ctx, element)
         break
       case 'text-variable':
-        await this.renderTextVariableElement(ctx, element, participant)
+        await this.renderTextVariableElement(ctx, element, entity)
         break
       case 'image':
         await this.renderImageElement(ctx, element)
         break
       case 'image-variable':
-        await this.renderImageVariableElement(ctx, element, participant)
+        await this.renderImageVariableElement(ctx, element, entity)
         break
     }
   }
@@ -296,20 +303,20 @@ export class ClientImageGenerationService {
   }
 
   /**
-   * Render a text variable element with participant data
+   * Render a text variable element with participant/partner data
    * @param ctx - Canvas rendering context
    * @param element - Text variable element to render
-   * @param participant - Participant data
+   * @param entity - Participant or Partner data
    */
   private async renderTextVariableElement(
     ctx: CanvasRenderingContext2D,
     element: CanvasElement,
-    participant: Participant,
+    entity: ImageEntity,
   ): Promise<void> {
     if (!element.variableType) return
 
-    // Get participant field value
-    const value = this.getFieldValue(element.variableType, participant)
+    // Get entity field value
+    const value = this.getFieldValue(element.variableType, entity)
 
     // Apply text styling
     applyTextStyle(ctx, {
@@ -386,20 +393,20 @@ export class ClientImageGenerationService {
   }
 
   /**
-   * Render an image variable element with participant data
+   * Render an image variable element with participant/partner data
    * @param ctx - Canvas rendering context
    * @param element - Image variable element to render
-   * @param participant - Participant data
+   * @param entity - Participant or Partner data
    */
   private async renderImageVariableElement(
     ctx: CanvasRenderingContext2D,
     element: CanvasElement,
-    participant: Participant,
+    entity: ImageEntity,
   ): Promise<void> {
     if (!element.variableType) return
 
-    // Get participant image URL
-    const imageUrl = await this.getImageUrl(element.variableType, participant)
+    // Get entity image URL
+    const imageUrl = await this.getImageUrl(element.variableType, entity)
 
     if (!imageUrl) {
       // Skip if no image URL available
@@ -476,19 +483,19 @@ export class ClientImageGenerationService {
   }
 
   /**
-   * Get participant field value by variable type for text variables
+   * Get entity field value by variable type for text variables
    * @param variableType - The variable type (e.g., "NAME", "EMAIL")
-   * @param participant - The participant object
+   * @param entity - The participant or partner object
    * @returns The field value as a string, or empty string if not found
    */
-  private getFieldValue(variableType: string, participant: Participant): string {
+  private getFieldValue(variableType: string, entity: ImageEntity): string {
     const fieldName = VARIABLE_FIELD_MAPPING[variableType]
 
     if (!fieldName) {
       return ''
     }
 
-    const value = participant[fieldName as keyof Participant]
+    const value = entity[fieldName as keyof ImageEntity]
 
     // Handle null/undefined values
     if (value === null || value === undefined) {
@@ -500,15 +507,15 @@ export class ClientImageGenerationService {
   }
 
   /**
-   * Get participant image URL by variable type for image variables
+   * Get entity image URL by variable type for image variables
    * Converts relative URLs to absolute URLs for client-side image loading
    * @param variableType - The variable type (e.g., "PROFILE_IMAGE", "COMPANY_LOGO")
-   * @param participant - The participant object
+   * @param entity - The participant or partner object
    * @returns The absolute image URL as a string, or null if not found
    */
   private async getImageUrl(
     variableType: string,
-    participant: Participant,
+    entity: ImageEntity,
   ): Promise<string | null> {
     const fieldName = VARIABLE_FIELD_MAPPING[variableType]
 
@@ -516,7 +523,7 @@ export class ClientImageGenerationService {
       return null
     }
 
-    const value = participant[fieldName as keyof Participant]
+    const value = entity[fieldName as keyof ImageEntity]
 
     // Handle null/undefined values
     if (value === null || value === undefined) {
@@ -602,17 +609,34 @@ export class ClientImageGenerationService {
   }
 
   /**
-   * Generate filename for a participant's image
-   * @param participant - Participant object
+   * Get entity name (works for both participants and partners)
+   * @param entity - Participant or Partner object
+   * @returns Entity name string
+   */
+  private getEntityName(entity: ImageEntity): string {
+    // Partners use 'companyName', Participants use 'name'
+    if ('companyName' in entity && entity.companyName) {
+      return entity.companyName
+    }
+    if ('name' in entity && entity.name) {
+      return entity.name
+    }
+    return 'unknown'
+  }
+
+  /**
+   * Generate filename for an entity's image
+   * @param entity - Participant or Partner object
    * @param template - Image template
    * @returns Filename string
    */
-  private generateFileName(participant: Participant, template: ImageTemplate): string {
+  private generateFileName(entity: ImageEntity, template: ImageTemplate): string {
     const timestamp = Date.now()
-    const sanitizedParticipantName = this.sanitizeFilename(participant.name)
+    const entityName = this.getEntityName(entity)
+    const sanitizedEntityName = this.sanitizeFilename(entityName)
     const sanitizedTemplateName = this.sanitizeFilename(template.name)
 
-    return `${sanitizedParticipantName}-${sanitizedTemplateName}-${timestamp}.png`
+    return `${sanitizedEntityName}-${sanitizedTemplateName}-${timestamp}.png`
   }
 
   /**

@@ -1,16 +1,22 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { X, Image as ImageIcon, CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { VARIABLE_FIELD_MAPPING } from '@/services/variableMapping'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 
 /**
  * Props for the GenerationModal component
  */
 interface GenerationModalProps {
-  /** Array of participant IDs to generate images for */
+  /** Array of participant/partner IDs to generate images for */
   participantIds: string[]
   /** Callback function to close the modal */
   onClose: () => void
+  /** Entity type: participant or partner */
+  entityType?: 'participant' | 'partner'
 }
 
 /**
@@ -78,7 +84,15 @@ interface TemplateWithVariables extends TemplateOption {
  * @param props - Component props
  * @returns React component
  */
-export const GenerationModal: React.FC<GenerationModalProps> = ({ participantIds, onClose }) => {
+export const GenerationModal: React.FC<GenerationModalProps> = ({
+  participantIds,
+  onClose,
+  entityType = 'participant'
+}) => {
+  const entityLabel = entityType === 'partner' ? 'Partner' : 'Participant'
+  const entityLabelPlural = entityType === 'partner' ? 'Partners' : 'Participants'
+  const entityCollectionSlug = entityType === 'partner' ? 'partners' : 'participants'
+
   const [templates, setTemplates] = useState<TemplateWithVariables[]>([])
   const [participants, setParticipants] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -106,21 +120,21 @@ export const GenerationModal: React.FC<GenerationModalProps> = ({ participantIds
     const fetchData = async () => {
       setLoading(true)
       try {
-        // Fetch templates filtered for participant usage
-        const templatesResponse = await fetch('/api/load-image-templates?usageType=participant', {
+        // Fetch templates filtered for entity usage type
+        const templatesResponse = await fetch(`/api/load-image-templates?usageType=${entityType}`, {
           credentials: 'include',
         })
         const templatesData = (await templatesResponse.json()) as {
           templates: TemplateOption[]
         }
 
-        // Fetch participants
-        const participantsPromises = participantIds.map((id) =>
-          fetch(`/api/participants/${id}`, {
+        // Fetch entities (participants or partners)
+        const entitiesPromises = participantIds.map((id) =>
+          fetch(`/api/${entityCollectionSlug}/${id}?depth=2`, {
             credentials: 'include',
           }).then((res) => res.json()),
         )
-        const participantsData = await Promise.all(participantsPromises)
+        const participantsData = await Promise.all(entitiesPromises)
 
         // Process templates to extract variables and check for missing data
         const processedTemplates = templatesData.templates.map((template: TemplateOption) => {
@@ -144,7 +158,7 @@ export const GenerationModal: React.FC<GenerationModalProps> = ({ participantIds
     }
 
     fetchData()
-  }, [participantIds])
+  }, [participantIds, entityType, entityCollectionSlug])
 
   /**
    * Extract variable information from template elements
@@ -207,9 +221,9 @@ export const GenerationModal: React.FC<GenerationModalProps> = ({ participantIds
     // Clear any previous validation errors
     setValidationError(null)
 
-    // Validate participant IDs are provided
+    // Validate entity IDs are provided
     if (!participantIds || participantIds.length === 0) {
-      setValidationError('No participants selected. Please select at least one participant.')
+      setValidationError(`No ${entityLabelPlural.toLowerCase()} selected. Please select at least one ${entityLabel.toLowerCase()}.`)
       return
     }
 
@@ -352,327 +366,229 @@ export const GenerationModal: React.FC<GenerationModalProps> = ({ participantIds
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'var(--theme-overlay-backdrop, rgba(0, 0, 0, 0.6))',
-        backdropFilter: 'blur(4px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
-      }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={(e) => {
         if (e.target === e.currentTarget && !generating) {
           onClose()
         }
       }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="generation-modal-title"
     >
-      <div
-        style={{
-          backgroundColor: 'var(--theme-elevation-0, #ffffff)',
-          borderRadius: '12px',
-          maxWidth: '900px',
-          width: '90%',
-          maxHeight: '90vh',
-          overflow: 'auto',
-          boxShadow: 'var(--theme-shadow-lg, 0 10px 40px rgba(0, 0, 0, 0.15))',
-          border: '1px solid var(--theme-elevation-200)',
-        }}
-      >
-        <div style={{ padding: '2rem' }}>
-          <h2
-            style={{
-              marginTop: 0,
-              color: 'var(--theme-text-heading)',
-              fontSize: '1.5rem',
-              fontWeight: '600',
-            }}
-          >
-            Generate Images for {participantIds.length} Participant
-            {participantIds.length > 1 ? 's' : ''}
-          </h2>
+      <div className="relative w-[90%] max-w-4xl max-h-[90vh] overflow-auto bg-background border border-border rounded-lg shadow-lg animate-in zoom-in-95 duration-200">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          disabled={generating}
+          className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </button>
 
-          {loading && <p style={{ color: 'var(--theme-text-secondary)' }}>Loading templates...</p>}
-
-          {/* Subtask 11.1: Show validation errors in modal */}
-          {validationError && (
-            <div
-              style={{
-                padding: '1rem',
-                marginBottom: '1rem',
-                borderRadius: '4px',
-                backgroundColor: 'var(--theme-error-100)',
-                border: '1px solid var(--theme-error-500)',
-              }}
+        <div className="p-6 space-y-6">
+          {/* Header */}
+          <div className="pr-8">
+            <h2
+              id="generation-modal-title"
+              className="text-2xl font-semibold tracking-tight flex items-center gap-2"
             >
-              <p style={{ margin: 0, color: 'var(--theme-error-700)', fontWeight: 'bold' }}>
-                ⚠️ Validation Error
-              </p>
-              <p
-                style={{
-                  margin: '0.5rem 0 0 0',
-                  fontSize: '0.875rem',
-                  color: 'var(--theme-text-secondary)',
-                }}
-              >
-                {validationError}
-              </p>
+              <ImageIcon className="h-6 w-6 text-primary" />
+              Generate Images for {participantIds.length}{' '}
+              {participantIds.length > 1 ? entityLabelPlural : entityLabel}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-2">
+              Select a template to generate personalized images for selected{' '}
+              {entityLabelPlural.toLowerCase()}.
+            </p>
+          </div>
+
+          {/* Loading state */}
+          {loading && (
+            <div className="flex items-center gap-2 text-muted-foreground py-8">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading templates...</span>
             </div>
           )}
 
-          {!loading && templates.length === 0 && (
-            <p style={{ color: 'var(--theme-warning-500)' }}>
-              No active templates found for participants.
-            </p>
+          {/* Validation errors */}
+          {validationError && (
+            <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                  Validation Error
+                </p>
+                <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                  {validationError}
+                </p>
+              </div>
+            </div>
           )}
 
+          {/* No templates message */}
+          {!loading && templates.length === 0 && (
+            <div className="flex items-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  No active templates found
+                </p>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                  Please create an active image template for {entityLabelPlural.toLowerCase()} before generating images.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Template selection */}
           {!loading && templates.length > 0 && !generating && !result && (
-            <div>
-              <p style={{ marginBottom: '1.5rem', color: 'var(--theme-text-secondary)' }}>
-                Select a template to generate personalized images:
-              </p>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-                  gap: '1rem',
-                }}
-              >
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {templates.map((template) => (
                   <TemplateCard
                     key={template.id}
                     template={template}
                     onSelect={handleTemplateSelect}
+                    entityLabelPlural={entityLabelPlural}
                   />
                 ))}
               </div>
             </div>
           )}
 
+          {/* Progress indicator */}
           {generating && progress && (
-            <div
-              style={{
-                padding: '1.5rem',
-                borderRadius: '8px',
-                background: 'var(--theme-elevation-100)',
-                border: '1px solid var(--theme-elevation-300)',
-              }}
-            >
-              <p
-                style={{
-                  marginBottom: '1rem',
-                  fontWeight: '600',
-                  color: 'var(--theme-text-primary)',
-                }}
-              >
-                Generating images...
-              </p>
-              <div
-                style={{
-                  width: '100%',
-                  height: '8px',
-                  backgroundColor: 'var(--theme-elevation-200)',
-                  borderRadius: '4px',
-                  overflow: 'hidden',
-                  marginBottom: '0.5rem',
-                }}
-              >
-                <div
-                  style={{
-                    width: `${(progress.current / progress.total) * 100}%`,
-                    height: '100%',
-                    backgroundColor: 'var(--theme-success-500)',
-                    transition: 'width 0.3s ease',
-                  }}
-                />
+            <div className="space-y-4 p-4 bg-secondary/50 border border-border rounded-lg">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span className="font-medium text-sm">
+                  Generating images...
+                </span>
               </div>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '0.875rem',
-                  color: 'var(--theme-text-secondary)',
-                }}
-              >
-                {progress.current} of {progress.total} completed
-              </p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    Progress: {progress.current} of {progress.total}
+                  </span>
+                  <span className="font-medium">
+                    {Math.round((progress.current / progress.total) * 100)}%
+                  </span>
+                </div>
+                <Progress value={(progress.current / progress.total) * 100} className="h-2" />
+              </div>
             </div>
           )}
 
+          {/* Result message */}
           {result && (
             <div
-              style={{
-                padding: '1.5rem',
-                borderRadius: '8px',
-                background: result.success
+              className={`flex items-start gap-3 p-4 border rounded-lg ${
+                result.success
                   ? result.failureCount && result.failureCount > 0
-                    ? 'var(--theme-warning-100)'
-                    : 'var(--theme-success-100)'
-                  : 'var(--theme-error-100)',
-                border: `1px solid ${
-                  result.success
-                    ? result.failureCount && result.failureCount > 0
-                      ? 'var(--theme-warning-500)'
-                      : 'var(--theme-success-500)'
-                    : 'var(--theme-error-500)'
-                }`,
-              }}
+                    ? 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-900'
+                    : 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900'
+                  : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900'
+              }`}
             >
               {result.success ? (
-                <div>
-                  {/* Subtask 10.3: Show success message after download starts */}
-                  <p
-                    style={{
-                      margin: 0,
-                      fontWeight: 'bold',
-                      color:
-                        result.failureCount && result.failureCount > 0
-                          ? 'var(--theme-warning-700)'
-                          : 'var(--theme-success-700)',
-                    }}
-                  >
-                    {result.failureCount && result.failureCount > 0
-                      ? '⚠️ Partial Success - Some images failed to generate'
-                      : '✓ Success! Your download has started.'}
-                  </p>
-
-                  {/* Subtask 11.3: Show success count and failure count */}
-                  {result.successCount !== undefined && result.failureCount !== undefined && (
-                    <p
-                      style={{
-                        margin: '0.5rem 0 0 0',
-                        fontSize: '0.875rem',
-                        color: 'var(--theme-text-secondary)',
-                      }}
-                    >
-                      Successfully generated: {result.successCount} /{' '}
-                      {result.successCount + result.failureCount}
-                      {result.failureCount > 0 && ` (${result.failureCount} failed)`}
-                    </p>
-                  )}
-
-                  {result.fileName && (
-                    <p
-                      style={{
-                        margin: '0.5rem 0 0 0',
-                        fontSize: '0.875rem',
-                        color: 'var(--theme-text-secondary)',
-                      }}
-                    >
-                      File: {result.fileName}
-                    </p>
-                  )}
-                  <p
-                    style={{
-                      margin: '0.75rem 0 0 0',
-                      fontSize: '0.875rem',
-                      color: 'var(--theme-text-secondary)',
-                    }}
-                  >
-                    {participantIds.length === 1
-                      ? 'The image has been downloaded to your device.'
-                      : result.failureCount && result.failureCount > 0
-                        ? `${result.successCount} successful images have been packaged and downloaded as a ZIP file.`
-                        : `${participantIds.length} images have been packaged and downloaded as a ZIP file.`}
-                  </p>
-                </div>
+                result.failureCount && result.failureCount > 0 ? (
+                  <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                ) : (
+                  <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                )
               ) : (
-                <div>
-                  <p style={{ margin: 0, fontWeight: 'bold', color: 'var(--theme-error-700)' }}>
-                    ✗ Generation failed
-                  </p>
-
-                  {/* Subtask 11.3: Display list of failed participants */}
-                  {result.errors && result.errors.length > 0 && (
-                    <div style={{ marginTop: '0.75rem' }}>
-                      <p
-                        style={{
-                          margin: '0 0 0.5rem 0',
-                          fontSize: '0.875rem',
-                          fontWeight: '600',
-                          color: 'var(--theme-text-secondary)',
-                        }}
-                      >
-                        Failed participants:
-                      </p>
-                      <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
-                        {result.errors.map((error, index) => (
-                          <li
-                            key={index}
-                            style={{
-                              fontSize: '0.875rem',
-                              color: 'var(--theme-text-secondary)',
-                              marginBottom: '0.25rem',
-                            }}
-                          >
-                            {error.participantName ? (
-                              <>
-                                <strong>{error.participantName}</strong>: {error.error}
-                              </>
-                            ) : (
-                              error.error
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
+                <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
               )}
+              <div className="flex-1">
+                {result.success ? (
+                  <>
+                    <p
+                      className={`font-medium ${
+                        result.failureCount && result.failureCount > 0
+                          ? 'text-yellow-800 dark:text-yellow-200'
+                          : 'text-green-800 dark:text-green-200'
+                      }`}
+                    >
+                      {result.failureCount && result.failureCount > 0
+                        ? 'Partial Success - Some images failed to generate'
+                        : 'Success! Your download has started.'}
+                    </p>
+
+                    {result.successCount !== undefined && result.failureCount !== undefined && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Successfully generated: {result.successCount} /{' '}
+                        {result.successCount + result.failureCount}
+                        {result.failureCount > 0 && ` (${result.failureCount} failed)`}
+                      </p>
+                    )}
+
+                    {result.fileName && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        File: <span className="font-mono">{result.fileName}</span>
+                      </p>
+                    )}
+
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {participantIds.length === 1
+                        ? `The ${entityLabel.toLowerCase()} image has been downloaded to your device.`
+                        : result.failureCount && result.failureCount > 0
+                          ? `${result.successCount} successful ${entityLabel.toLowerCase()} images have been packaged and downloaded as a ZIP file.`
+                          : `${participantIds.length} ${entityLabel.toLowerCase()} images have been packaged and downloaded as a ZIP file.`}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium text-red-800 dark:text-red-200">
+                      Generation failed
+                    </p>
+
+                    {result.errors && result.errors.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-sm font-medium text-muted-foreground mb-1">
+                          Failed {entityLabelPlural.toLowerCase()}:
+                        </p>
+                        <ul className="list-disc list-inside space-y-1">
+                          {result.errors.map((error, index) => (
+                            <li key={index} className="text-sm text-red-700 dark:text-red-300">
+                              {error.participantName ? (
+                                <>
+                                  <strong>{error.participantName}</strong>: {error.error}
+                                </>
+                              ) : (
+                                error.error
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           )}
 
+          {/* Actions */}
           {!generating && (
-            <div
-              style={{
-                marginTop: '1.5rem',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '0.5rem',
-              }}
-            >
-              {/* Subtask 11.2: Provide retry button for failures */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t">
               {result && !result.success && selectedTemplateId && (
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => handleTemplateSelect(selectedTemplateId)}
-                  style={{
-                    padding: '0.625rem 1.25rem',
-                    cursor: 'pointer',
-                    borderRadius: '6px',
-                    border: '1px solid var(--theme-elevation-300)',
-                    background: 'var(--theme-elevation-100)',
-                    color: 'var(--theme-text-primary)',
-                    fontWeight: '500',
-                    transition: 'all 0.2s ease',
-                  }}
                 >
                   Retry
-                </button>
+                </Button>
               )}
-
-              {/* Subtask 10.3: Provide option to close modal */}
-              <button
+              <Button
                 type="button"
+                variant={result?.success ? 'default' : 'outline'}
                 onClick={onClose}
-                style={{
-                  padding: '0.625rem 1.25rem',
-                  cursor: 'pointer',
-                  borderRadius: '6px',
-                  border: result?.success ? 'none' : '1px solid var(--theme-elevation-300)',
-                  background: result?.success
-                    ? 'var(--theme-success-500)'
-                    : 'var(--theme-elevation-100)',
-                  color: result?.success ? '#ffffff' : 'var(--theme-text-primary)',
-                  fontWeight: result?.success ? '600' : '500',
-                  transition: 'all 0.2s ease',
-                }}
               >
                 {result?.success ? 'Done' : 'Close'}
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -685,110 +601,51 @@ export const GenerationModal: React.FC<GenerationModalProps> = ({ participantIds
 interface TemplateCardProps {
   template: TemplateWithVariables
   onSelect: (templateId: string) => void
+  entityLabelPlural: string
 }
 
-const TemplateCard: React.FC<TemplateCardProps> = ({ template, onSelect }) => {
-  const [isHovered, setIsHovered] = useState(false)
-
+const TemplateCard: React.FC<TemplateCardProps> = ({ template, onSelect, entityLabelPlural }) => {
   return (
     <div
-      style={{
-        border: '1px solid var(--theme-elevation-300)',
-        borderRadius: '12px',
-        padding: '1.25rem',
-        cursor: 'pointer',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
-        boxShadow: isHovered
-          ? 'var(--theme-shadow-hover, 0 8px 24px rgba(0, 0, 0, 0.12))'
-          : 'var(--theme-shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06))',
-        backgroundColor: 'var(--theme-elevation-0, #ffffff)',
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="group border border-border rounded-lg p-5 cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 bg-card"
       onClick={() => onSelect(template.id)}
     >
       {/* Preview Image */}
       {template.previewImage && (
-        <div
-          style={{
-            width: '100%',
-            height: '150px',
-            marginBottom: '1rem',
-            borderRadius: '4px',
-            overflow: 'hidden',
-            backgroundColor: 'var(--theme-elevation-100)',
-          }}
-        >
+        <div className="w-full h-40 mb-4 rounded overflow-hidden bg-muted">
           <img
             src={template.previewImage}
             alt={template.name}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-            }}
+            className="w-full h-full object-contain"
           />
         </div>
       )}
 
       {/* Template Name */}
-      <h3
-        style={{
-          margin: '0 0 0.5rem 0',
-          fontSize: '1.125rem',
-          fontWeight: '600',
-          color: 'var(--theme-text-heading)',
-        }}
-      >
+      <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors">
         {template.name}
       </h3>
 
       {/* Dimensions */}
-      <p
-        style={{
-          margin: '0 0 1rem 0',
-          fontSize: '0.875rem',
-          color: 'var(--theme-text-secondary)',
-        }}
-      >
+      <p className="text-sm text-muted-foreground mb-3">
         {template.width} × {template.height} px
       </p>
 
       {/* Variables */}
       {template.variables.length > 0 && (
-        <div style={{ marginBottom: '0.5rem' }}>
-          <p
-            style={{
-              margin: '0 0 0.5rem 0',
-              fontSize: '0.75rem',
-              fontWeight: '600',
-              color: 'var(--theme-text-tertiary)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-            }}
-          >
+        <div className="mb-3">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Variables:
           </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+          <div className="flex flex-wrap gap-1.5">
             {template.variables.map((variable, index) => (
-              <span
+              <Badge
                 key={index}
-                style={{
-                  fontSize: '0.75rem',
-                  padding: '0.375rem 0.75rem',
-                  borderRadius: '6px',
-                  backgroundColor:
-                    variable.type === 'text'
-                      ? 'var(--theme-elevation-200)'
-                      : 'var(--theme-elevation-300)',
-                  color: 'var(--theme-text-secondary)',
-                  border: '1px solid var(--theme-elevation-300)',
-                  fontWeight: '500',
-                }}
+                variant={variable.type === 'text' ? 'secondary' : 'outline'}
+                className="text-xs"
               >
                 {variable.variableName}
-              </span>
+              </Badge>
             ))}
           </div>
         </div>
@@ -796,23 +653,10 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onSelect }) => {
 
       {/* Missing Data Warning */}
       {template.missingDataWarning && (
-        <div
-          style={{
-            marginTop: '0.75rem',
-            padding: '0.625rem 0.75rem',
-            borderRadius: '6px',
-            backgroundColor: 'var(--theme-warning-100)',
-            border: '1px solid var(--theme-warning-400)',
-          }}
-        >
-          <p
-            style={{
-              margin: 0,
-              fontSize: '0.75rem',
-              color: 'var(--theme-warning-700)',
-            }}
-          >
-            ⚠️ Some participants may be missing data for this template
+        <div className="flex items-start gap-2 mt-3 p-2.5 rounded bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900">
+          <AlertCircle className="h-3.5 w-3.5 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-yellow-700 dark:text-yellow-300">
+            Some {entityLabelPlural.toLowerCase()} may be missing data for this template
           </p>
         </div>
       )}
