@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ColumnDef, Row } from '@tanstack/react-table'
-import { Pencil, Trash2, Loader2, MoreHorizontal } from 'lucide-react'
+import { Pencil, Trash2, Loader2, MoreHorizontal, Mail } from 'lucide-react'
 
 import type { Partner } from '@/payload-types'
 import { Button } from '@/components/ui/button'
@@ -24,6 +24,7 @@ import {
   handleEntityBulkDelete,
   getRelationName,
 } from '@/lib/entity-actions'
+import { BulkEmailModal } from '@/components/BulkEmailModal'
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   default: 'secondary',
@@ -47,6 +48,10 @@ export function PartnersList({ partners, events, eventId }: Props) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
+  const [selectedPartnerIds, setSelectedPartnerIds] = useState<string[]>([])
+  const [organizationId, setOrganizationId] = useState<string>('')
+  const [loadingEmail, setLoadingEmail] = useState(false)
 
   const handleEventChange = (value: string) => {
     if (value === 'all') {
@@ -93,7 +98,61 @@ export function PartnersList({ partners, events, eventId }: Props) {
     )
   }
 
+  const handleBulkEmail = async (rows: Row<Partner>[]) => {
+    setLoadingEmail(true)
+
+    try {
+      // Extract partner IDs from selected rows
+      const ids = rows.map((row) => String(row.original.id))
+
+      if (ids.length === 0) {
+        alert('No partners selected')
+        setLoadingEmail(false)
+        return
+      }
+
+      // Fetch the first partner to get organization ID
+      const response = await fetch(`/api/partners/${ids[0]}`)
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch partner: ${response.status} ${response.statusText}`)
+      }
+
+      const partner = await response.json()
+
+      const partnerOrganizationId =
+        typeof partner.organization === 'object'
+          ? partner.organization.id
+          : partner.organization
+
+      setSelectedPartnerIds(ids)
+      setOrganizationId(String(partnerOrganizationId))
+      setIsEmailModalOpen(true)
+    } catch (error) {
+      console.error('Failed to prepare bulk email:', error)
+      alert(`Failed to prepare bulk email: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setLoadingEmail(false)
+    }
+  }
+
+  const handleCloseEmailModal = () => {
+    setIsEmailModalOpen(false)
+    setSelectedPartnerIds([])
+    setOrganizationId('')
+  }
+
   const bulkActions: BulkAction<Partner>[] = [
+    {
+      label: 'Send Email',
+      icon: loadingEmail ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <Mail className="mr-2 h-4 w-4" />
+      ),
+      variant: 'default',
+      onClick: handleBulkEmail,
+    },
     {
       label: 'Delete',
       icon: bulkDeleting ? (
@@ -222,5 +281,18 @@ export function PartnersList({ partners, events, eventId }: Props) {
     },
   }
 
-  return <EntityList config={config} />
+  return (
+    <>
+      <EntityList config={config} />
+
+      {isEmailModalOpen && organizationId && selectedPartnerIds.length > 0 && (
+        <BulkEmailModal
+          participantIds={selectedPartnerIds}
+          organizationId={organizationId}
+          onClose={handleCloseEmailModal}
+          entityType="partner"
+        />
+      )}
+    </>
+  )
 }

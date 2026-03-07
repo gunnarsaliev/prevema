@@ -1,6 +1,10 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { X, Mail, CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Progress } from '@/components/ui/progress'
 
 interface BulkEmailModalProps {
   participantIds: string[]
@@ -160,66 +164,75 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
-      }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={(e) => {
         // Close modal if clicking backdrop
-        if (e.target === e.currentTarget) {
+        if (e.target === e.currentTarget && !sending) {
           onClose()
         }
       }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="bulk-email-modal-title"
     >
-      <div
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          maxWidth: '600px',
-          width: '90%',
-          maxHeight: '90vh',
-          overflow: 'auto',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        }}
-      >
-        <div style={{ padding: '2rem' }}>
-          <h2 style={{ marginTop: 0, color: '#333' }}>
-            Send Email to {participantIds.length}{' '}
-            {participantIds.length > 1 ? entityLabelPlural : entityLabel}
-          </h2>
+      <div className="relative w-[90%] max-w-2xl max-h-[90vh] overflow-auto bg-background border border-border rounded-lg shadow-lg animate-in zoom-in-95 duration-200">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          disabled={sending}
+          className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </button>
 
-          {loading && <p>Loading templates...</p>}
-
-          {!loading && templates.length === 0 && (
-            <p style={{ color: 'var(--theme-warning-500)' }}>
-              No active email templates found for this organization.
+        <div className="p-6 space-y-6">
+          {/* Header */}
+          <div className="pr-8">
+            <h2 id="bulk-email-modal-title" className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+              <Mail className="h-6 w-6 text-primary" />
+              Send Email to {participantIds.length}{' '}
+              {participantIds.length > 1 ? entityLabelPlural : entityLabel}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-2">
+              Select a template and send personalized emails to selected{' '}
+              {entityLabelPlural.toLowerCase()}.
             </p>
+          </div>
+
+          {/* Loading state */}
+          {loading && (
+            <div className="flex items-center gap-2 text-muted-foreground py-8">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading templates...</span>
+            </div>
           )}
 
+          {/* No templates message */}
+          {!loading && templates.length === 0 && (
+            <div className="flex items-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  No active email templates found
+                </p>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                  Please create an active email template for this organization before sending emails.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Template selection */}
           {!loading && templates.length > 0 && (
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label htmlFor="template-select" style={{ display: 'block', marginBottom: '0.5rem' }}>
-                Select Email Template
-              </label>
+            <div className="space-y-2">
+              <Label htmlFor="template-select">Email Template</Label>
               <select
                 id="template-select"
                 value={selectedTemplateId}
                 onChange={(e) => setSelectedTemplateId(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  fontSize: '1rem',
-                  borderRadius: '4px',
-                  border: '1px solid var(--theme-elevation-300)',
-                }}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={sending}
               >
                 <option value="">-- Choose a template --</option>
                 {templates.map((template) => (
@@ -231,16 +244,11 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
             </div>
           )}
 
+          {/* Template info */}
           {selectedTemplateId && (
-            <div
-              style={{
-                background: 'var(--theme-elevation-50)',
-                padding: '1rem',
-                borderRadius: '4px',
-                marginBottom: '1.5rem',
-              }}
-            >
-              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--theme-elevation-700)' }}>
+            <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>Note:</strong> Email variables will be automatically populated from each
                 {entityType === 'partner'
                   ? " partner's data (company name, contact person, email, etc.)."
@@ -249,146 +257,102 @@ export const BulkEmailModal: React.FC<BulkEmailModalProps> = ({
             </div>
           )}
 
+          {/* Progress indicator */}
           {progress && (
-            <div
-              style={{
-                padding: '1rem',
-                borderRadius: '4px',
-                marginBottom: '1.5rem',
-                background: 'var(--theme-elevation-100)',
-                border: '1px solid var(--theme-elevation-300)',
-              }}
-            >
-              <div style={{ marginBottom: '0.75rem' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginBottom: '0.5rem',
-                  }}
-                >
-                  <span style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>
-                    Sending emails: {progress.sentCount} sent, {progress.leftCount} left
-                  </span>
-                  <span style={{ fontSize: '0.875rem', color: 'var(--theme-elevation-600)' }}>
-                    {progress.sentCount}/{progress.totalCount}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    width: '100%',
-                    height: '8px',
-                    backgroundColor: 'var(--theme-elevation-200)',
-                    borderRadius: '4px',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: `${(progress.sentCount / progress.totalCount) * 100}%`,
-                      height: '100%',
-                      backgroundColor: 'var(--theme-success-500)',
-                      transition: 'width 0.3s ease',
-                    }}
-                  />
-                </div>
+            <div className="space-y-4 p-4 bg-secondary/50 border border-border rounded-lg">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">
+                  Sending: {progress.sentCount} of {progress.totalCount}
+                </span>
+                <span className="text-muted-foreground">
+                  {Math.round((progress.sentCount / progress.totalCount) * 100)}%
+                </span>
               </div>
-              {progress.successCount > 0 && (
-                <p
-                  style={{
-                    margin: '0.25rem 0',
-                    fontSize: '0.875rem',
-                    color: 'var(--theme-success-700)',
-                  }}
-                >
-                  ✓ {progress.successCount} successful
-                </p>
-              )}
-              {progress.failureCount > 0 && (
-                <p
-                  style={{
-                    margin: '0.25rem 0',
-                    fontSize: '0.875rem',
-                    color: 'var(--theme-error-700)',
-                  }}
-                >
-                  ✗ {progress.failureCount} failed
-                </p>
-              )}
+              <Progress value={(progress.sentCount / progress.totalCount) * 100} className="h-2" />
+              <div className="flex flex-col gap-2">
+                {progress.successCount > 0 && (
+                  <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span>{progress.successCount} successful</span>
+                  </div>
+                )}
+                {progress.failureCount > 0 && (
+                  <div className="flex items-center gap-2 text-sm text-red-700 dark:text-red-400">
+                    <XCircle className="h-4 w-4" />
+                    <span>{progress.failureCount} failed</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
+          {/* Result message */}
           {result && (
             <div
-              style={{
-                padding: '1rem',
-                borderRadius: '4px',
-                marginBottom: '1.5rem',
-                background: result.success ? 'var(--theme-success-100)' : 'var(--theme-error-100)',
-                border: `1px solid ${result.success ? 'var(--theme-success-500)' : 'var(--theme-error-500)'}`,
-              }}
+              className={`flex items-start gap-3 p-4 border rounded-lg ${
+                result.success
+                  ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900'
+                  : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900'
+              }`}
             >
               {result.success ? (
-                <>
-                  <p style={{ margin: 0, fontWeight: 'bold', color: 'var(--theme-success-700)' }}>
-                    Success! Emails sent to {result.summary?.successful || 0} of{' '}
-                    {result.summary?.total || 0}{' '}
-                    {result.summary?.total === 1
-                      ? entityLabel.toLowerCase()
-                      : entityLabelPlural.toLowerCase()}
-                    .
-                  </p>
-                  {result.summary?.failed > 0 && (
-                    <p
-                      style={{
-                        margin: '0.5rem 0 0 0',
-                        fontSize: '0.875rem',
-                        color: 'var(--theme-error-700)',
-                      }}
-                    >
-                      {result.summary.failed} email(s) failed to send. Check email logs for details.
-                    </p>
-                  )}
-                </>
+                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
               ) : (
-                <p style={{ margin: 0, color: 'var(--theme-error-700)' }}>
-                  Error: {result.error || 'Failed to send emails'}
-                </p>
+                <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
               )}
+              <div className="flex-1">
+                {result.success ? (
+                  <>
+                    <p className="font-medium text-green-800 dark:text-green-200">
+                      Success! Emails sent to {result.summary?.successful || 0} of{' '}
+                      {result.summary?.total || 0}{' '}
+                      {result.summary?.total === 1
+                        ? entityLabel.toLowerCase()
+                        : entityLabelPlural.toLowerCase()}
+                      .
+                    </p>
+                    {result.summary?.failed > 0 && (
+                      <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                        {result.summary.failed} email(s) failed to send. Check email logs for details.
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm text-red-800 dark:text-red-200">
+                    Error: {result.error || 'Failed to send emails'}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-            <button
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t">
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
               disabled={sending}
-              style={{
-                padding: '0.5rem 1rem',
-                cursor: sending ? 'not-allowed' : 'pointer',
-                opacity: sending ? 0.5 : 1,
-              }}
             >
               {result?.success ? 'Close' : 'Cancel'}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={handleSendEmail}
               disabled={!selectedTemplateId || sending || loading}
-              style={{
-                padding: '0.5rem 1rem',
-                background: 'var(--theme-success-500)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: !selectedTemplateId || sending || loading ? 'not-allowed' : 'pointer',
-                opacity: !selectedTemplateId || sending || loading ? 0.5 : 1,
-              }}
             >
-              {sending
-                ? 'Sending...'
-                : `Send to ${participantIds.length} ${participantIds.length > 1 ? entityLabelPlural : entityLabel}`}
-            </button>
+              {sending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail className="h-4 w-4" />
+                  Send to {participantIds.length}
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </div>
