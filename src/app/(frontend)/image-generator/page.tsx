@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Menubar,
@@ -71,6 +72,7 @@ const templates: Template[] = [
 ]
 
 export default function ImageTemplateGenerator() {
+  const router = useRouter()
   const [selectedTemplate, setSelectedTemplate] = useState<Template>(templates[0])
   const imageInputRef = useRef<HTMLInputElement>(null)
   const backgroundInputRef = useRef<HTMLInputElement>(null)
@@ -675,6 +677,9 @@ export default function ImageTemplateGenerator() {
       // Reset form
       setSaveTemplateName('')
       setShowSaveDialog(false)
+
+      // Redirect to image templates page
+      router.push('/dash/assets/image-templates')
     } catch (error) {
       console.error('Save template error:', error)
       toast({

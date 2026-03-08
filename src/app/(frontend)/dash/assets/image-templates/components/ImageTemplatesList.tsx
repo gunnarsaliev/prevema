@@ -152,7 +152,7 @@ export function ImageTemplatesList({ templates }: ImageTemplatesListProps) {
     title: 'Image Templates',
     description: 'Manage saved canvas templates for bulk image generation',
     createButtonLabel: 'Create template',
-    createHref: '/dash/assets/image-templates/create',
+    createHref: '/image-generator',
     columns,
     data: templates,
     searchKey: 'name',

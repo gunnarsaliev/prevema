@@ -48,7 +48,7 @@ export function EventCard({
           </div>
           <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
             <MapPin className="w-4 h-4" />
-            <span className="text-sm md:text-base">{location}</span>
+            <span className="text-sm md:text-base">{location.split(',').pop()?.trim()}</span>
           </div>
         </div>
 
