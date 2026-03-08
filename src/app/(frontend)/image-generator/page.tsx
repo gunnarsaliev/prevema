@@ -614,7 +614,7 @@ export default function ImageTemplateGenerator() {
       const templateData = {
         name: saveTemplateName,
         usageType: saveUsageType,
-        tenant: '', // Will be auto-populated from user session in API
+        organization: '', // Will be auto-populated from user session in API
         width: selectedTemplate.width,
         height: selectedTemplate.height,
         backgroundImage: selectedTemplate.backgroundImage,
