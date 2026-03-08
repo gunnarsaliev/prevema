@@ -140,6 +140,8 @@ export async function POST(req: NextRequest) {
               name: `${name.toLowerCase().replace(/\s+/g, '-')}-preview-${Date.now()}.${extension}`,
               size: buffer.length,
             },
+            user: user || undefined, // Pass user context for access control
+            overrideAccess: !user, // Override access control if no user (for testing)
           })
 
           // Store as number - Payload relationship fields expect numbers
@@ -192,6 +194,8 @@ export async function POST(req: NextRequest) {
                   name: `${name.toLowerCase().replace(/\s+/g, '-')}-bg-${Date.now()}.${extension}`,
                   size: buffer.length,
                 },
+                user: user || undefined, // Pass user context for access control
+                overrideAccess: !user, // Override access control if no user (for testing)
               })
 
               // Store as number - Payload relationship fields expect numbers
@@ -248,6 +252,8 @@ export async function POST(req: NextRequest) {
     const template = await payload.create({
       collection: 'image-templates',
       data: templateData,
+      user: user || undefined, // Pass user context for access control
+      overrideAccess: !user, // Override access control if no user (for testing)
     })
 
     console.log('Template created successfully:', template.id)
