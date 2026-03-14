@@ -40,10 +40,25 @@ export default async function EmailTemplateDetailPage({
       .join(' ')
   }
 
-  const htmlBodyText =
-    typeof template.htmlBody === 'string'
-      ? template.htmlBody
-      : JSON.stringify(template.htmlBody, null, 2)
+  // Extract text from Lexical format
+  const extractTextFromLexical = (lexical: any): string => {
+    if (typeof lexical === 'string') return lexical
+
+    try {
+      // Lexical format: root.children contains paragraphs, each with children containing text nodes
+      const children = lexical?.root?.children || []
+      return children
+        .map((paragraph: any) => {
+          const textNodes = paragraph?.children || []
+          return textNodes.map((node: any) => node.text || '').join('')
+        })
+        .join('\n')
+    } catch {
+      return ''
+    }
+  }
+
+  const htmlBodyText = extractTextFromLexical(template.htmlBody)
 
   return (
     <div className="px-6 py-8">
@@ -74,122 +89,64 @@ export default async function EmailTemplateDetailPage({
       </div>
 
       <div className="space-y-6 max-w-3xl">
-        {/* Status */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Status:</span>
-            <Badge variant={template.isActive ? 'default' : 'secondary'}>
-              {template.isActive ? 'Active' : 'Inactive'}
-            </Badge>
-          </div>
-          <Separator orientation="vertical" className="h-6" />
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Trigger:</span>
-            <span className="text-sm text-muted-foreground">
-              {formatTriggerEvent(template.automationTriggers?.triggerEvent)}
-            </span>
-          </div>
+        {/* Status Badge */}
+        <div className="flex items-center gap-2">
+          <Badge variant={template.isActive ? 'default' : 'secondary'}>
+            {template.isActive ? 'Active' : 'Inactive'}
+          </Badge>
         </div>
-
-        <Separator />
 
         {/* Email Content */}
         <div className="space-y-4">
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Email Content</h2>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground">Subject</label>
+            <p className="text-base">{template.subject}</p>
           </div>
 
-          <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase">
-                Subject
-              </label>
-              <p className="mt-1 text-sm">{template.subject}</p>
-            </div>
+          <Separator />
 
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground">Message</label>
+            <div className="rounded-md bg-muted/30 p-4 font-mono text-sm whitespace-pre-wrap border">
+              {htmlBodyText}
+            </div>
+          </div>
+
+          <div className="text-xs text-muted-foreground mt-2">
+            Available variables: firstName, lastName, email, eventName, eventDate, organizationName
+          </div>
+        </div>
+
+        {/* Automation Settings - Only show if configured */}
+        {(template.automationTriggers?.triggerEvent && template.automationTriggers.triggerEvent !== 'none') && (
+          <>
             <Separator />
-
-            <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase">Body</label>
-              <div className="mt-1 rounded-md bg-background p-3 font-mono text-xs whitespace-pre-wrap border">
-                {htmlBodyText}
+            <details className="group">
+              <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                Automation Settings
+              </summary>
+              <div className="mt-4 space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-muted-foreground">Trigger Event</label>
+                    <p className="text-sm">{formatTriggerEvent(template.automationTriggers.triggerEvent)}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-muted-foreground">Delay (Minutes)</label>
+                    <p className="text-sm">{template.automationTriggers?.delayMinutes ?? 0}</p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Automation Settings */}
-        <div className="space-y-4">
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Automation Settings</h2>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-lg border bg-muted/30 p-4">
-              <label className="text-xs font-medium text-muted-foreground uppercase">
-                Trigger Event
-              </label>
-              <p className="mt-1 text-sm">
-                {formatTriggerEvent(template.automationTriggers?.triggerEvent)}
-              </p>
-            </div>
-
-            {template.automationTriggers?.triggerEvent === 'custom' && (
-              <div className="rounded-lg border bg-muted/30 p-4">
-                <label className="text-xs font-medium text-muted-foreground uppercase">
-                  Custom Trigger Name
-                </label>
-                <p className="mt-1 text-sm">
-                  {template.automationTriggers?.customTriggerName || '—'}
-                </p>
-              </div>
-            )}
-
-            <div className="rounded-lg border bg-muted/30 p-4">
-              <label className="text-xs font-medium text-muted-foreground uppercase">
-                Delay (Minutes)
-              </label>
-              <p className="mt-1 text-sm">{template.automationTriggers?.delayMinutes ?? 0}</p>
-            </div>
-
-            {template.automationTriggers?.conditions && (
-              <div className="rounded-lg border bg-muted/30 p-4 col-span-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase">
-                  Conditions
-                </label>
-                <pre className="mt-1 text-xs font-mono bg-background p-2 rounded border">
-                  {template.automationTriggers.conditions}
-                </pre>
-              </div>
-            )}
-          </div>
-        </div>
+            </details>
+          </>
+        )}
 
         <Separator />
 
         {/* Metadata */}
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold">Metadata</h2>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-muted-foreground">Template ID:</span>
-              <span className="ml-2 font-mono">{template.id}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Slug:</span>
-              <span className="ml-2 font-mono">{template.slug}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Created:</span>
-              <span className="ml-2">{new Date(template.createdAt).toLocaleString()}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Updated:</span>
-              <span className="ml-2">{new Date(template.updatedAt).toLocaleString()}</span>
-            </div>
-          </div>
+        <div className="text-xs text-muted-foreground space-y-1">
+          <div>Created: {new Date(template.createdAt).toLocaleString()}</div>
+          <div>Updated: {new Date(template.updatedAt).toLocaleString()}</div>
         </div>
       </div>
     </div>

@@ -32,8 +32,8 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 
 type Props =
-  | { mode: 'create'; displayMode?: 'simple' | 'advanced' }
-  | { mode: 'edit'; templateId: string; defaultValues: EmailTemplateFormValues; displayMode?: 'simple' | 'advanced' }
+  | { mode: 'create'; displayMode?: 'simple' | 'advanced'; organizationId: string | number }
+  | { mode: 'edit'; templateId: string; defaultValues: EmailTemplateFormValues; displayMode?: 'simple' | 'advanced'; organizations?: Array<{ id: string | number; name: string }> }
 
 export function EmailTemplateForm(props: Props) {
   const router = useRouter()
@@ -47,10 +47,10 @@ export function EmailTemplateForm(props: Props) {
     props.mode === 'edit'
       ? props.defaultValues
       : ({
-          name: isSimpleMode ? 'Welcome Email' : '',
+          name: '',
           description: '',
-          subject: isSimpleMode ? 'Welcome!' : '',
-          htmlBody: isSimpleMode ? 'Hi {{firstName}},\n\nThank you for registering!\n\nBest regards,\n{{organizationName}} Team' : '',
+          subject: '',
+          htmlBody: '',
           isActive: true,
           triggerEvent: 'none' as const,
           delayMinutes: 0,
@@ -111,6 +111,7 @@ export function EmailTemplateForm(props: Props) {
 
       const payload = {
         ...values,
+        organization: props.mode === 'create' ? props.organizationId : undefined,
         htmlBody: htmlBodyLexical,
         automationTriggers: {
           triggerEvent: values.triggerEvent,
@@ -353,33 +354,33 @@ export function EmailTemplateForm(props: Props) {
         <FieldSet>
           <FieldLegend>Automation Settings</FieldLegend>
           <FieldGroup>
-          <Controller
-            name="triggerEvent"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="triggerEvent">Trigger event</FieldLabel>
-                <p className="text-xs text-muted-foreground -mt-1">
-                  Select the event that triggers this email template
-                </p>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id="triggerEvent" ref={field.ref} aria-invalid={fieldState.invalid}>
-                    <SelectValue placeholder="Select trigger" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None - Manual Only</SelectItem>
-                    <SelectItem value="participant.created">Participant Created</SelectItem>
-                    <SelectItem value="participant.updated">Participant Updated</SelectItem>
-                    <SelectItem value="partner.invited">Partner Invited</SelectItem>
-                    <SelectItem value="event.published">Event Published</SelectItem>
-                    <SelectItem value="form.submitted">Form Submitted</SelectItem>
-                    <SelectItem value="custom">Custom Trigger</SelectItem>
-                  </SelectContent>
-                </Select>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+            <Controller
+              name="triggerEvent"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="triggerEvent">Trigger event</FieldLabel>
+                  <p className="text-xs text-muted-foreground -mt-1">
+                    Select the event that triggers this email template
+                  </p>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="triggerEvent" ref={field.ref} aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Select trigger" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None - Manual Only</SelectItem>
+                      <SelectItem value="participant.created">Participant Created</SelectItem>
+                      <SelectItem value="participant.updated">Participant Updated</SelectItem>
+                      <SelectItem value="partner.invited">Partner Invited</SelectItem>
+                      <SelectItem value="event.published">Event Published</SelectItem>
+                      <SelectItem value="form.submitted">Form Submitted</SelectItem>
+                      <SelectItem value="custom">Custom Trigger</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
 
           {triggerEvent === 'custom' && (
             <Controller
@@ -402,51 +403,51 @@ export function EmailTemplateForm(props: Props) {
             />
           )}
 
-          <Controller
-            name="delayMinutes"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Delay (minutes)</FieldLabel>
-                <p className="text-xs text-muted-foreground -mt-1">
-                  Delay in minutes before sending (0 for immediate)
-                </p>
-                <Input
-                  {...field}
-                  id={field.name}
-                  type="number"
-                  min={0}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+            <Controller
+              name="delayMinutes"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Delay (minutes)</FieldLabel>
+                  <p className="text-xs text-muted-foreground -mt-1">
+                    Delay in minutes before sending (0 for immediate)
+                  </p>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    type="number"
+                    min={0}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
 
-          <Controller
-            name="conditions"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Conditions (JSON)</FieldLabel>
-                <p className="text-xs text-muted-foreground -mt-1">
-                  Optional JSON conditions for when to send
-                </p>
-                <Textarea
-                  {...field}
-                  value={field.value ?? ''}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background font-mono text-sm"
-                  placeholder='{"fieldName": "value"}'
-                  rows={3}
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+            <Controller
+              name="conditions"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Conditions (JSON)</FieldLabel>
+                  <p className="text-xs text-muted-foreground -mt-1">
+                    Optional JSON conditions for when to send
+                  </p>
+                  <Textarea
+                    {...field}
+                    value={field.value ?? ''}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background font-mono text-sm"
+                    placeholder='{"fieldName": "value"}'
+                    rows={3}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
           </FieldGroup>
         </FieldSet>
       )}

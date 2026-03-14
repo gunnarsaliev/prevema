@@ -30,14 +30,29 @@ export default async function EditEmailTemplatePage({
 
   if (!template) notFound()
 
+  // Extract text from Lexical format
+  const extractTextFromLexical = (lexical: any): string => {
+    if (typeof lexical === 'string') return lexical
+
+    try {
+      // Lexical format: root.children contains paragraphs, each with children containing text nodes
+      const children = lexical?.root?.children || []
+      return children
+        .map((paragraph: any) => {
+          const textNodes = paragraph?.children || []
+          return textNodes.map((node: any) => node.text || '').join('')
+        })
+        .join('\n')
+    } catch {
+      return ''
+    }
+  }
+
   const defaultValues: EmailTemplateFormValues = {
     name: template.name,
     description: template.description ?? null,
     subject: template.subject,
-    htmlBody:
-      typeof template.htmlBody === 'string'
-        ? template.htmlBody
-        : JSON.stringify(template.htmlBody),
+    htmlBody: extractTextFromLexical(template.htmlBody),
     isActive: template.isActive ?? true,
     triggerEvent:
       (template.automationTriggers?.triggerEvent as EmailTemplateFormValues['triggerEvent']) ??
@@ -54,9 +69,16 @@ export default async function EditEmailTemplatePage({
     <div className="px-6 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">Edit email template</h1>
-        <p className="text-sm text-muted-foreground mt-1">{template.name}</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Update your email template for automated communications.
+        </p>
       </div>
-      <EmailTemplateForm mode="edit" templateId={String(template.id)} defaultValues={defaultValues} />
+      <EmailTemplateForm
+        mode="edit"
+        templateId={String(template.id)}
+        defaultValues={defaultValues}
+        displayMode="simple"
+      />
     </div>
   )
 }
