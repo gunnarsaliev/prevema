@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Mail } from 'lucide-react'
 
 import {
   emailTemplateSchema,
@@ -32,21 +32,25 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 
 type Props =
-  | { mode: 'create' }
-  | { mode: 'edit'; templateId: string; defaultValues: EmailTemplateFormValues }
+  | { mode: 'create'; displayMode?: 'simple' | 'advanced' }
+  | { mode: 'edit'; templateId: string; defaultValues: EmailTemplateFormValues; displayMode?: 'simple' | 'advanced' }
 
 export function EmailTemplateForm(props: Props) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
+  const [showAdvanced, setShowAdvanced] = useState(false)
+
+  const displayMode = props.displayMode || 'advanced'
+  const isSimpleMode = displayMode === 'simple'
 
   const defaultValues =
     props.mode === 'edit'
       ? props.defaultValues
       : ({
-          name: '',
+          name: isSimpleMode ? 'Welcome Email' : '',
           description: '',
-          subject: '',
-          htmlBody: '',
+          subject: isSimpleMode ? 'Welcome!' : '',
+          htmlBody: isSimpleMode ? 'Hi {{firstName}},\n\nThank you for registering!\n\nBest regards,\n{{organizationName}} Team' : '',
           isActive: true,
           triggerEvent: 'none' as const,
           delayMinutes: 0,
@@ -145,92 +149,175 @@ export function EmailTemplateForm(props: Props) {
         </p>
       )}
 
+      {/* Simple mode header */}
+      {isSimpleMode && (
+        <div className="flex flex-col items-center gap-3 mb-6">
+          <div className="rounded-full bg-primary/10 dark:bg-primary/20 p-4">
+            <Mail className="h-8 w-8 text-primary" />
+          </div>
+          <p className="text-sm text-muted-foreground text-center">
+            Create an email template for automated communications
+          </p>
+          <p className="text-xs text-muted-foreground text-center max-w-md">
+            You can use variables like {'{'}{'{'} firstName {'}'}{'}'}  and {'{'}{'{'} eventName {'}'}{'}'} in your template
+          </p>
+        </div>
+      )}
+
       {/* Basic Information */}
-      <FieldSet>
-        <FieldLegend>Basic Information</FieldLegend>
-        <FieldGroup>
-          <Controller
-            name="name"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Template name *</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background"
-                  placeholder="participant-welcome"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+      {!isSimpleMode && (
+        <FieldSet>
+          <FieldLegend>Basic Information</FieldLegend>
+          <FieldGroup>
+            <Controller
+              name="name"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Template name *</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                    placeholder="participant-welcome"
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
 
-          <Controller
-            name="description"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Description</FieldLabel>
-                <Textarea
-                  {...field}
-                  value={field.value ?? ''}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background"
-                  placeholder="What this template is used for..."
-                  rows={2}
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+            <Controller
+              name="description"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Description</FieldLabel>
+                  <Textarea
+                    {...field}
+                    value={field.value ?? ''}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                    placeholder="What this template is used for..."
+                    rows={2}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
 
-          <Controller
-            name="isActive"
-            control={control}
-            render={({ field }) => (
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <Label htmlFor="isActive" className="text-base">
-                    Active
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Whether this template is active and can be used
-                  </p>
+            <Controller
+              name="isActive"
+              control={control}
+              render={({ field }) => (
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="isActive" className="text-base">
+                      Active
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Whether this template is active and can be used
+                    </p>
+                  </div>
+                  <Switch
+                    id="isActive"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
                 </div>
-                <Switch
-                  id="isActive"
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </div>
-            )}
-          />
-        </FieldGroup>
-      </FieldSet>
+              )}
+            />
+          </FieldGroup>
+        </FieldSet>
+      )}
+
+      {/* Simple mode - Name field */}
+      {isSimpleMode && (
+        <Controller
+          name="name"
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Template name *</FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                aria-invalid={fieldState.invalid}
+                className="bg-background"
+                placeholder="Welcome Email"
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+      )}
 
       {/* Email Content */}
-      <FieldSet>
-        <FieldLegend>Email Content</FieldLegend>
-        <FieldGroup>
+      {!isSimpleMode ? (
+        <FieldSet>
+          <FieldLegend>Email Content</FieldLegend>
+          <FieldGroup>
+            <Controller
+              name="subject"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Email subject *</FieldLabel>
+                  <p className="text-xs text-muted-foreground -mt-1">
+                    Use {'{'}
+                    {'{'} variable {'}'} {'}'} for dynamic content (Handlebars syntax)
+                  </p>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                    placeholder="Welcome to {{eventName}}"
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="htmlBody"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Email body *</FieldLabel>
+                  <p className="text-xs text-muted-foreground -mt-1">
+                    Use {'{'}
+                    {'{'} variable {'}'} {'}'} for dynamic content (Handlebars syntax)
+                  </p>
+                  <Textarea
+                    {...field}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background font-mono text-sm"
+                    placeholder="Hello {{participantName}}, ..."
+                    rows={12}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+          </FieldGroup>
+        </FieldSet>
+      ) : (
+        <>
           <Controller
             name="subject"
             control={control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Email subject *</FieldLabel>
-                <p className="text-xs text-muted-foreground -mt-1">
-                  Use {'{'}
-                  {'{'} variable {'}'} {'}'} for dynamic content (Handlebars syntax)
-                </p>
+                <FieldLabel htmlFor={field.name}>Subject *</FieldLabel>
                 <Input
                   {...field}
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                   className="bg-background"
-                  placeholder="Welcome to {{eventName}}"
+                  placeholder="Welcome to our event!"
                 />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -242,30 +329,30 @@ export function EmailTemplateForm(props: Props) {
             control={control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Email body *</FieldLabel>
-                <p className="text-xs text-muted-foreground -mt-1">
-                  Use {'{'}
-                  {'{'} variable {'}'} {'}'} for dynamic content (Handlebars syntax)
-                </p>
+                <FieldLabel htmlFor={field.name}>Message *</FieldLabel>
                 <Textarea
                   {...field}
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                   className="bg-background font-mono text-sm"
-                  placeholder="Hello {{participantName}}, ..."
-                  rows={12}
+                  placeholder="Enter your email message..."
+                  rows={8}
                 />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                <p className="text-xs text-muted-foreground">
+                  Available variables: firstName, lastName, email, eventName, eventDate, organizationName
+                </p>
               </Field>
             )}
           />
-        </FieldGroup>
-      </FieldSet>
+        </>
+      )}
 
-      {/* Automation Settings */}
-      <FieldSet>
-        <FieldLegend>Automation Settings</FieldLegend>
-        <FieldGroup>
+      {/* Automation Settings - Only in advanced mode */}
+      {!isSimpleMode && (
+        <FieldSet>
+          <FieldLegend>Automation Settings</FieldLegend>
+          <FieldGroup>
           <Controller
             name="triggerEvent"
             control={control}
@@ -360,8 +447,9 @@ export function EmailTemplateForm(props: Props) {
               </Field>
             )}
           />
-        </FieldGroup>
-      </FieldSet>
+          </FieldGroup>
+        </FieldSet>
+      )}
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">

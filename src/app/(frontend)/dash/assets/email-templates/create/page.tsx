@@ -20,7 +20,7 @@ export default async function CreateEmailTemplatePage() {
           Create a new email template for automated communications.
         </p>
       </div>
-      <EmailTemplateForm mode="create" />
+      <EmailTemplateForm mode="create" displayMode="simple" />
     </div>
   )
 }
