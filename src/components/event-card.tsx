@@ -21,9 +21,9 @@ export function EventCard({
   startingPrice,
 }: EventCardProps) {
   return (
-    <div className="w-full md:rounded-3xl md:px-0 overflow-hidden bg-white dark:bg-zinc-800">
+    <div className="w-full h-[500px] md:rounded-3xl md:px-0 overflow-hidden bg-white dark:bg-zinc-800 flex flex-col">
       {/* Image Container */}
-      <div className="relative w-full aspect-video md:rounded-3xl overflow-hidden">
+      <div className="relative w-full h-48 md:rounded-3xl overflow-hidden flex-shrink-0">
         <Image
           src={image}
           alt={title}
@@ -34,9 +34,9 @@ export function EventCard({
       </div>
 
       {/* Content Container */}
-      <div className="px-4 md:px-6 py-5 md:py-6">
+      <div className="px-4 md:px-6 py-5 md:py-6 flex flex-col flex-1">
         {/* Date and Location Row */}
-        <div className="flex items-start justify-between gap-4 mb-3">
+        <div className="flex items-start justify-between gap-4 mb-3 flex-shrink-0">
           <div className="flex items-baseline gap-3">
             <span className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
               {month}
@@ -53,17 +53,17 @@ export function EventCard({
         </div>
 
         {/* Title */}
-        <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2 flex-shrink-0 line-clamp-2">
           {title}
         </h3>
 
         {/* Description */}
-        <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+        <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-4 line-clamp-3 flex-1">
           {description}
         </p>
 
         {/* Starting Price */}
-        <div className="flex items-center gap-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex items-center gap-1 text-xs md:text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
           <span>🎫</span>
           <span>{startingPrice}</span>
         </div>
