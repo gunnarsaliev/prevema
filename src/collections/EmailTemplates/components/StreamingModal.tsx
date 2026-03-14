@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { SafeEmailPreview } from '@/components/SafeHTML'
 
 interface StreamingModalProps {
   isOpen: boolean
@@ -161,7 +162,7 @@ export const StreamingModal: React.FC<StreamingModalProps> = ({
             }}
           >
             {streamingContent ? (
-              <div dangerouslySetInnerHTML={{ __html: streamingContent }} />
+              <SafeEmailPreview html={streamingContent} />
             ) : (
               <div style={{ color: 'var(--theme-elevation-600)', fontStyle: 'italic' }}>
                 Waiting for AI to generate content...

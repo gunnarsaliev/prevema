@@ -229,8 +229,24 @@ Generate ONLY the post copy, no additional commentary or formatting.`
 // Email content prompts
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const EMAIL_SYSTEM_PROMPT =
-  'You are an expert email copywriter. Generate professional, engaging email content in HTML format with Handlebars variable placeholders.'
+export const EMAIL_SYSTEM_PROMPT = `You are an expert email copywriter specializing in transactional emails. Generate professional, engaging email content following email client best practices.
+
+## Technical Requirements:
+- Use ONLY inline CSS (no external stylesheets or <style> tags)
+- Use HTML tables for layout (email clients have poor CSS support)
+- Maximum width: 600-640px
+- Use web-safe fonts: Arial, Verdana, Georgia, Times New Roman, or system fonts
+- All CSS properties must be written separately (no shorthand)
+- Avoid: flexbox, grid, position, float, clear, advanced CSS
+- Use cellpadding and cellspacing for table spacing
+- Include alt text for all images
+
+## Styling Best Practices:
+- Inline all CSS directly in style attributes
+- Use bgcolor attribute for background colors
+- Use width and height attributes (not just CSS)
+- Keep text font-size at minimum 14-16px for readability
+- Use standard HTML color names or hex codes`
 
 export function buildEmailPrompt(params: {
   subject?: string
@@ -282,24 +298,45 @@ ${variableReference}
    - [Insert Link Here]
    - Any other placeholder or example URLs/emails
 
-4. Write the email body content in clean, semantic HTML
-5. Use appropriate Handlebars variables ({{variableName}}) throughout the content based on the available variables
-6. Include:
+## HTML Structure:
+Use this table-based structure for maximum email client compatibility:
+
+\`\`\`html
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
+  <tr>
+    <td style="padding: 20px;">
+      <!-- Your content here -->
+    </td>
+  </tr>
+</table>
+\`\`\`
+
+## Content Guidelines:
+1. Use appropriate Handlebars variables ({{variableName}}) from the available list
+2. Include:
    - Warm, professional greeting using {{name}} if available
    - Clear, engaging body text relevant to the context and trigger event
    - Specific information using variables like {{event}}, {{status}}, {{companyName}}, etc.
    - Professional sign-off using {{tenantName}} if appropriate
-7. Structure:
-   - Use <h2> for section headings if needed (avoid <h1>)
-   - Use <p> for paragraphs
+
+3. Typography:
+   - Use <h2> for section headings (with inline styles)
+   - Use <p> with inline styles for paragraphs
    - Use <strong> and <em> for emphasis
-   - DO NOT use <a> tags
-8. Make it personal and engaging by using the provided variables
-9. Keep it concise but informative (3-5 short paragraphs)
-10. Maintain professional tone appropriate for ${triggerEvent || 'general'} communication
-11. Focus on the actual context provided - if this is about participant approval, talk about approval; if it's about registration, welcome them, etc.
+   - Minimum font-size: 14px for body, 20px for headings
+   - Line-height: 1.5-1.6 for readability
+
+4. Inline Styles Example:
+   - Heading: \`<h2 style="color: #333333; font-size: 24px; font-weight: bold; margin: 0 0 15px 0;">Title</h2>\`
+   - Paragraph: \`<p style="color: #666666; font-size: 16px; line-height: 1.6; margin: 0 0 15px 0;">Text</p>\`
+
+5. Make it personal and engaging by using the provided variables
+6. Keep it concise but informative (3-5 short paragraphs)
+7. Maintain professional tone appropriate for ${triggerEvent || 'general'} communication
+8. Focus on the actual context provided
 
 ## Output Format:
-Return ONLY the HTML content, no markdown code blocks, no explanations, no placeholder links or emails.
-Start directly with HTML tags.`
+Return ONLY the HTML content wrapped in a table structure.
+NO markdown code blocks, NO explanations, NO placeholder links or emails.
+Start directly with <table> tag.`
 }

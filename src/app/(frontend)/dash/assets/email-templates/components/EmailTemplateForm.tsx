@@ -1,10 +1,12 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Mail } from 'lucide-react'
+import { Loader2, Mail, Sparkles, StopCircle, Eye, Code } from 'lucide-react'
+import { useEmailGeneration } from '@/hooks/useEmailGeneration'
+import { SafeEmailPreview } from '@/components/SafeHTML'
 
 import {
   emailTemplateSchema,
@@ -39,9 +41,19 @@ export function EmailTemplateForm(props: Props) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showPreview, setShowPreview] = useState(true)
 
   const displayMode = props.displayMode || 'advanced'
   const isSimpleMode = displayMode === 'simple'
+
+  // AI email generation hook
+  const {
+    content: aiContent,
+    isGenerating: isGeneratingAI,
+    error: aiError,
+    generate: generateAI,
+    stop: stopAI,
+  } = useEmailGeneration()
 
   const defaultValues =
     props.mode === 'edit'
@@ -60,6 +72,7 @@ export function EmailTemplateForm(props: Props) {
     handleSubmit,
     control,
     watch,
+    setValue,
     formState: { isSubmitting },
   } = useForm<EmailTemplateFormValues>({
     resolver: zodResolver(emailTemplateSchema) as any,
@@ -68,6 +81,25 @@ export function EmailTemplateForm(props: Props) {
   })
 
   const triggerEvent = watch('triggerEvent')
+  const subject = watch('subject')
+  const name = watch('name')
+  const htmlBody = watch('htmlBody')
+
+  // Update htmlBody when AI content is generated
+  useEffect(() => {
+    if (aiContent) {
+      setValue('htmlBody', aiContent, { shouldValidate: true, shouldDirty: true })
+    }
+  }, [aiContent, setValue])
+
+  // Function to handle AI generation
+  const handleGenerateAI = async () => {
+    await generateAI({
+      subject: subject || undefined,
+      description: name || undefined,
+      triggerEvent: triggerEvent || 'none',
+    })
+  }
 
   const onSubmit = async (values: EmailTemplateFormValues) => {
     setServerError(null)
@@ -286,19 +318,80 @@ export function EmailTemplateForm(props: Props) {
               control={control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Email body *</FieldLabel>
+                  <div className="flex items-center justify-between">
+                    <FieldLabel htmlFor={field.name}>Email body *</FieldLabel>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowPreview(!showPreview)}
+                        disabled={isSubmitting || isGeneratingAI}
+                        className="h-7"
+                      >
+                        {showPreview ? (
+                          <>
+                            <Code className="mr-1.5 h-3.5 w-3.5" />
+                            Edit
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="mr-1.5 h-3.5 w-3.5" />
+                            Preview
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={isGeneratingAI ? stopAI : handleGenerateAI}
+                        disabled={isSubmitting}
+                        className="h-7"
+                      >
+                        {isGeneratingAI ? (
+                          <>
+                            <StopCircle className="mr-1.5 h-3.5 w-3.5" />
+                            Stop
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                            Generate with AI
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
                   <p className="text-xs text-muted-foreground -mt-1">
                     Use {'{'}
                     {'{'} variable {'}'} {'}'} for dynamic content (Handlebars syntax)
                   </p>
-                  <Textarea
-                    {...field}
-                    id={field.name}
-                    aria-invalid={fieldState.invalid}
-                    className="bg-background font-mono text-sm"
-                    placeholder="Hello {{participantName}}, ..."
-                    rows={12}
-                  />
+                  {aiError && (
+                    <p className="text-xs text-destructive">{aiError}</p>
+                  )}
+                  {showPreview ? (
+                    <SafeEmailPreview
+                      html={htmlBody || ''}
+                      className="bg-background border border-border rounded-md p-4 min-h-[300px] prose prose-sm dark:prose-invert max-w-none"
+                    />
+                  ) : (
+                    <Textarea
+                      {...field}
+                      id={field.name}
+                      aria-invalid={fieldState.invalid}
+                      className="bg-background font-mono text-sm"
+                      placeholder="Hello {{participantName}}, ..."
+                      rows={12}
+                      disabled={isGeneratingAI}
+                    />
+                  )}
+                  {isGeneratingAI && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Generating email content...
+                    </p>
+                  )}
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
@@ -330,15 +423,76 @@ export function EmailTemplateForm(props: Props) {
             control={control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Message *</FieldLabel>
-                <Textarea
-                  {...field}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background font-mono text-sm"
-                  placeholder="Enter your email message..."
-                  rows={8}
-                />
+                <div className="flex items-center justify-between">
+                  <FieldLabel htmlFor={field.name}>Message *</FieldLabel>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowPreview(!showPreview)}
+                      disabled={isSubmitting || isGeneratingAI}
+                      className="h-7"
+                    >
+                      {showPreview ? (
+                        <>
+                          <Code className="mr-1.5 h-3.5 w-3.5" />
+                          Edit
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="mr-1.5 h-3.5 w-3.5" />
+                          Preview
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={isGeneratingAI ? stopAI : handleGenerateAI}
+                      disabled={isSubmitting}
+                      className="h-7"
+                    >
+                      {isGeneratingAI ? (
+                        <>
+                          <StopCircle className="mr-1.5 h-3.5 w-3.5" />
+                          Stop
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                          Generate with AI
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                {aiError && (
+                  <p className="text-xs text-destructive">{aiError}</p>
+                )}
+                {showPreview ? (
+                  <SafeEmailPreview
+                    html={htmlBody || ''}
+                    className="bg-background border border-border rounded-md p-4 min-h-[200px] prose prose-sm dark:prose-invert max-w-none"
+                  />
+                ) : (
+                  <Textarea
+                    {...field}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background font-mono text-sm"
+                    placeholder="Enter your email message..."
+                    rows={8}
+                    disabled={isGeneratingAI}
+                  />
+                )}
+                {isGeneratingAI && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Generating email content...
+                  </p>
+                )}
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 <p className="text-xs text-muted-foreground">
                   Available variables: firstName, lastName, email, eventName, eventDate, organizationName
