@@ -8,7 +8,6 @@ import {
 import { checkRole } from '@/access/utilities'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
-import { formatSlugHook } from '@/utils/formatSlug'
 
 export const PartnerTiers: CollectionConfig = {
   slug: 'partner-tiers',
@@ -41,18 +40,6 @@ export const PartnerTiers: CollectionConfig = {
       name: 'name',
       type: 'text',
       required: true,
-    },
-    {
-      name: 'slug',
-      type: 'text',
-      unique: true,
-      hooks: {
-        beforeValidate: [formatSlugHook('name')],
-      },
-      admin: {
-        readOnly: true,
-        position: 'sidebar',
-      },
     },
     {
       name: 'level',

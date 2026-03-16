@@ -13,7 +13,6 @@ import { validateParticipantFields } from './hooks/validateFields'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import { defaultEventValue } from '@/fields/defaultEventValue'
-import { formatSlugHook } from '@/utils/formatSlug'
 
 const participantFieldOptions = [
   { label: 'Profile Photo', value: 'imageUrl' },
@@ -58,18 +57,6 @@ export const ParticipantTypes: CollectionConfig = {
       name: 'name',
       type: 'text',
       required: true,
-    },
-    {
-      name: 'slug',
-      type: 'text',
-      unique: true,
-      hooks: {
-        beforeValidate: [formatSlugHook('name')],
-      },
-      admin: {
-        readOnly: true,
-        position: 'sidebar',
-      },
     },
     {
       name: 'description',

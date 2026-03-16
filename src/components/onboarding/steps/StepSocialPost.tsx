@@ -121,9 +121,9 @@ export const StepSocialPost = ({
           <div className="rounded-full bg-primary/10 dark:bg-primary/20 p-4">
             <Palette className="h-8 w-8 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold text-foreground">Social Post Design</h3>
+          <h3 className="text-lg font-semibold text-foreground">Communication design</h3>
           <p className="text-sm text-muted-foreground text-center max-w-md">
-            How would you like to create social post images for participants and partners?
+            How would you like to create communication designs for participants and partners?
           </p>
         </div>
 
@@ -168,7 +168,7 @@ export const StepSocialPost = ({
                 />
               </div>
               <div>
-                <h4 className="font-semibold text-foreground text-lg mb-1">I have my own design</h4>
+                <h4 className="font-semibold text-foreground text-lg mb-1">Custom templates</h4>
                 <p className="text-sm text-muted-foreground">
                   Upload and save your custom background
                 </p>
@@ -221,10 +221,10 @@ export const StepSocialPost = ({
                 />
               </div>
               <div>
-                <h4 className="font-semibold text-foreground text-lg mb-1">Create design with our tool</h4>
-                <p className="text-sm text-muted-foreground">
-                  Use our image generator
-                </p>
+                <h4 className="font-semibold text-foreground text-lg mb-1">
+                  Generate with Prevema
+                </h4>
+                <p className="text-sm text-muted-foreground">Use our image generator</p>
               </div>
             </div>
 
@@ -267,11 +267,10 @@ export const StepSocialPost = ({
                       <ImageIcon className="h-4 w-4 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-foreground">
-                        {uploadedImage.name}
-                      </p>
+                      <p className="text-sm font-medium text-foreground">{uploadedImage.name}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {(uploadedImage.size / 1024 / 1024).toFixed(2)} MB • This image will be saved as a template background
+                        {(uploadedImage.size / 1024 / 1024).toFixed(2)} MB • This image will be
+                        saved as a template background
                       </p>
                     </div>
                   </div>
@@ -284,7 +283,8 @@ export const StepSocialPost = ({
         {selectedOption === 'create' && (
           <div className="mt-6 p-4 rounded-md bg-muted/50 border border-border">
             <p className="text-sm text-foreground">
-              Excellent choice! After completing onboarding, you'll be redirected to the image generator tool to create your template.
+              Excellent choice! After completing onboarding, you'll be redirected to the image
+              generator tool to create your template.
             </p>
           </div>
         )}
@@ -296,12 +296,7 @@ export const StepSocialPost = ({
             </p>
 
             <div className="flex justify-center mt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleSkip}
-                disabled={isSubmitting}
-              >
+              <Button type="button" variant="outline" onClick={handleSkip} disabled={isSubmitting}>
                 Skip this step
               </Button>
             </div>
@@ -309,17 +304,14 @@ export const StepSocialPost = ({
         )}
 
         {/* Show Complete Setup button when valid */}
-        {selectedOption && (selectedOption === 'create' || (selectedOption === 'own' && uploadedImage)) && (
-          <div className="flex justify-center mt-4">
-            <Button
-              type="button"
-              onClick={handleNext}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Saving...' : 'Complete Setup'}
-            </Button>
-          </div>
-        )}
+        {selectedOption &&
+          (selectedOption === 'create' || (selectedOption === 'own' && uploadedImage)) && (
+            <div className="flex justify-center mt-4">
+              <Button type="button" onClick={handleNext} disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : 'Complete Setup'}
+              </Button>
+            </div>
+          )}
       </div>
     </div>
   )

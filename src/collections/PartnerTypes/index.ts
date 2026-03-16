@@ -13,7 +13,6 @@ import { validatePartnerFields } from './hooks/validateFields'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import { defaultEventValue } from '@/fields/defaultEventValue'
-import { formatSlugHook } from '@/utils/formatSlug'
 
 const partnerFieldOptions = [
   { label: 'Company Logo', value: 'companyLogo' },
@@ -56,18 +55,6 @@ export const PartnerTypes: CollectionConfig = {
       name: 'name',
       type: 'text',
       required: true,
-    },
-    {
-      name: 'slug',
-      type: 'text',
-      index: true,
-      hooks: {
-        beforeValidate: [formatSlugHook('name')],
-      },
-      admin: {
-        readOnly: true,
-        position: 'sidebar',
-      },
     },
     {
       name: 'description',

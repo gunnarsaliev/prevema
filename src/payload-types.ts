@@ -743,7 +743,6 @@ export interface ParticipantType {
    */
   organization: number | Organization;
   name: string;
-  slug?: string | null;
   description?: string | null;
   /**
    * Optional: Link this participant type to a specific event. If set, the public form will be for this event only.
@@ -893,7 +892,6 @@ export interface PartnerType {
    */
   organization: number | Organization;
   name: string;
-  slug?: string | null;
   description?: string | null;
   /**
    * Optional: Link this partner type to a specific event. If set, the public form will be for this event only.
@@ -956,7 +954,6 @@ export interface PartnerTier {
    */
   organization: number | Organization;
   name: string;
-  slug?: string | null;
   level?: number | null;
   description?: string | null;
   updatedAt: string;
@@ -1316,7 +1313,6 @@ export interface ParticipantsSelect<T extends boolean = true> {
 export interface ParticipantTypesSelect<T extends boolean = true> {
   organization?: T;
   name?: T;
-  slug?: T;
   description?: T;
   event?: T;
   isActive?: T;
@@ -1374,7 +1370,6 @@ export interface PartnersSelect<T extends boolean = true> {
 export interface PartnerTiersSelect<T extends boolean = true> {
   organization?: T;
   name?: T;
-  slug?: T;
   level?: T;
   description?: T;
   updatedAt?: T;
@@ -1387,7 +1382,6 @@ export interface PartnerTiersSelect<T extends boolean = true> {
 export interface PartnerTypesSelect<T extends boolean = true> {
   organization?: T;
   name?: T;
-  slug?: T;
   description?: T;
   event?: T;
   isActive?: T;
