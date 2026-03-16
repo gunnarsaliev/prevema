@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       system: EMAIL_SYSTEM_PROMPT,
       prompt: prompt,
       temperature: 0.7,
-      maxTokens: 1500,
+      maxOutputTokens: 1500,
     })
 
     // Return the text stream as plain text

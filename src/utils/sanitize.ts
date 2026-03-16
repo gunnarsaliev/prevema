@@ -1,4 +1,5 @@
 import DOMPurify from 'isomorphic-dompurify'
+import type { Config } from 'dompurify'
 
 /**
  * Sanitize HTML to prevent XSS attacks
@@ -30,7 +31,7 @@ export function sanitizeHTML(
   }
 
   // Configure DOMPurify for email-safe HTML
-  const config: DOMPurify.Config = {
+  const config: Config = {
     // Allow common HTML tags used in emails
     ALLOWED_TAGS: options?.strict
       ? ['p', 'br', 'strong', 'em', 'u']
