@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Calendar } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -32,6 +33,7 @@ export const StepEvent = ({
   onEventCreated,
   onNext,
 }: StepEventProps) => {
+  const router = useRouter()
   const [eventName, setEventName] = useState('')
   const [startDate, setStartDate] = useState('')
   const [eventType, setEventType] = useState('online')
@@ -397,10 +399,10 @@ export const StepEvent = ({
               type="button"
               variant="ghost"
               className="w-full"
-              onClick={onNext}
+              onClick={() => router.push('/dash')}
               disabled={isPending}
             >
-              Skip for now
+              Take me to the dashboard
             </Button>
           </>
         )}

@@ -8,11 +8,9 @@ import { Loader2, Mail, Sparkles, StopCircle, Eye, Code } from 'lucide-react'
 import { useEmailGeneration } from '@/hooks/useEmailGeneration'
 import { SafeEmailPreview } from '@/components/SafeHTML'
 
-import {
-  emailTemplateSchema,
-  type EmailTemplateFormValues,
-} from '@/lib/schemas/emailTemplate'
+import { emailTemplateSchema, type EmailTemplateFormValues } from '@/lib/schemas/emailTemplate'
 import { Button } from '@/components/ui/button'
+import { RainbowButton } from '@/components/ui/rainbow-button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -34,13 +32,26 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 
 type Props =
-  | { mode: 'create'; displayMode?: 'simple' | 'advanced'; organizationId: string | number }
-  | { mode: 'edit'; templateId: string; defaultValues: EmailTemplateFormValues; displayMode?: 'simple' | 'advanced'; organizations?: Array<{ id: string | number; name: string }> }
+  | {
+      mode: 'create'
+      displayMode?: 'simple' | 'advanced'
+      organizationId: string | number
+      onSuccess?: (data: { id: number; name: string }) => void
+      disableRedirect?: boolean
+    }
+  | {
+      mode: 'edit'
+      templateId: string
+      defaultValues: EmailTemplateFormValues
+      displayMode?: 'simple' | 'advanced'
+      organizations?: Array<{ id: string | number; name: string }>
+      onSuccess?: (data: { id: number; name: string }) => void
+      disableRedirect?: boolean
+    }
 
 export function EmailTemplateForm(props: Props) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
-  const [showAdvanced, setShowAdvanced] = useState(false)
   const [showPreview, setShowPreview] = useState(true)
 
   const displayMode = props.displayMode || 'advanced'
@@ -105,9 +116,7 @@ export function EmailTemplateForm(props: Props) {
     setServerError(null)
     try {
       const url =
-        props.mode === 'edit'
-          ? `/api/email-templates/${props.templateId}`
-          : '/api/email-templates'
+        props.mode === 'edit' ? `/api/email-templates/${props.templateId}` : '/api/email-templates'
       const method = props.mode === 'edit' ? 'PATCH' : 'POST'
 
       // Convert htmlBody to Lexical format
@@ -167,8 +176,20 @@ export function EmailTemplateForm(props: Props) {
         throw new Error(message)
       }
 
-      router.push('/dash/assets/email-templates')
-      router.refresh()
+      const responseData = await res.json()
+      const templateId = responseData.doc?.id || responseData.id
+      const templateName = responseData.doc?.name || responseData.name || values.name
+
+      // Call onSuccess callback if provided
+      if (props.onSuccess) {
+        props.onSuccess({ id: templateId, name: templateName })
+      }
+
+      // Only redirect if not disabled
+      if (!props.disableRedirect) {
+        router.push('/dash/assets/email-templates')
+        router.refresh()
+      }
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Unexpected error')
     }
@@ -192,7 +213,11 @@ export function EmailTemplateForm(props: Props) {
             Create an email template for automated communications
           </p>
           <p className="text-xs text-muted-foreground text-center max-w-md">
-            You can use variables like {'{'}{'{'} firstName {'}'}{'}'}  and {'{'}{'{'} eventName {'}'}{'}'} in your template
+            You can use variables like {'{'}
+            {'{'} firstName {'}'}
+            {'}'} and {'{'}
+            {'{'} eventName {'}'}
+            {'}'} in your template
           </p>
         </div>
       )}
@@ -253,11 +278,7 @@ export function EmailTemplateForm(props: Props) {
                       Whether this template is active and can be used
                     </p>
                   </div>
-                  <Switch
-                    id="isActive"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Switch id="isActive" checked={field.value} onCheckedChange={field.onChange} />
                 </div>
               )}
             />
@@ -341,39 +362,39 @@ export function EmailTemplateForm(props: Props) {
                           </>
                         )}
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={isGeneratingAI ? stopAI : handleGenerateAI}
-                        disabled={isSubmitting}
-                        className="h-7"
-                      >
-                        {isGeneratingAI ? (
-                          <>
-                            <StopCircle className="mr-1.5 h-3.5 w-3.5" />
-                            Stop
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                            Generate with AI
-                          </>
-                        )}
-                      </Button>
+                      {isGeneratingAI ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={stopAI}
+                          disabled={isSubmitting}
+                          className="h-7"
+                        >
+                          <StopCircle className="mr-1.5 h-3.5 w-3.5" />
+                          Stop
+                        </Button>
+                      ) : (
+                        <RainbowButton
+                          onClick={handleGenerateAI}
+                          disabled={isSubmitting}
+                          className="h-7 text-sm px-3"
+                        >
+                          <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                          Generate with AI
+                        </RainbowButton>
+                      )}
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground -mt-1">
                     Use {'{'}
                     {'{'} variable {'}'} {'}'} for dynamic content (Handlebars syntax)
                   </p>
-                  {aiError && (
-                    <p className="text-xs text-destructive">{aiError}</p>
-                  )}
+                  {aiError && <p className="text-xs text-destructive">{aiError}</p>}
                   {showPreview ? (
                     <SafeEmailPreview
                       html={htmlBody || ''}
-                      className="bg-background border border-border rounded-md p-4 min-h-[300px] prose prose-sm dark:prose-invert max-w-none"
+                      className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-2 border-border rounded-md p-6 min-h-[300px] prose prose-sm dark:prose-invert max-w-none shadow-sm [&_*]:text-gray-900 dark:[&_*]:text-gray-100"
                     />
                   ) : (
                     <Textarea
@@ -446,35 +467,35 @@ export function EmailTemplateForm(props: Props) {
                         </>
                       )}
                     </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={isGeneratingAI ? stopAI : handleGenerateAI}
-                      disabled={isSubmitting}
-                      className="h-7"
-                    >
-                      {isGeneratingAI ? (
-                        <>
-                          <StopCircle className="mr-1.5 h-3.5 w-3.5" />
-                          Stop
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                          Generate with AI
-                        </>
-                      )}
-                    </Button>
+                    {isGeneratingAI ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={stopAI}
+                        disabled={isSubmitting}
+                        className="h-7"
+                      >
+                        <StopCircle className="mr-1.5 h-3.5 w-3.5" />
+                        Stop
+                      </Button>
+                    ) : (
+                      <RainbowButton
+                        onClick={handleGenerateAI}
+                        disabled={isSubmitting}
+                        className="h-7 text-sm px-3"
+                      >
+                        <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                        Generate with AI
+                      </RainbowButton>
+                    )}
                   </div>
                 </div>
-                {aiError && (
-                  <p className="text-xs text-destructive">{aiError}</p>
-                )}
+                {aiError && <p className="text-xs text-destructive">{aiError}</p>}
                 {showPreview ? (
                   <SafeEmailPreview
                     html={htmlBody || ''}
-                    className="bg-background border border-border rounded-md p-4 min-h-[200px] prose prose-sm dark:prose-invert max-w-none"
+                    className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-2 border-border rounded-md p-6 min-h-[200px] prose prose-sm dark:prose-invert max-w-none shadow-sm [&_*]:text-gray-900 dark:[&_*]:text-gray-100"
                   />
                 ) : (
                   <Textarea
@@ -495,7 +516,8 @@ export function EmailTemplateForm(props: Props) {
                 )}
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 <p className="text-xs text-muted-foreground">
-                  Available variables: firstName, lastName, email, eventName, eventDate, organizationName
+                  Available variables: firstName, lastName, email, eventName, eventDate,
+                  organizationName
                 </p>
               </Field>
             )}
@@ -518,7 +540,11 @@ export function EmailTemplateForm(props: Props) {
                     Select the event that triggers this email template
                   </p>
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="triggerEvent" ref={field.ref} aria-invalid={fieldState.invalid}>
+                    <SelectTrigger
+                      id="triggerEvent"
+                      ref={field.ref}
+                      aria-invalid={fieldState.invalid}
+                    >
                       <SelectValue placeholder="Select trigger" />
                     </SelectTrigger>
                     <SelectContent>
@@ -536,26 +562,26 @@ export function EmailTemplateForm(props: Props) {
               )}
             />
 
-          {triggerEvent === 'custom' && (
-            <Controller
-              name="customTriggerName"
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Custom trigger name</FieldLabel>
-                  <Input
-                    {...field}
-                    value={field.value ?? ''}
-                    id={field.name}
-                    aria-invalid={fieldState.invalid}
-                    className="bg-background"
-                    placeholder="my.custom.trigger"
-                  />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-          )}
+            {triggerEvent === 'custom' && (
+              <Controller
+                name="customTriggerName"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Custom trigger name</FieldLabel>
+                    <Input
+                      {...field}
+                      value={field.value ?? ''}
+                      id={field.name}
+                      aria-invalid={fieldState.invalid}
+                      className="bg-background"
+                      placeholder="my.custom.trigger"
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            )}
 
             <Controller
               name="delayMinutes"
@@ -607,19 +633,21 @@ export function EmailTemplateForm(props: Props) {
       )}
 
       {/* Actions */}
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 pt-2 justify-center">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {props.mode === 'edit' ? 'Save changes' : 'Create template'}
+          {props.mode === 'edit' ? 'Save changes' : 'Save and continue'}
         </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.push('/dash/assets/email-templates')}
-          disabled={isSubmitting}
-        >
-          Cancel
-        </Button>
+        {!props.disableRedirect && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push('/dash/assets/email-templates')}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+        )}
       </div>
     </form>
   )

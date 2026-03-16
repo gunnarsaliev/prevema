@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/accordion'
 import {
   createOrganizationAction,
-  createDefaultOrganizationAction,
   updateOrganizationAction,
   getUserOrganizationAction,
 } from '@/app/(frontend)/onboarding/actions'
@@ -340,42 +339,6 @@ export const StepOrganization = ({
               disabled={isPending || organizationName.trim().length < 3}
             >
               {isPending ? 'Saving...' : 'Save & Continue'}
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              onClick={async () => {
-                // If user doesn't have an organization, create a default one before skipping
-                if (!hasOrganization) {
-                  setIsPending(true)
-                  try {
-                    const result = await createDefaultOrganizationAction()
-                    if (result.success && result.data) {
-                      console.log('[StepOrganization] Default organization created:', result.data.name)
-                      // Update state and notify parent
-                      setHasOrganization(true)
-                      setOrganizationId(result.data.id)
-                      setOrganizationName(result.data.name)
-                      if (onOrganizationCreated) {
-                        onOrganizationCreated(result.data.id, result.data.name)
-                      }
-                    } else {
-                      console.error('[StepOrganization] Failed to create default org:', result.message)
-                    }
-                  } catch (error) {
-                    console.error('[StepOrganization] Error creating default org:', error)
-                  } finally {
-                    setIsPending(false)
-                  }
-                }
-                // Move to next step
-                onNext?.()
-              }}
-              disabled={isPending}
-            >
-              Skip for now
             </Button>
           </>
         )}

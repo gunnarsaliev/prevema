@@ -443,133 +443,140 @@ export const StepGuests = ({
         </div>
       </div>
 
-      {/* Skip button */}
-      <div className="flex justify-center">
-        {/* Created Types */}
-        {(isInitialLoading ||
-          participantTypes.length > 0 ||
-          partnerTypes.length > 0 ||
-          participantLoading ||
-          partnerLoading) && (
-          <div className="shadow-lg p-4">
-            {/* Participant types list */}
-            {(participantTypes.length > 0 || participantLoading) && (
-              <div className="space-y-2 mb-4">
-                <Label className="text-xs text-muted-foreground">Participants</Label>
-                {participantTypes.map((type) => (
-                  <div
-                    key={type.id}
-                    className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20"
-                  >
-                    <span className="text-sm font-medium truncate flex-1">{type.name}</span>
-                    <div className="flex items-center gap-1">
-                      {type.publicFormLink && (
-                        <a
-                          href={type.publicFormLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:text-primary/80"
-                          title="View public form"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removeParticipantType(type.id)}
-                        className="text-muted-foreground hover:text-destructive"
-                        aria-label="Remove"
+      {/* Created Types */}
+      {(isInitialLoading ||
+        participantTypes.length > 0 ||
+        partnerTypes.length > 0 ||
+        participantLoading ||
+        partnerLoading) && (
+        <div className="shadow-lg p-4">
+          {/* Participant types list */}
+          {(participantTypes.length > 0 || participantLoading) && (
+            <div className="space-y-2 mb-4">
+              <Label className="text-xs text-muted-foreground">Participants</Label>
+              {participantTypes.map((type) => (
+                <div
+                  key={type.id}
+                  className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20"
+                >
+                  <span className="text-sm font-medium truncate flex-1">{type.name}</span>
+                  <div className="flex items-center gap-1">
+                    {type.publicFormLink && (
+                      <a
+                        href={type.publicFormLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/80"
+                        title="View public form"
                       >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {participantLoading && (
-                  <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-4" />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Partner types list */}
-            {(partnerTypes.length > 0 || partnerLoading) && (
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Partners</Label>
-                {partnerTypes.map((type) => (
-                  <div
-                    key={type.id}
-                    className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20"
-                  >
-                    <span className="text-sm font-medium truncate flex-1">{type.name}</span>
-                    <div className="flex items-center gap-1">
-                      {type.publicFormLink && (
-                        <a
-                          href={type.publicFormLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:text-primary/80"
-                          title="View public form"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removePartnerType(type.id)}
-                        className="text-muted-foreground hover:text-destructive"
-                        aria-label="Remove"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {partnerLoading && (
-                  <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-4" />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Initial loading state */}
-            {isInitialLoading && (
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24 mb-2" />
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-4" />
-                  </div>
-                  <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
-                    <Skeleton className="h-4 w-28" />
-                    <Skeleton className="h-4 w-4" />
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeParticipantType(type.id)}
+                      className="text-muted-foreground hover:text-destructive"
+                      aria-label="Remove"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* Empty state */}
-            {!isInitialLoading &&
-              participantTypes.length === 0 &&
-              partnerTypes.length === 0 &&
-              !participantLoading &&
-              !partnerLoading && (
-                <p className="text-xs text-muted-foreground text-center py-4">
-                  No types created yet. Add participant or partner types to see them here.
-                </p>
+              ))}
+              {participantLoading && (
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-4" />
+                </div>
               )}
-            <Button type="button" variant="outline" onClick={onNext} className="min-w-[200px]">
-              {participantTypes.length > 0 || partnerTypes.length > 0
-                ? 'Continue'
-                : 'Skip this step'}
-            </Button>
-          </div>
-        )}
+            </div>
+          )}
+
+          {/* Partner types list */}
+          {(partnerTypes.length > 0 || partnerLoading) && (
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Partners</Label>
+              {partnerTypes.map((type) => (
+                <div
+                  key={type.id}
+                  className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20"
+                >
+                  <span className="text-sm font-medium truncate flex-1">{type.name}</span>
+                  <div className="flex items-center gap-1">
+                    {type.publicFormLink && (
+                      <a
+                        href={type.publicFormLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/80"
+                        title="View public form"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removePartnerType(type.id)}
+                      className="text-muted-foreground hover:text-destructive"
+                      aria-label="Remove"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {partnerLoading && (
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-4" />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Initial loading state */}
+          {isInitialLoading && (
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24 mb-2" />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-4" />
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-4 w-4" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!isInitialLoading &&
+            participantTypes.length === 0 &&
+            partnerTypes.length === 0 &&
+            !participantLoading &&
+            !partnerLoading && (
+              <p className="text-xs text-muted-foreground text-center py-4">
+                No types created yet. Add participant or partner types to see them here.
+              </p>
+            )}
+        </div>
+      )}
+
+      {/* Skip/Continue button - always visible */}
+      <div className="flex justify-center">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onNext}
+          className="min-w-[200px]"
+          disabled={isInitialLoading}
+        >
+          {participantTypes.length > 0 || partnerTypes.length > 0
+            ? 'Continue'
+            : 'Skip this step'}
+        </Button>
       </div>
     </div>
   )

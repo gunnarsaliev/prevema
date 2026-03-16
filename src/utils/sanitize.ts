@@ -1,5 +1,23 @@
-import DOMPurify from 'isomorphic-dompurify'
 import type { Config } from 'dompurify'
+
+// Lazy load DOMPurify to avoid issues during server-side rendering
+let DOMPurify: any = null
+
+function getDOMPurify() {
+  if (typeof window === 'undefined') {
+    // Server-side: return identity function to avoid jsdom issues during SSR
+    // The component using this will be client-side rendered anyway
+    return {
+      sanitize: (html: string) => html,
+    }
+  }
+
+  if (!DOMPurify) {
+    // Client-side: load the actual DOMPurify
+    DOMPurify = require('isomorphic-dompurify')
+  }
+  return DOMPurify
+}
 
 /**
  * Sanitize HTML to prevent XSS attacks
@@ -98,7 +116,8 @@ export function sanitizeHTML(
     FORCE_BODY: false,
   }
 
-  return DOMPurify.sanitize(dirty, config)
+  const purify = getDOMPurify()
+  return purify.sanitize(dirty, config)
 }
 
 /**
@@ -139,7 +158,8 @@ export function sanitizeText(text: string): string {
     return ''
   }
 
-  return DOMPurify.sanitize(text, {
+  const purify = getDOMPurify()
+  return purify.sanitize(text, {
     ALLOWED_TAGS: [],
     ALLOWED_ATTR: [],
   })

@@ -1,211 +1,68 @@
 'use client'
 
 import { useState } from 'react'
-import { Mail } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { createEmailTemplateAction } from '@/app/(frontend)/onboarding/actions'
+import { EmailTemplateForm } from '@/app/(frontend)/dash/assets/email-templates/components/EmailTemplateForm'
 
 interface StepEmailTemplateProps {
-  stepIndex: number
-  onValidationChange: (stepIndex: number, isValid: boolean) => void
   organizationId: number
-  eventName?: string
   onTemplateCreated?: (templateId: number, templateName: string) => void
   onNext?: () => void
 }
 
 export const StepEmailTemplate = ({
-  stepIndex,
-  onValidationChange,
   organizationId,
-  eventName,
   onTemplateCreated,
   onNext,
 }: StepEmailTemplateProps) => {
-  const [templateName, setTemplateName] = useState('Welcome Email')
-  const [subject, setSubject] = useState(`Welcome to ${eventName || 'our event'}!`)
-  const [htmlBody, setHtmlBody] = useState(
-    `Hi {{firstName}},\n\nThank you for registering for ${eventName || '{{eventName}}'}!\n\nWe're excited to have you join us.\n\nBest regards,\n{{organizationName}} Team`
-  )
-  const [isPending, setIsPending] = useState(false)
-  const [state, setState] = useState<any>(undefined)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const form = e.currentTarget
-    const formData = new FormData(form)
+  const handleSuccess = (data: { id: number; name: string }) => {
+    console.log('[StepEmailTemplate] Email template created:', data)
 
-    setIsPending(true)
+    // Show success message
+    setSuccessMessage(`Email template "${data.name}" created successfully!`)
+    setShowSuccess(true)
 
-    try {
-      const result = await createEmailTemplateAction(organizationId, state, formData)
-      console.log('[StepEmailTemplate] Email template creation result:', result)
-
-      setState(result)
-
-      if (result.success && result.data) {
-        // Notify parent of template creation
-        if (onTemplateCreated) {
-          onTemplateCreated(result.data.id, result.data.name)
-        }
-
-        // Auto-advance to next step after showing success message
-        setTimeout(() => {
-          console.log('[StepEmailTemplate] Calling onNext to advance...', { onNext })
-          onNext?.()
-        }, 1500)
-      } else {
-        console.error('[StepEmailTemplate] Operation failed:', result.message)
-      }
-    } catch (error) {
-      console.error('[StepEmailTemplate] Error submitting form:', error)
-      setState({
-        success: false,
-        message: 'An unexpected error occurred. Please try again.',
-      })
-    } finally {
-      setIsPending(false)
+    // Notify parent of template creation
+    if (onTemplateCreated) {
+      onTemplateCreated(data.id, data.name)
     }
-  }
 
-  // Update validation when required fields change
-  const updateValidation = () => {
-    const isValid = subject.trim().length >= 3 && htmlBody.trim().length >= 10
-    onValidationChange(stepIndex, isValid)
-  }
-
-  const handleSubjectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSubject(e.target.value)
-    updateValidation()
-  }
-
-  const handleBodyChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setHtmlBody(e.target.value)
-    updateValidation()
+    // Auto-advance to next step after showing success message
+    setTimeout(() => {
+      console.log('[StepEmailTemplate] Calling onNext to advance...', { onNext })
+      onNext?.()
+    }, 1500)
   }
 
   return (
     <div className="flex w-full flex-col items-center justify-center">
-      <form onSubmit={handleSubmit} className="w-full max-w-lg space-y-6">
+      <div className="w-full max-w-3xl">
         {/* Success message */}
-        {state?.success && (
-          <div className="rounded-md bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 p-3">
-            <p className="text-sm text-green-800 dark:text-green-200">
-              Email template "{state.data?.name}" created successfully!
-            </p>
+        {showSuccess && (
+          <div className="rounded-md bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 p-3 mb-6">
+            <p className="text-sm text-green-800 dark:text-green-200">{successMessage}</p>
           </div>
         )}
 
-        {/* Error message */}
-        {state?.message && !state.success && (
-          <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3">
-            <p className="text-sm text-destructive">{state.message}</p>
-          </div>
-        )}
-
-        {!state?.success && (
+        {!showSuccess && (
           <>
-            <div className="flex flex-col items-center gap-3 mb-6">
-              <div className="rounded-full bg-primary/10 dark:bg-primary/20 p-4">
-                <Mail className="h-8 w-8 text-primary" />
-              </div>
-              <p className="text-sm text-muted-foreground text-center">
-                Create a welcome email template
-              </p>
-              <p className="text-xs text-muted-foreground text-center max-w-md">
-                You can use variables like {'{'}{'{'} firstName {'}'}{'}'}  and {'{'}{'{'} eventName {'}'}{'}'}
-              </p>
-            </div>
+            <EmailTemplateForm
+              mode="create"
+              displayMode="simple"
+              organizationId={organizationId}
+              onSuccess={handleSuccess}
+              disableRedirect={true}
+            />
 
-            {/* Template Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-foreground">
-                Template name
-              </Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                value={templateName}
-                onChange={(e) => setTemplateName(e.target.value)}
-                required
-                className="bg-background"
-                disabled={isPending}
-              />
-            </div>
-
-            {/* Subject */}
-            <div className="space-y-2">
-              <Label htmlFor="subject" className="text-foreground">
-                Subject *
-              </Label>
-              <Input
-                id="subject"
-                name="subject"
-                type="text"
-                placeholder="Welcome to our event!"
-                value={subject}
-                onChange={handleSubjectChange}
-                required
-                minLength={3}
-                className="bg-background"
-                disabled={isPending}
-                aria-invalid={!!state?.errors?.subject}
-              />
-              {state?.errors?.subject && (
-                <p className="text-sm text-destructive">{state.errors.subject[0]}</p>
-              )}
-            </div>
-
-            {/* Email Body */}
-            <div className="space-y-2">
-              <Label htmlFor="htmlBody" className="text-foreground">
-                Message *
-              </Label>
-              <Textarea
-                id="htmlBody"
-                name="htmlBody"
-                placeholder="Enter your email message..."
-                value={htmlBody}
-                onChange={handleBodyChange}
-                required
-                minLength={10}
-                rows={8}
-                className="bg-background font-mono text-sm"
-                disabled={isPending}
-                aria-invalid={!!state?.errors?.htmlBody}
-              />
-              {state?.errors?.htmlBody && (
-                <p className="text-sm text-destructive">{state.errors.htmlBody[0]}</p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Available variables: firstName, lastName, email, eventName, eventDate, organizationName
-              </p>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isPending || subject.trim().length < 3 || htmlBody.trim().length < 10}
-            >
-              {isPending ? 'Creating...' : 'Create Email Template'}
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              onClick={onNext}
-              disabled={isPending}
-            >
+            <Button type="button" variant="ghost" className="w-full mt-4" onClick={onNext}>
               Skip for now
             </Button>
           </>
         )}
-      </form>
+      </div>
     </div>
   )
 }

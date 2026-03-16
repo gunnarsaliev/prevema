@@ -26,7 +26,7 @@ export const StepSocialPost = ({
   onNext,
 }: StepSocialPostProps) => {
   const router = useRouter()
-  const [selectedOption, setSelectedOption] = useState<'own' | 'create' | null>(null)
+  const [selectedOption, setSelectedOption] = useState<'own' | 'create' | null>('create')
   const [uploadedImage, setUploadedImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -64,6 +64,14 @@ export const StepSocialPost = ({
     onValidationChange(stepIndex, true)
     return { success: true }
   }
+
+  // Set initial validation state on mount
+  useEffect(() => {
+    if (selectedOption === 'create') {
+      onValidationChange(stepIndex, true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Cleanup preview URL on unmount
   useEffect(() => {
