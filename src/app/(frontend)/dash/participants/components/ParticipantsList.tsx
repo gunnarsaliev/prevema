@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ColumnDef, Row } from '@tanstack/react-table'
-import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image } from 'lucide-react'
+import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image, Plus } from 'lucide-react'
 
 import type { Participant } from '@/payload-types'
 import { Button } from '@/components/ui/button'
@@ -26,6 +26,13 @@ import {
 } from '@/lib/entity-actions'
 import { BulkEmailModal } from '@/components/BulkEmailModal'
 import { GenerationModal } from '@/components/GenerationModal'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer'
+import { ParticipantRoleForm } from '../../participant-roles/components/ParticipantRoleForm'
 
 const STATUS_LABEL: Record<string, string> = {
   'not-approved': 'Not Approved',
@@ -46,14 +53,21 @@ interface EventOption {
   name: string
 }
 
+interface OrgOption {
+  id: number
+  name: string
+}
+
 interface Props {
   participants: Participant[]
   events: EventOption[]
+  organizations: OrgOption[]
   eventId?: string
 }
 
-export function ParticipantsList({ participants, events, eventId }: Props) {
+export function ParticipantsList({ participants, events, organizations, eventId }: Props) {
   const router = useRouter()
+  const [roleDrawerOpen, setRoleDrawerOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
@@ -288,6 +302,12 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
     title: 'Participants',
     createButtonLabel: 'New participant',
     createHref,
+    headerActions: (
+      <Button variant="outline" onClick={() => setRoleDrawerOpen(true)}>
+        <Plus className="mr-2 h-4 w-4" />
+        New role
+      </Button>
+    ),
     columns,
     data: participants,
     searchKey: 'name',
@@ -312,6 +332,26 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
   return (
     <>
       <EntityList config={config} />
+
+      <Drawer open={roleDrawerOpen} onOpenChange={setRoleDrawerOpen} direction="right">
+        <DrawerContent className="w-[500px] max-w-full flex flex-col">
+          <DrawerHeader>
+            <DrawerTitle>Create participant role</DrawerTitle>
+          </DrawerHeader>
+          <div className="overflow-y-auto px-6 pb-6 flex-1">
+            <ParticipantRoleForm
+              mode="create"
+              organizations={organizations}
+              events={events}
+              onSuccess={() => {
+                setRoleDrawerOpen(false)
+                router.refresh()
+              }}
+              onCancel={() => setRoleDrawerOpen(false)}
+            />
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       {isEmailModalOpen && organizationId && selectedParticipantIds.length > 0 && (
         <BulkEmailModal

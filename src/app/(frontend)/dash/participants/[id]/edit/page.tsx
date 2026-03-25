@@ -2,6 +2,7 @@ import { headers as getHeaders } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { getUserOrganizationIds } from '@/access/utilities'
 
 import { ParticipantForm } from '../../components/ParticipantForm'
 import type { ParticipantFormValues } from '@/lib/schemas/participant'
@@ -18,7 +19,9 @@ export default async function EditParticipantPage({
 
   if (!user) redirect('/admin/login')
 
-  const [participant, { docs: eventDocs }, { docs: typeDocs }] = await Promise.all([
+  const organizationIds = await getUserOrganizationIds(payload, user)
+
+  const [participant, { docs: eventDocs }, { docs: typeDocs }, { docs: orgDocs }] = await Promise.all([
     payload
       .findByID({
         collection: 'participants',
@@ -44,6 +47,13 @@ export default async function EditParticipantPage({
       depth: 0,
       limit: 100,
       sort: 'name',
+      select: { name: true },
+    }),
+    payload.find({
+      collection: 'organizations',
+      where: { id: { in: organizationIds } },
+      depth: 0,
+      limit: 100,
       select: { name: true },
     }),
   ])
@@ -78,6 +88,7 @@ export default async function EditParticipantPage({
 
   const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
   const participantRoles = typeDocs.map((t) => ({ id: t.id, name: t.name as string }))
+  const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
     <div className="px-6 py-8">
@@ -91,6 +102,7 @@ export default async function EditParticipantPage({
         defaultValues={defaultValues}
         events={events}
         participantRoles={participantRoles}
+        organizations={organizations}
       />
     </div>
   )

@@ -2,6 +2,7 @@ import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { getUserOrganizationIds } from '@/access/utilities'
 
 import { PartnersList } from './components/PartnersList'
 import { EmptyEventState } from '@/components/EmptyEventState'
@@ -19,7 +20,9 @@ export default async function PartnersPage({
 
   if (!user) redirect('/admin/login')
 
-  const [{ docs: partners }, { docs: eventDocs }, { docs: partnerTypes }] = await Promise.all([
+  const organizationIds = await getUserOrganizationIds(payload, user)
+
+  const [{ docs: partners }, { docs: eventDocs }, { docs: partnerTypes }, { docs: orgDocs }] = await Promise.all([
     payload.find({
       collection: 'partners',
       overrideAccess: false,
@@ -47,9 +50,17 @@ export default async function PartnersPage({
       depth: 0,
       limit: 1,
     }),
+    payload.find({
+      collection: 'organizations',
+      where: { id: { in: organizationIds } },
+      depth: 0,
+      limit: 100,
+      select: { name: true },
+    }),
   ])
 
   const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
+  const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
 
   // Show empty state if no events exist
   if (events.length === 0) {
@@ -63,7 +74,7 @@ export default async function PartnersPage({
 
   return (
     <div className="px-6 py-8">
-      <PartnersList partners={partners} events={events} eventId={eventId} />
+      <PartnersList partners={partners} events={events} organizations={organizations} eventId={eventId} />
     </div>
   )
 }

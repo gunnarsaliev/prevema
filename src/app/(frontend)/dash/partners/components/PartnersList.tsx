@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ColumnDef, Row } from '@tanstack/react-table'
-import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image } from 'lucide-react'
+import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image, Plus } from 'lucide-react'
 
 import type { Partner } from '@/payload-types'
 import { Button } from '@/components/ui/button'
@@ -26,6 +26,13 @@ import {
 } from '@/lib/entity-actions'
 import { BulkEmailModal } from '@/components/BulkEmailModal'
 import { GenerationModal } from '@/components/GenerationModal'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer'
+import { PartnerTypeForm } from '../../partner-types/components/PartnerTypeForm'
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   default: 'secondary',
@@ -39,14 +46,21 @@ interface EventOption {
   name: string
 }
 
+interface OrgOption {
+  id: number
+  name: string
+}
+
 interface Props {
   partners: Partner[]
   events: EventOption[]
+  organizations: OrgOption[]
   eventId?: string
 }
 
-export function PartnersList({ partners, events, eventId }: Props) {
+export function PartnersList({ partners, events, organizations, eventId }: Props) {
   const router = useRouter()
+  const [typeDrawerOpen, setTypeDrawerOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
@@ -287,6 +301,12 @@ export function PartnersList({ partners, events, eventId }: Props) {
     title: 'Partners',
     createButtonLabel: 'New partner',
     createHref,
+    headerActions: (
+      <Button variant="outline" onClick={() => setTypeDrawerOpen(true)}>
+        <Plus className="mr-2 h-4 w-4" />
+        New type
+      </Button>
+    ),
     columns,
     data: partners,
     searchKey: 'companyName',
@@ -311,6 +331,26 @@ export function PartnersList({ partners, events, eventId }: Props) {
   return (
     <>
       <EntityList config={config} />
+
+      <Drawer open={typeDrawerOpen} onOpenChange={setTypeDrawerOpen} direction="right">
+        <DrawerContent className="w-[500px] max-w-full flex flex-col">
+          <DrawerHeader>
+            <DrawerTitle>Create partner type</DrawerTitle>
+          </DrawerHeader>
+          <div className="overflow-y-auto px-6 pb-6 flex-1">
+            <PartnerTypeForm
+              mode="create"
+              organizations={organizations}
+              events={events}
+              onSuccess={() => {
+                setTypeDrawerOpen(false)
+                router.refresh()
+              }}
+              onCancel={() => setTypeDrawerOpen(false)}
+            />
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       {isEmailModalOpen && organizationId && selectedPartnerIds.length > 0 && (
         <BulkEmailModal

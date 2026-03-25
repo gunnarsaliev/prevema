@@ -2,9 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, useWatch, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus } from 'lucide-react'
 
 import { participantSchema, type ParticipantFormValues } from '@/lib/schemas/participant'
 import { Button } from '@/components/ui/button'
@@ -25,13 +25,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer'
+import { ParticipantRoleForm } from '../../participant-roles/components/ParticipantRoleForm'
 
 type EventOption = { id: number; name: string }
 type ParticipantRoleOption = { id: number; name: string }
+type OrgOption = { id: number; name: string }
 
 type SharedOptions = {
   events: EventOption[]
   participantRoles: ParticipantRoleOption[]
+  organizations: OrgOption[]
   defaultEventId?: number
 }
 
@@ -42,6 +51,8 @@ type Props =
 export function ParticipantForm(props: Props) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
+  const [localRoles, setLocalRoles] = useState<ParticipantRoleOption[]>(props.participantRoles)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const defaultValues: Partial<ParticipantFormValues> =
     props.mode === 'edit'
@@ -56,12 +67,15 @@ export function ParticipantForm(props: Props) {
   const {
     handleSubmit,
     control,
+    setValue,
     formState: { isSubmitting },
   } = useForm<ParticipantFormValues>({
     resolver: zodResolver(participantSchema),
     defaultValues,
     mode: 'onBlur',
   })
+
+  const selectedEvent = useWatch({ control, name: 'event' })
 
   const onSubmit = async (values: ParticipantFormValues) => {
     setServerError(null)
@@ -92,363 +106,413 @@ export function ParticipantForm(props: Props) {
     }
   }
 
+  const handleRoleCreated = async (newRoleId?: number) => {
+    try {
+      const res = await fetch('/api/participant-roles?limit=100&sort=name&depth=0')
+      if (res.ok) {
+        const data = await res.json()
+        const updated = (data.docs ?? []).map((r: { id: number; name: string }) => ({
+          id: r.id,
+          name: r.name,
+        }))
+        setLocalRoles(updated)
+      }
+    } catch {
+      // silently ignore — the new role was still created
+    }
+    if (newRoleId) setValue('participantRole', newRoleId)
+    setDrawerOpen(false)
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-2xl">
-      {serverError && (
-        <p className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">
-          {serverError}
-        </p>
-      )}
+    <>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-2xl">
+        {serverError && (
+          <p className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">
+            {serverError}
+          </p>
+        )}
 
-      {/* Participant */}
-      <FieldSet>
-        <FieldLegend>Participant</FieldLegend>
-        <FieldGroup>
-          <Controller
-            name="name"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Name *</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background"
-                  placeholder="Jane Smith"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="email"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Email *</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  type="email"
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background"
-                  placeholder="jane@example.com"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-
-          <div className="grid grid-cols-2 gap-4">
+        {/* Participant */}
+        <FieldSet>
+          <FieldLegend>Participant</FieldLegend>
+          <FieldGroup>
             <Controller
-              name="event"
+              name="name"
               control={control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="event">Event *</FieldLabel>
-                  <Select
-                    value={field.value ? String(field.value) : ''}
-                    onValueChange={(v) => field.onChange(Number(v))}
-                  >
-                    <SelectTrigger id="event" ref={field.ref} aria-invalid={fieldState.invalid}>
-                      <SelectValue placeholder="Select event" />
+                  <FieldLabel htmlFor={field.name}>Name *</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                    placeholder="Jane Smith"
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="email"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Email *</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    type="email"
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                    placeholder="jane@example.com"
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <Controller
+                name="event"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="event">Event *</FieldLabel>
+                    <Select
+                      value={field.value ? String(field.value) : ''}
+                      onValueChange={(v) => field.onChange(Number(v))}
+                    >
+                      <SelectTrigger id="event" ref={field.ref} aria-invalid={fieldState.invalid}>
+                        <SelectValue placeholder="Select event" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {props.events.map((e) => (
+                          <SelectItem key={e.id} value={String(e.id)}>
+                            {e.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                name="participantRole"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <div className="flex items-center justify-between">
+                      <FieldLabel htmlFor="participantRole">Participant role *</FieldLabel>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto py-0 px-1 text-xs text-muted-foreground hover:text-foreground -mt-0.5"
+                        onClick={() => setDrawerOpen(true)}
+                      >
+                        <Plus className="h-3 w-3 mr-0.5" />
+                        New role
+                      </Button>
+                    </div>
+                    <Select
+                      value={field.value ? String(field.value) : ''}
+                      onValueChange={(v) => field.onChange(Number(v))}
+                    >
+                      <SelectTrigger id="participantRole" ref={field.ref} aria-invalid={fieldState.invalid}>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {localRoles.map((pr) => (
+                          <SelectItem key={pr.id} value={String(pr.id)}>
+                            {pr.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            </div>
+
+            <Controller
+              name="status"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="status">Status</FieldLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="status" ref={field.ref} aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      {props.events.map((e) => (
-                        <SelectItem key={e.id} value={String(e.id)}>
-                          {e.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="not-approved">Not Approved</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="need-info">Need More Information</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
             />
+          </FieldGroup>
+        </FieldSet>
 
+        {/* Profile */}
+        <FieldSet>
+          <FieldLegend>Profile</FieldLegend>
+          <FieldGroup>
             <Controller
-              name="participantRole"
+              name="biography"
               control={control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="participantRole">Participant role *</FieldLabel>
-                  <Select
-                    value={field.value ? String(field.value) : ''}
-                    onValueChange={(v) => field.onChange(Number(v))}
-                  >
-                    <SelectTrigger id="participantRole" ref={field.ref} aria-invalid={fieldState.invalid}>
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {props.participantRoles.map((pr) => (
-                        <SelectItem key={pr.id} value={String(pr.id)}>
-                          {pr.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FieldLabel htmlFor={field.name}>Biography</FieldLabel>
+                  <Textarea
+                    {...field}
+                    value={field.value ?? ''}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                    placeholder="Brief biography or introduction…"
+                    rows={3}
+                  />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <Controller
+                name="country"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Country</FieldLabel>
+                    <Input
+                      {...field}
+                      value={field.value ?? ''}
+                      id={field.name}
+                      aria-invalid={fieldState.invalid}
+                      className="bg-background"
+                      placeholder="United States"
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                name="phoneNumber"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Phone number</FieldLabel>
+                    <Input
+                      {...field}
+                      value={field.value ?? ''}
+                      id={field.name}
+                      type="tel"
+                      aria-invalid={fieldState.invalid}
+                      className="bg-background"
+                      placeholder="+1 555 000 0000"
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Controller
+                name="companyName"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Company name</FieldLabel>
+                    <Input
+                      {...field}
+                      value={field.value ?? ''}
+                      id={field.name}
+                      aria-invalid={fieldState.invalid}
+                      className="bg-background"
+                      placeholder="Acme Inc."
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                name="companyPosition"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Job title</FieldLabel>
+                    <Input
+                      {...field}
+                      value={field.value ?? ''}
+                      id={field.name}
+                      aria-invalid={fieldState.invalid}
+                      className="bg-background"
+                      placeholder="Software Engineer"
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            </div>
+
+            <Controller
+              name="companyWebsite"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Company website</FieldLabel>
+                  <Input
+                    {...field}
+                    value={field.value ?? ''}
+                    id={field.name}
+                    type="url"
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                    placeholder="https://acme.com"
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+          </FieldGroup>
+        </FieldSet>
+
+        {/* Notes */}
+        <FieldSet>
+          <FieldLegend>Notes</FieldLegend>
+          <FieldGroup>
+            <Controller
+              name="internalNotes"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Internal notes</FieldLabel>
+                  <p className="text-xs text-muted-foreground -mt-1">
+                    Not visible to the participant.
+                  </p>
+                  <Textarea
+                    {...field}
+                    value={field.value ?? ''}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                    placeholder="Internal notes for your team…"
+                    rows={2}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="presentationTopic"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Presentation topic</FieldLabel>
+                  <Input
+                    {...field}
+                    value={field.value ?? ''}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                    placeholder="Topic title…"
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="presentationSummary"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Presentation summary</FieldLabel>
+                  <Textarea
+                    {...field}
+                    value={field.value ?? ''}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                    placeholder="Brief summary of the presentation…"
+                    rows={3}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="technicalRequirements"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Technical requirements</FieldLabel>
+                  <Textarea
+                    {...field}
+                    value={field.value ?? ''}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                    className="bg-background"
+                    placeholder="Any technical requirements…"
+                    rows={2}
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+          </FieldGroup>
+        </FieldSet>
+
+        {/* Actions */}
+        <div className="flex gap-3 pt-2">
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {props.mode === 'edit' ? 'Save changes' : 'Add participant'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push('/dash/participants')}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} direction="right">
+        <DrawerContent className="w-[500px] max-w-full flex flex-col">
+          <DrawerHeader>
+            <DrawerTitle>Create participant role</DrawerTitle>
+          </DrawerHeader>
+          <div className="overflow-y-auto px-6 pb-6 flex-1">
+            <ParticipantRoleForm
+              mode="create"
+              organizations={props.organizations}
+              events={props.events}
+              lockedValues={{ event: selectedEvent ?? undefined }}
+              onSuccess={handleRoleCreated}
+              onCancel={() => setDrawerOpen(false)}
             />
           </div>
-
-          <Controller
-            name="status"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="status">Status</FieldLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id="status" ref={field.ref} aria-invalid={fieldState.invalid}>
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="not-approved">Not Approved</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="need-info">Need More Information</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-        </FieldGroup>
-      </FieldSet>
-
-      {/* Profile */}
-      <FieldSet>
-        <FieldLegend>Profile</FieldLegend>
-        <FieldGroup>
-          <Controller
-            name="biography"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Biography</FieldLabel>
-                <Textarea
-                  {...field}
-                  value={field.value ?? ''}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background"
-                  placeholder="Brief biography or introduction…"
-                  rows={3}
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <Controller
-              name="country"
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Country</FieldLabel>
-                  <Input
-                    {...field}
-                    value={field.value ?? ''}
-                    id={field.name}
-                    aria-invalid={fieldState.invalid}
-                    className="bg-background"
-                    placeholder="United States"
-                  />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-
-            <Controller
-              name="phoneNumber"
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Phone number</FieldLabel>
-                  <Input
-                    {...field}
-                    value={field.value ?? ''}
-                    id={field.name}
-                    type="tel"
-                    aria-invalid={fieldState.invalid}
-                    className="bg-background"
-                    placeholder="+1 555 000 0000"
-                  />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Controller
-              name="companyName"
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Company name</FieldLabel>
-                  <Input
-                    {...field}
-                    value={field.value ?? ''}
-                    id={field.name}
-                    aria-invalid={fieldState.invalid}
-                    className="bg-background"
-                    placeholder="Acme Inc."
-                  />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-
-            <Controller
-              name="companyPosition"
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Job title</FieldLabel>
-                  <Input
-                    {...field}
-                    value={field.value ?? ''}
-                    id={field.name}
-                    aria-invalid={fieldState.invalid}
-                    className="bg-background"
-                    placeholder="Software Engineer"
-                  />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-          </div>
-
-          <Controller
-            name="companyWebsite"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Company website</FieldLabel>
-                <Input
-                  {...field}
-                  value={field.value ?? ''}
-                  id={field.name}
-                  type="url"
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background"
-                  placeholder="https://acme.com"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-        </FieldGroup>
-      </FieldSet>
-
-      {/* Notes */}
-      <FieldSet>
-        <FieldLegend>Notes</FieldLegend>
-        <FieldGroup>
-          <Controller
-            name="internalNotes"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Internal notes</FieldLabel>
-                <p className="text-xs text-muted-foreground -mt-1">
-                  Not visible to the participant.
-                </p>
-                <Textarea
-                  {...field}
-                  value={field.value ?? ''}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background"
-                  placeholder="Internal notes for your team…"
-                  rows={2}
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="presentationTopic"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Presentation topic</FieldLabel>
-                <Input
-                  {...field}
-                  value={field.value ?? ''}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background"
-                  placeholder="Topic title…"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="presentationSummary"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Presentation summary</FieldLabel>
-                <Textarea
-                  {...field}
-                  value={field.value ?? ''}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background"
-                  placeholder="Brief summary of the presentation…"
-                  rows={3}
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-
-          <Controller
-            name="technicalRequirements"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Technical requirements</FieldLabel>
-                <Textarea
-                  {...field}
-                  value={field.value ?? ''}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  className="bg-background"
-                  placeholder="Any technical requirements…"
-                  rows={2}
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-        </FieldGroup>
-      </FieldSet>
-
-      {/* Actions */}
-      <div className="flex gap-3 pt-2">
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {props.mode === 'edit' ? 'Save changes' : 'Add participant'}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.push('/dash/participants')}
-          disabled={isSubmitting}
-        >
-          Cancel
-        </Button>
-      </div>
-    </form>
+        </DrawerContent>
+      </Drawer>
+    </>
   )
 }

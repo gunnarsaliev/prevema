@@ -21,6 +21,7 @@ export interface EntityListConfig<TData> {
   description?: string
   createButtonLabel?: string
   createHref: string
+  headerActions?: ReactNode
 
   // Table configuration
   columns: ColumnDef<TData>[]
@@ -56,6 +57,7 @@ export function EntityList<TData>({ config }: EntityListProps<TData>) {
     description,
     createButtonLabel = `New ${title.toLowerCase().slice(0, -1)}`,
     createHref,
+    headerActions,
     columns,
     data,
     searchKey,
@@ -80,12 +82,15 @@ export function EntityList<TData>({ config }: EntityListProps<TData>) {
         ) : (
           <h1 className="text-2xl font-semibold">{title}</h1>
         )}
-        <Button asChild>
-          <Link href={createHref}>
-            <Plus className="mr-2 h-4 w-4" />
-            {createButtonLabel}
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {headerActions}
+          <Button asChild>
+            <Link href={createHref}>
+              <Plus className="mr-2 h-4 w-4" />
+              {createButtonLabel}
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Optional Filter */}

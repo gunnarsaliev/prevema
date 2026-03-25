@@ -277,12 +277,12 @@ export const Organizations: CollectionConfig = {
           // 4. Delete all organization-scoped data
           // Wrap each in try/catch to handle collections that don't exist
           const collections = [
+            { slug: 'participants', label: 'participants' },
+            { slug: 'partners', label: 'partners' },
             { slug: 'events', label: 'events' },
             { slug: 'email-logs', label: 'email logs' },
             { slug: 'email-templates', label: 'email templates' },
             { slug: 'image-templates', label: 'image templates' },
-            { slug: 'partners', label: 'partners' },
-            { slug: 'participants', label: 'participants' },
             { slug: 'participant-roles', label: 'participant roles' },
             { slug: 'partner-types', label: 'partner types' },
             { slug: 'partner-tiers', label: 'partner tiers' },
