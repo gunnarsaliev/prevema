@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Building2, Calendar, Users, Mail, Palette } from 'lucide-react'
 import { Onboarding2 } from '@/components/onboarding2'
+import { StepWelcome } from './steps/StepWelcome'
 import { StepOrganization } from './steps/StepOrganization'
 import { StepEvent } from './steps/StepEvent'
 import { StepGuests } from './steps/StepGuests'
@@ -22,6 +23,14 @@ export const OnboardingFlow = () => {
 
   // Define step configurations
   const steps = [
+    {
+      title: 'Prepare your event in few easy steps',
+      description: 'You can do it now or skip and get back to it later',
+      className: 'bg-indigo-100 dark:bg-indigo-950/40',
+      component: (props: any) => <StepWelcome {...props} />,
+      isBlocking: false,
+      cta: () => null,
+    },
     {
       title: 'Create your organization',
       description: 'Set up your organization profile to get started (or skip and do it later)',
