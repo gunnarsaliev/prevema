@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar, Users, Building2, ImageIcon } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Calendar, Users, Building2, ImageIcon, PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 import { getDashboardCounts, getUpcomingEvent } from './actions'
 import { DashboardEventCard } from './components/DashboardEventCard'
@@ -27,7 +28,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Link href="/dash/events">
+        <Link href="/dash/events/create">
           <Card className="cursor-pointer transition-colors hover:bg-muted/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Events</CardTitle>
@@ -117,38 +118,86 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4">
-              <Link
-                href="/dash/events"
-                className="flex items-center gap-4 rounded-lg border p-4 hover:bg-accent transition-colors"
-              >
-                <Calendar className="h-8 w-8 text-primary" />
-                <div>
-                  <h3 className="font-semibold">Manage Events</h3>
-                  <p className="text-sm text-muted-foreground">Create and organize your events</p>
+              {counts.events === 0 ? (
+                <div className="flex items-center gap-4 rounded-lg border p-4 cursor-not-allowed">
+                  <Calendar className="h-8 w-8 text-muted-foreground/50" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-muted-foreground/60">Manage Events</h3>
+                    <p className="text-sm text-muted-foreground/50">Create and organize your events</p>
+                  </div>
+                  <Link href="/dash/events/create" className="shrink-0">
+                    <Badge variant="outline" className="gap-1 text-xs text-primary border-primary/40 hover:bg-primary/10 transition-colors cursor-pointer">
+                      <PlusCircle className="h-3 w-3" />
+                      Create event
+                    </Badge>
+                  </Link>
                 </div>
-              </Link>
+              ) : (
+                <Link
+                  href="/dash/events/create"
+                  className="flex items-center gap-4 rounded-lg border p-4 hover:bg-accent transition-colors"
+                >
+                  <Calendar className="h-8 w-8 text-primary" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold">Manage Events</h3>
+                    <p className="text-sm text-muted-foreground">Create and organize your events</p>
+                  </div>
+                </Link>
+              )}
 
-              <Link
-                href="/dash/participants"
-                className="flex items-center gap-4 rounded-lg border p-4 hover:bg-accent transition-colors"
-              >
-                <Users className="h-8 w-8 text-primary" />
-                <div>
-                  <h3 className="font-semibold">View Participants</h3>
-                  <p className="text-sm text-muted-foreground">Manage event participants and registrations</p>
+              {counts.events === 0 ? (
+                <div className="flex items-center gap-4 rounded-lg border p-4 cursor-not-allowed">
+                  <Users className="h-8 w-8 text-muted-foreground/50" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-muted-foreground/60">View Participants</h3>
+                    <p className="text-sm text-muted-foreground/50">Manage event participants and registrations</p>
+                  </div>
+                  <Link href="/dash/events/create" className="shrink-0">
+                    <Badge variant="outline" className="gap-1 text-xs text-primary border-primary/40 hover:bg-primary/10 transition-colors cursor-pointer">
+                      <PlusCircle className="h-3 w-3" />
+                      Create event
+                    </Badge>
+                  </Link>
                 </div>
-              </Link>
+              ) : (
+                <Link
+                  href="/dash/participants"
+                  className="flex items-center gap-4 rounded-lg border p-4 hover:bg-accent transition-colors"
+                >
+                  <Users className="h-8 w-8 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">View Participants</h3>
+                    <p className="text-sm text-muted-foreground">Manage event participants and registrations</p>
+                  </div>
+                </Link>
+              )}
 
-              <Link
-                href="/dash/partners"
-                className="flex items-center gap-4 rounded-lg border p-4 hover:bg-accent transition-colors"
-              >
-                <Building2 className="h-8 w-8 text-primary" />
-                <div>
-                  <h3 className="font-semibold">Manage Partners</h3>
-                  <p className="text-sm text-muted-foreground">Work with sponsors and exhibitors</p>
+              {counts.events === 0 ? (
+                <div className="flex items-center gap-4 rounded-lg border p-4 cursor-not-allowed">
+                  <Building2 className="h-8 w-8 text-muted-foreground/50" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-muted-foreground/60">Manage Partners</h3>
+                    <p className="text-sm text-muted-foreground/50">Work with sponsors and exhibitors</p>
+                  </div>
+                  <Link href="/dash/events/create" className="shrink-0">
+                    <Badge variant="outline" className="gap-1 text-xs text-primary border-primary/40 hover:bg-primary/10 transition-colors cursor-pointer">
+                      <PlusCircle className="h-3 w-3" />
+                      Create event
+                    </Badge>
+                  </Link>
                 </div>
-              </Link>
+              ) : (
+                <Link
+                  href="/dash/partners"
+                  className="flex items-center gap-4 rounded-lg border p-4 hover:bg-accent transition-colors"
+                >
+                  <Building2 className="h-8 w-8 text-primary" />
+                  <div>
+                    <h3 className="font-semibold">Manage Partners</h3>
+                    <p className="text-sm text-muted-foreground">Work with sponsors and exhibitors</p>
+                  </div>
+                </Link>
+              )}
 
               <Link
                 href="/dash/assets"
