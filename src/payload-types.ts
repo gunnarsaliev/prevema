@@ -579,7 +579,6 @@ export interface ImageTemplate {
    * Template name (e.g., "Business Card - Blue Theme")
    */
   name: string;
-  slug?: string | null;
   /**
    * The organization this template belongs to
    */
@@ -1238,7 +1237,6 @@ export interface EventsSelect<T extends boolean = true> {
  */
 export interface ImageTemplatesSelect<T extends boolean = true> {
   name?: T;
-  slug?: T;
   organization?: T;
   usageType?: T;
   isActive?: T;

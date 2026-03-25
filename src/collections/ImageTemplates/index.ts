@@ -2,7 +2,6 @@ import type { CollectionConfig } from 'payload'
 import { checkRole, getUserOrganizationIds } from '@/access/utilities'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
-import { formatSlugHook } from '@/utils/formatSlug'
 
 /**
  * ImageTemplates Collection
@@ -102,18 +101,6 @@ export const ImageTemplates: CollectionConfig = {
       required: true,
       admin: {
         description: 'Template name (e.g., "Business Card - Blue Theme")',
-      },
-    },
-    {
-      name: 'slug',
-      type: 'text',
-      unique: true,
-      hooks: {
-        beforeValidate: [formatSlugHook('name')],
-      },
-      admin: {
-        readOnly: true,
-        position: 'sidebar',
       },
     },
     {
