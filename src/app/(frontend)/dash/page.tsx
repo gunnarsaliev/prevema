@@ -145,17 +145,17 @@ export default async function DashboardPage() {
                 </Link>
               )}
 
-              {counts.events === 0 ? (
+              {counts.participants === 0 ? (
                 <div className="flex items-center gap-4 rounded-lg border p-4 cursor-not-allowed">
                   <Users className="h-8 w-8 text-muted-foreground/50" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-muted-foreground/60">View Participants</h3>
                     <p className="text-sm text-muted-foreground/50">Manage event participants and registrations</p>
                   </div>
-                  <Link href="/dash/events/create" className="shrink-0">
+                  <Link href="/dash/participants/create" className="shrink-0">
                     <Badge variant="outline" className="gap-1 text-xs text-primary border-primary/40 hover:bg-primary/10 transition-colors cursor-pointer">
                       <PlusCircle className="h-3 w-3" />
-                      Create event
+                      Create new
                     </Badge>
                   </Link>
                 </div>
@@ -172,17 +172,17 @@ export default async function DashboardPage() {
                 </Link>
               )}
 
-              {counts.events === 0 ? (
+              {counts.partners === 0 ? (
                 <div className="flex items-center gap-4 rounded-lg border p-4 cursor-not-allowed">
                   <Building2 className="h-8 w-8 text-muted-foreground/50" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-muted-foreground/60">Manage Partners</h3>
                     <p className="text-sm text-muted-foreground/50">Work with sponsors and exhibitors</p>
                   </div>
-                  <Link href="/dash/events/create" className="shrink-0">
+                  <Link href="/dash/partners/create" className="shrink-0">
                     <Badge variant="outline" className="gap-1 text-xs text-primary border-primary/40 hover:bg-primary/10 transition-colors cursor-pointer">
                       <PlusCircle className="h-3 w-3" />
-                      Create event
+                      Create new
                     </Badge>
                   </Link>
                 </div>
