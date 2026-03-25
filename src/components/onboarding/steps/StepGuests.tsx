@@ -9,11 +9,11 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
-  createParticipantTypeAction,
+  createParticipantRoleAction,
   createPartnerTypeAction,
-  getParticipantTypesAction,
+  getParticipantRolesAction,
   getPartnerTypesAction,
-  deleteParticipantTypeAction,
+  deleteParticipantRoleAction,
   deletePartnerTypeAction,
 } from '@/app/(frontend)/onboarding/actions'
 
@@ -28,7 +28,7 @@ interface StepGuestsProps {
   onValidationChange: (stepIndex: number, isValid: boolean) => void
   organizationId: number
   eventId: number
-  onGuestsConfigured?: (participantTypeIds: number[], partnerTypeIds: number[]) => void
+  onGuestsConfigured?: (participantRoleIds: number[], partnerTypeIds: number[]) => void
   onNext?: () => void
 }
 
@@ -85,7 +85,7 @@ export const StepGuests = ({
     'biography',
     'companyName',
   ])
-  const [participantTypes, setParticipantTypes] = useState<GuestType[]>([])
+  const [participantRoles, setParticipantRoles] = useState<GuestType[]>([])
   const [participantLoading, setParticipantLoading] = useState(false)
 
   // Partner state
@@ -111,12 +111,12 @@ export const StepGuests = ({
     const fetchTypes = async () => {
       setIsInitialLoading(true)
       const [participantResult, partnerResult] = await Promise.all([
-        getParticipantTypesAction(organizationId, eventId),
+        getParticipantRolesAction(organizationId, eventId),
         getPartnerTypesAction(organizationId, eventId),
       ])
 
       if (participantResult.success && participantResult.data) {
-        setParticipantTypes(participantResult.data)
+        setParticipantRoles(participantResult.data)
       }
 
       if (partnerResult.success && partnerResult.data) {
@@ -129,8 +129,8 @@ export const StepGuests = ({
     fetchTypes()
   }, [organizationId, eventId])
 
-  // Add participant type
-  const handleAddParticipantType = async () => {
+  // Add participant role
+  const handleAddParticipantRole = async () => {
     if (!participantName.trim()) {
       setParticipantError('Please enter a name')
       return
@@ -143,14 +143,14 @@ export const StepGuests = ({
     formData.append('name', participantName)
     participantFields.forEach((field) => formData.append('requiredFields', field))
 
-    const result = await createParticipantTypeAction(organizationId, eventId, formData)
+    const result = await createParticipantRoleAction(organizationId, eventId, formData)
 
     if (result.success && result.data) {
-      setParticipantTypes((prev) => [...prev, result.data as GuestType])
+      setParticipantRoles((prev) => [...prev, result.data as GuestType])
       setParticipantName('')
       onValidationChange(stepIndex, true)
     } else {
-      setParticipantError(result.message || 'Failed to create participant type')
+      setParticipantError(result.message || 'Failed to create participant role')
     }
 
     setParticipantLoading(false)
@@ -183,22 +183,22 @@ export const StepGuests = ({
     setPartnerLoading(false)
   }
 
-  // Remove participant type
-  const removeParticipantType = async (id: number) => {
+  // Remove participant role
+  const removeParticipantRole = async (id: number) => {
     // Capture the item before deletion for potential revert
-    const itemToDelete = participantTypes.find((type) => type.id === id)
+    const itemToDelete = participantRoles.find((type) => type.id === id)
 
     // Optimistically remove from UI
-    setParticipantTypes((prev) => prev.filter((type) => type.id !== id))
+    setParticipantRoles((prev) => prev.filter((type) => type.id !== id))
 
     // Delete from database in the background
-    const result = await deleteParticipantTypeAction(organizationId, id)
+    const result = await deleteParticipantRoleAction(organizationId, id)
 
     if (!result.success) {
       // If deletion fails, revert by re-adding the item
-      console.error('Failed to delete participant type:', result.message)
+      console.error('Failed to delete participant role:', result.message)
       if (itemToDelete) {
-        setParticipantTypes((prev) => [...prev, itemToDelete])
+        setParticipantRoles((prev) => [...prev, itemToDelete])
       }
     }
   }
@@ -240,9 +240,9 @@ export const StepGuests = ({
 
       {/* Forms to add new types */}
       <div className="space-y-4">
-        {/* Participant Types */}
+        {/* Participant Roles */}
         <div className="space-y-4 shadow-lg bg-white dark:bg-gray-950 rounded-md p-4">
-          <h3 className="font-semibold text-foreground">Participant Types</h3>
+          <h3 className="font-semibold text-foreground">Participant Roles</h3>
           <p className="text-xs text-muted-foreground">Speakers, attendees, presenters, etc.</p>
 
           <div className="space-y-3">
@@ -333,12 +333,12 @@ export const StepGuests = ({
 
             <Button
               type="button"
-              onClick={handleAddParticipantType}
+              onClick={handleAddParticipantRole}
               size="sm"
               className="w-full"
               disabled={participantLoading || !participantName.trim()}
             >
-              {participantLoading ? 'Adding...' : '+ Add Participant Type'}
+              {participantLoading ? 'Adding...' : '+ Add Participant Role'}
             </Button>
           </div>
         </div>
@@ -445,16 +445,16 @@ export const StepGuests = ({
 
       {/* Created Types */}
       {(isInitialLoading ||
-        participantTypes.length > 0 ||
+        participantRoles.length > 0 ||
         partnerTypes.length > 0 ||
         participantLoading ||
         partnerLoading) && (
         <div className="shadow-lg p-4">
-          {/* Participant types list */}
-          {(participantTypes.length > 0 || participantLoading) && (
+          {/* Participant roles list */}
+          {(participantRoles.length > 0 || participantLoading) && (
             <div className="space-y-2 mb-4">
               <Label className="text-xs text-muted-foreground">Participants</Label>
-              {participantTypes.map((type) => (
+              {participantRoles.map((type) => (
                 <div
                   key={type.id}
                   className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20"
@@ -474,7 +474,7 @@ export const StepGuests = ({
                     )}
                     <button
                       type="button"
-                      onClick={() => removeParticipantType(type.id)}
+                      onClick={() => removeParticipantRole(type.id)}
                       className="text-muted-foreground hover:text-destructive"
                       aria-label="Remove"
                     >
@@ -553,7 +553,7 @@ export const StepGuests = ({
 
           {/* Empty state */}
           {!isInitialLoading &&
-            participantTypes.length === 0 &&
+            participantRoles.length === 0 &&
             partnerTypes.length === 0 &&
             !participantLoading &&
             !partnerLoading && (
@@ -573,7 +573,7 @@ export const StepGuests = ({
           className="min-w-[200px]"
           disabled={isInitialLoading}
         >
-          {participantTypes.length > 0 || partnerTypes.length > 0
+          {participantRoles.length > 0 || partnerTypes.length > 0
             ? 'Continue'
             : 'Skip this step'}
         </Button>

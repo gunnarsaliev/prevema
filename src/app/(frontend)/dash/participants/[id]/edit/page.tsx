@@ -38,7 +38,7 @@ export default async function EditParticipantPage({
       select: { name: true },
     }),
     payload.find({
-      collection: 'participant-types',
+      collection: 'participant-roles',
       overrideAccess: false,
       user,
       depth: 0,
@@ -62,7 +62,7 @@ export default async function EditParticipantPage({
     name: participant.name,
     email: participant.email,
     event: resolveId(participant.event) ?? 0,
-    participantType: resolveId(participant.participantType) ?? 0,
+    participantRole: resolveId(participant.participantRole) ?? 0,
     status: (participant.status as ParticipantFormValues['status']) ?? 'not-approved',
     biography: participant.biography ?? null,
     country: participant.country ?? null,
@@ -77,7 +77,7 @@ export default async function EditParticipantPage({
   }
 
   const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
-  const participantTypes = typeDocs.map((t) => ({ id: t.id, name: t.name as string }))
+  const participantRoles = typeDocs.map((t) => ({ id: t.id, name: t.name as string }))
 
   return (
     <div className="px-6 py-8">
@@ -90,7 +90,7 @@ export default async function EditParticipantPage({
         participantId={String(participant.id)}
         defaultValues={defaultValues}
         events={events}
-        participantTypes={participantTypes}
+        participantRoles={participantRoles}
       />
     </div>
   )

@@ -32,7 +32,7 @@ export const PARTICIPANT_FIELD_OPTIONS: { label: string; value: ParticipantField
   { label: 'Technical Requirements', value: 'technicalRequirements' },
 ]
 
-export const participantTypeSchema = z.object({
+export const participantRoleSchema = z.object({
   organization: z.number().optional(),
   name: z.string().min(1, 'Name is required'),
   description: z.string().nullish(),
@@ -43,4 +43,4 @@ export const participantTypeSchema = z.object({
   optionalFields: z.array(z.enum(participantFieldValues)),
 })
 
-export type ParticipantTypeFormValues = z.infer<typeof participantTypeSchema>
+export type ParticipantRoleFormValues = z.infer<typeof participantRoleSchema>

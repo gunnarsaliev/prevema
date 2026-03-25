@@ -27,11 +27,11 @@ import {
 } from '@/components/ui/select'
 
 type EventOption = { id: number; name: string }
-type ParticipantTypeOption = { id: number; name: string }
+type ParticipantRoleOption = { id: number; name: string }
 
 type SharedOptions = {
   events: EventOption[]
-  participantTypes: ParticipantTypeOption[]
+  participantRoles: ParticipantRoleOption[]
   defaultEventId?: number
 }
 
@@ -169,22 +169,22 @@ export function ParticipantForm(props: Props) {
             />
 
             <Controller
-              name="participantType"
+              name="participantRole"
               control={control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="participantType">Participant type *</FieldLabel>
+                  <FieldLabel htmlFor="participantRole">Participant role *</FieldLabel>
                   <Select
                     value={field.value ? String(field.value) : ''}
                     onValueChange={(v) => field.onChange(Number(v))}
                   >
-                    <SelectTrigger id="participantType" ref={field.ref} aria-invalid={fieldState.invalid}>
-                      <SelectValue placeholder="Select type" />
+                    <SelectTrigger id="participantRole" ref={field.ref} aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
-                      {props.participantTypes.map((pt) => (
-                        <SelectItem key={pt.id} value={String(pt.id)}>
-                          {pt.name}
+                      {props.participantRoles.map((pr) => (
+                        <SelectItem key={pr.id} value={String(pr.id)}>
+                          {pr.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

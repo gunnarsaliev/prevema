@@ -28,7 +28,7 @@ export default async function CreateParticipantPage({
       select: { name: true },
     }),
     payload.find({
-      collection: 'participant-types',
+      collection: 'participant-roles',
       overrideAccess: false,
       user,
       depth: 0,
@@ -39,7 +39,7 @@ export default async function CreateParticipantPage({
   ])
 
   const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
-  const participantTypes = typeDocs.map((t) => ({ id: t.id, name: t.name as string }))
+  const participantRoles = typeDocs.map((t) => ({ id: t.id, name: t.name as string }))
 
   return (
     <div className="px-6 py-8">
@@ -52,7 +52,7 @@ export default async function CreateParticipantPage({
       <ParticipantForm
         mode="create"
         events={events}
-        participantTypes={participantTypes}
+        participantRoles={participantRoles}
         defaultEventId={eventId ? Number(eventId) : undefined}
       />
     </div>

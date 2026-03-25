@@ -283,7 +283,7 @@ export const Organizations: CollectionConfig = {
             { slug: 'image-templates', label: 'image templates' },
             { slug: 'partners', label: 'partners' },
             { slug: 'participants', label: 'participants' },
-            { slug: 'participant-types', label: 'participant types' },
+            { slug: 'participant-roles', label: 'participant roles' },
             { slug: 'partner-types', label: 'partner types' },
             { slug: 'partner-tiers', label: 'partner tiers' },
           ]

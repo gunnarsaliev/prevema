@@ -120,12 +120,12 @@ export async function POST(request: Request) {
             depth: 2, // Populate relationships
           })
 
-          // Get participant type name
-          let participantTypeName = ''
-          if (participant.participantType) {
-            participantTypeName =
-              typeof participant.participantType === 'object'
-                ? participant.participantType.name || ''
+          // Get participant role name
+          let participantRoleName = ''
+          if (participant.participantRole) {
+            participantRoleName =
+              typeof participant.participantRole === 'object'
+                ? participant.participantRole.name || ''
                 : ''
           }
 
@@ -140,7 +140,7 @@ export async function POST(request: Request) {
             name: participant.name,
             email: participant.email,
             status: participant.status || undefined,
-            participantType: participantTypeName,
+            participantRole: participantRoleName,
             event: eventName,
             companyName: participant.companyName,
             companyPosition: participant.companyPosition,

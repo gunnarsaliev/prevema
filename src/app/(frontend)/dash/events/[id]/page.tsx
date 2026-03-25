@@ -9,7 +9,7 @@ import { getUserOrganizationIds } from '@/access/utilities'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { ParticipantTypesSection } from './components/ParticipantTypesSection'
+import { ParticipantRolesSection } from './components/ParticipantRolesSection'
 import { PartnerTypesSection } from './components/PartnerTypesSection'
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -40,7 +40,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   // Get all organization IDs where user is a member (including as owner)
   const organizationIds = await getUserOrganizationIds(payload, user)
 
-  const [event, { docs: participantTypes }, { docs: partnerTypes }, { docs: orgDocs }] =
+  const [event, { docs: participantRoles }, { docs: partnerTypes }, { docs: orgDocs }] =
     await Promise.all([
       payload
         .findByID({
@@ -52,7 +52,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         })
         .catch(() => null),
       payload.find({
-        collection: 'participant-types',
+        collection: 'participant-roles',
         overrideAccess: false,
         user,
         where: { event: { equals: Number(id) } },
@@ -99,7 +99,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   const orgId = resolveNum(event.organization) ?? 0
 
-  const participantTypeItems = participantTypes.map((pt) => ({
+  const participantRoleItems = participantRoles.map((pt) => ({
     id: pt.id,
     name: pt.name,
     description: pt.description ?? null,
@@ -184,8 +184,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
       <Separator />
 
-      <ParticipantTypesSection
-        items={participantTypeItems}
+      <ParticipantRolesSection
+        items={participantRoleItems}
         eventId={event.id}
         orgId={orgId}
         organizations={organizations}

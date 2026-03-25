@@ -19,7 +19,7 @@ export const generatePublicFormLinkAfterCreate: CollectionAfterChangeHook = asyn
     // Update the document directly in the database to avoid API routing issues
     try {
       await req.payload.db.updateOne({
-        collection: 'participant-types',
+        collection: 'participant-roles',
         where: { id: { equals: doc.id } },
         data: { publicFormLink },
         req,

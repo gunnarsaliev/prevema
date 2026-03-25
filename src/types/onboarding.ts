@@ -3,7 +3,7 @@ export interface OnboardingState {
   organizationName?: string
   eventId?: number
   eventName?: string
-  participantTypeIds: number[]
+  participantRoleIds: number[]
   partnerTypeIds: number[]
   emailTemplateId?: number
   socialPostOption: 'own' | 'create' | null
@@ -17,7 +17,7 @@ export interface OnboardingStepValidation {
 }
 
 export const initialOnboardingState: OnboardingState = {
-  participantTypeIds: [],
+  participantRoleIds: [],
   partnerTypeIds: [],
   socialPostOption: null,
   currentStep: 0,

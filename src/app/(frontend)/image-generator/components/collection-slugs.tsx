@@ -8,7 +8,7 @@ const COLLECTION_SLUGS = [
   'users',
   'teams',
   'events',
-  'participant-types',
+  'participant-roles',
   'participants',
   'partner-types',
   'partner-tiers',

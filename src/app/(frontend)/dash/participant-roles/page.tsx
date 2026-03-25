@@ -3,19 +3,19 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 
-import { ParticipantTypesList } from './components/ParticipantTypesList'
+import { ParticipantRolesList } from './components/ParticipantRolesList'
 import { EmptyEventState } from '@/components/EmptyEventState'
 
-export default async function ParticipantTypesPage() {
+export default async function ParticipantRolesPage() {
   const headers = await getHeaders()
   const payload = await getPayload({ config: await config })
   const { user } = await payload.auth({ headers })
 
   if (!user) redirect('/admin/login')
 
-  const [{ docs: participantTypes }, { docs: eventDocs }] = await Promise.all([
+  const [{ docs: participantRoles }, { docs: eventDocs }] = await Promise.all([
     payload.find({
-      collection: 'participant-types',
+      collection: 'participant-roles',
       overrideAccess: false,
       user,
       depth: 1, // resolve event name
@@ -40,7 +40,7 @@ export default async function ParticipantTypesPage() {
 
   return (
     <div className="px-6 py-8">
-      <ParticipantTypesList participantTypes={participantTypes} />
+      <ParticipantRolesList participantRoles={participantRoles} />
     </div>
   )
 }

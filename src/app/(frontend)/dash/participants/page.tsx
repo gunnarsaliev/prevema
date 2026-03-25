@@ -5,7 +5,7 @@ import config from '@/payload.config'
 
 import { ParticipantsList } from './components/ParticipantsList'
 import { EmptyEventState } from '@/components/EmptyEventState'
-import { EmptyParticipantTypeState } from '@/components/EmptyParticipantTypeState'
+import { EmptyParticipantRoleState } from '@/components/EmptyParticipantRoleState'
 
 export default async function ParticipantsPage({
   searchParams,
@@ -19,12 +19,12 @@ export default async function ParticipantsPage({
 
   if (!user) redirect('/admin/login')
 
-  const [{ docs: participants }, { docs: eventDocs }, { docs: participantTypes }] = await Promise.all([
+  const [{ docs: participants }, { docs: eventDocs }, { docs: participantRoles }] = await Promise.all([
     payload.find({
       collection: 'participants',
       overrideAccess: false,
       user,
-      depth: 1, // resolve participantType name
+      depth: 1, // resolve participantRole name
       limit: 500,
       sort: 'name',
       ...(eventId
@@ -41,7 +41,7 @@ export default async function ParticipantsPage({
       select: { name: true },
     }),
     payload.find({
-      collection: 'participant-types',
+      collection: 'participant-roles',
       overrideAccess: false,
       user,
       depth: 0,
@@ -56,9 +56,9 @@ export default async function ParticipantsPage({
     return <EmptyEventState />
   }
 
-  // Show empty state if no participant types exist
-  if (participantTypes.length === 0) {
-    return <EmptyParticipantTypeState />
+  // Show empty state if no participant roles exist
+  if (participantRoles.length === 0) {
+    return <EmptyParticipantRoleState />
   }
 
   return (

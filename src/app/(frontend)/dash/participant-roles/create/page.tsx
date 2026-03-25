@@ -4,9 +4,9 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
 
-import { ParticipantTypeForm } from '../components/ParticipantTypeForm'
+import { ParticipantRoleForm } from '../components/ParticipantRoleForm'
 
-export default async function CreateParticipantTypePage() {
+export default async function CreateParticipantRolePage() {
   const headers = await getHeaders()
   const payload = await getPayload({ config: await config })
   const { user } = await payload.auth({ headers })
@@ -45,12 +45,12 @@ export default async function CreateParticipantTypePage() {
   return (
     <div className="px-6 py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Create participant type</h1>
+        <h1 className="text-2xl font-semibold">Create participant role</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Define a new participant type and its registration form fields.
+          Define a new participant role and its registration form fields.
         </p>
       </div>
-      <ParticipantTypeForm mode="create" organizations={organizations} events={events} />
+      <ParticipantRoleForm mode="create" organizations={organizations} events={events} />
     </div>
   )
 }

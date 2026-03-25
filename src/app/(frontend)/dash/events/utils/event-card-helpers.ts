@@ -50,6 +50,6 @@ export function getEventImageUrl(image: Event['image']): string | null {
  */
 export function getEventPrice(event: Event): string {
   // This is a placeholder - in the future, you might want to add pricing
-  // information to your Event model and query participant types for pricing
+  // information to your Event model and query participant roles for pricing
   return 'See details'
 }

@@ -8,41 +8,41 @@ import { mergeOpenGraph } from '@/utils/mergeOpenGraph'
 
 type Props = {
   params: Promise<{
-    participantTypeId: string
+    participantRoleId: string
   }>
 }
 
 export default async function RegisterPage({ params }: Props) {
-  const { participantTypeId } = await params
+  const { participantRoleId } = await params
   const payload = await getPayload({ config: configPromise })
 
-  // Fetch the participant type
-  let participantType
+  // Fetch the participant role
+  let participantRole
   try {
-    participantType = await payload.findByID({
-      collection: 'participant-types',
-      id: participantTypeId,
+    participantRole = await payload.findByID({
+      collection: 'participant-roles',
+      id: participantRoleId,
       depth: 1,
     })
   } catch {
     notFound()
   }
 
-  if (!participantType || !participantType.isActive) {
+  if (!participantRole || !participantRole.isActive) {
     notFound()
   }
 
   const orgId =
-    typeof participantType.organization === 'object'
-      ? participantType.organization.id
-      : participantType.organization
+    typeof participantRole.organization === 'object'
+      ? participantRole.organization.id
+      : participantRole.organization
 
-  // If the participant type is linked to a specific event, use it directly
-  if (participantType.event) {
+  // If the participant role is linked to a specific event, use it directly
+  if (participantRole.event) {
     const eventId =
-      typeof participantType.event === 'object'
-        ? participantType.event.id
-        : participantType.event
+      typeof participantRole.event === 'object'
+        ? participantRole.event.id
+        : participantRole.event
 
     let event
     try {
@@ -65,10 +65,10 @@ export default async function RegisterPage({ params }: Props) {
 
     return (
       <RegisterLayout
-        participantType={participantType}
+        participantRole={participantRole}
         event={event}
         eventImage={eventImage}
-        participantTypeId={participantTypeId}
+        participantRoleId={participantRoleId}
         eventId={String(eventId)}
         events={null}
       />
@@ -95,10 +95,10 @@ export default async function RegisterPage({ params }: Props) {
 
   return (
     <RegisterLayout
-      participantType={participantType}
+      participantRole={participantRole}
       event={null}
       eventImage={null}
-      participantTypeId={participantTypeId}
+      participantRoleId={participantRoleId}
       eventId={null}
       events={events}
     />
@@ -108,14 +108,14 @@ export default async function RegisterPage({ params }: Props) {
 type EventOption = { id: string; name: string }
 
 function RegisterLayout({
-  participantType,
+  participantRole,
   event,
   eventImage,
-  participantTypeId,
+  participantRoleId,
   eventId,
   events,
 }: {
-  participantType: {
+  participantRole: {
     name: string
     description?: string | null
     requiredFields?: string[] | null
@@ -130,7 +130,7 @@ function RegisterLayout({
     address?: string | null
   } | null
   eventImage: string | null
-  participantTypeId: string
+  participantRoleId: string
   eventId: string | null
   events: EventOption[] | null
 }) {
@@ -151,12 +151,12 @@ function RegisterLayout({
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-2">
               as a{' '}
               <span className="font-semibold text-gray-900 dark:text-white">
-                {participantType.name}
+                {participantRole.name}
               </span>
             </p>
-            {participantType.description && (
+            {participantRole.description && (
               <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mt-4">
-                {participantType.description}
+                {participantRole.description}
               </p>
             )}
           </div>
@@ -245,9 +245,9 @@ function RegisterLayout({
             </h3>
 
             <PublicParticipantForm
-              participantTypeId={participantTypeId}
-              requiredFields={participantType.requiredFields || []}
-              optionalFields={participantType.optionalFields || []}
+              participantRoleId={participantRoleId}
+              requiredFields={participantRole.requiredFields || []}
+              optionalFields={participantRole.optionalFields || []}
               eventId={eventId}
               events={events}
             />
@@ -259,14 +259,14 @@ function RegisterLayout({
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { participantTypeId } = await params
+  const { participantRoleId } = await params
   const payload = await getPayload({ config: configPromise })
 
-  let participantType
+  let participantRole
   try {
-    participantType = await payload.findByID({
-      collection: 'participant-types',
-      id: participantTypeId,
+    participantRole = await payload.findByID({
+      collection: 'participant-roles',
+      id: participantRoleId,
       depth: 0,
     })
   } catch {
@@ -274,11 +274,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `Register as ${participantType.name}`,
-    description: participantType.description || `Register as a ${participantType.name}`,
+    title: `Register as ${participantRole.name}`,
+    description: participantRole.description || `Register as a ${participantRole.name}`,
     openGraph: mergeOpenGraph({
-      title: `Register as ${participantType.name}`,
-      url: `/participant-register/${participantTypeId}`,
+      title: `Register as ${participantRole.name}`,
+      url: `/participant-register/${participantRoleId}`,
     }),
   }
 }

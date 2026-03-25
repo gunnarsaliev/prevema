@@ -4,10 +4,10 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
 
-import { ParticipantTypeForm } from '../../components/ParticipantTypeForm'
-import type { ParticipantTypeFormValues } from '@/lib/schemas/participant-type'
+import { ParticipantRoleForm } from '../../components/ParticipantRoleForm'
+import type { ParticipantRoleFormValues } from '@/lib/schemas/participant-role'
 
-export default async function EditParticipantTypePage({
+export default async function EditParticipantRolePage({
   params,
 }: {
   params: Promise<{ id: string }>
@@ -22,10 +22,10 @@ export default async function EditParticipantTypePage({
   // Get all organization IDs where user is a member (including as owner)
   const organizationIds = await getUserOrganizationIds(payload, user)
 
-  const [participantType, { docs: eventDocs }, { docs: orgDocs }] = await Promise.all([
+  const [participantRole, { docs: eventDocs }, { docs: orgDocs }] = await Promise.all([
     payload
       .findByID({
-        collection: 'participant-types',
+        collection: 'participant-roles',
         id: Number(id),
         overrideAccess: false,
         user,
@@ -54,7 +54,7 @@ export default async function EditParticipantTypePage({
     }),
   ])
 
-  if (!participantType) notFound()
+  if (!participantRole) notFound()
 
   // Resolve relationship ID (depth:0 returns number but type allows object)
   const resolveId = (rel: unknown): number | null => {
@@ -64,15 +64,15 @@ export default async function EditParticipantTypePage({
     return null
   }
 
-  const defaultValues: ParticipantTypeFormValues = {
-    organization: resolveId(participantType.organization) ?? undefined,
-    name: participantType.name,
-    description: participantType.description ?? null,
-    event: resolveId(participantType.event),
-    isActive: participantType.isActive ?? true,
-    requiredFields: (participantType.requiredFields as ParticipantTypeFormValues['requiredFields']) ?? [],
-    showOptionalFields: participantType.showOptionalFields ?? false,
-    optionalFields: (participantType.optionalFields as ParticipantTypeFormValues['optionalFields']) ?? [],
+  const defaultValues: ParticipantRoleFormValues = {
+    organization: resolveId(participantRole.organization) ?? undefined,
+    name: participantRole.name,
+    description: participantRole.description ?? null,
+    event: resolveId(participantRole.event),
+    isActive: participantRole.isActive ?? true,
+    requiredFields: (participantRole.requiredFields as ParticipantRoleFormValues['requiredFields']) ?? [],
+    showOptionalFields: participantRole.showOptionalFields ?? false,
+    optionalFields: (participantRole.optionalFields as ParticipantRoleFormValues['optionalFields']) ?? [],
   }
 
   const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
@@ -81,12 +81,12 @@ export default async function EditParticipantTypePage({
   return (
     <div className="px-6 py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Edit participant type</h1>
-        <p className="text-sm text-muted-foreground mt-1">{participantType.name}</p>
+        <h1 className="text-2xl font-semibold">Edit participant role</h1>
+        <p className="text-sm text-muted-foreground mt-1">{participantRole.name}</p>
       </div>
-      <ParticipantTypeForm
+      <ParticipantRoleForm
         mode="edit"
-        participantTypeId={String(participantType.id)}
+        participantRoleId={String(participantRole.id)}
         defaultValues={defaultValues}
         organizations={organizations}
         events={events}

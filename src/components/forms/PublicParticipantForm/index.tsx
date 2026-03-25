@@ -37,7 +37,7 @@ type FormData = {
 type EventOption = { id: string; name: string }
 
 type Props = {
-  participantTypeId: string
+  participantRoleId: string
   requiredFields: string[]
   optionalFields: string[]
   eventId: string | null
@@ -45,7 +45,7 @@ type Props = {
 }
 
 export const PublicParticipantForm: React.FC<Props> = ({
-  participantTypeId,
+  participantRoleId,
   requiredFields = [],
   optionalFields = [],
   eventId,
@@ -94,7 +94,7 @@ export const PublicParticipantForm: React.FC<Props> = ({
         fd.append('name', data.name)
         fd.append('email', data.email)
         fd.append('event', selectedEventId)
-        fd.append('participantType', participantTypeId)
+        fd.append('participantRole', participantRoleId)
 
         // Optional text fields — only append if present and visible
         if (visibleFields.includes('biography') && data.biography)
@@ -147,7 +147,7 @@ export const PublicParticipantForm: React.FC<Props> = ({
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
     },
-    [participantTypeId, selectedEventId, visibleFields],
+    [participantRoleId, selectedEventId, visibleFields],
   )
 
   if (success) {

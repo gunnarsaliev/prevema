@@ -36,8 +36,8 @@ const PARTICIPANT_VARIABLES: VariableDefinition[] = [
     example: 'approved',
   },
   {
-    key: 'participantType',
-    description: 'Type of participant',
+    key: 'participantRole',
+    description: 'Role of participant',
     example: 'Speaker',
   },
   {
@@ -252,7 +252,7 @@ export function buildParticipantVariables(participant: {
   name?: string
   email?: string
   status?: string
-  participantType?: string
+  participantRole?: string
   event?: string
   companyName?: string | null
   companyPosition?: string | null
@@ -269,7 +269,7 @@ export function buildParticipantVariables(participant: {
     name: participant.name || '',
     email: participant.email || '',
     status: participant.status || '',
-    participantType: participant.participantType || '',
+    participantRole: participant.participantRole || '',
     event: participant.event || '',
     companyName: participant.companyName || '',
     companyPosition: participant.companyPosition || '',

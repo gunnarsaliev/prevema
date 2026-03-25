@@ -17,7 +17,7 @@ import { Events } from './collections/Events'
 import { ImageTemplates } from './collections/ImageTemplates'
 import { Invitations } from './collections/Invitations'
 import { Participants } from './collections/Participants'
-import { ParticipantTypes } from './collections/ParticipantTypes'
+import { ParticipantRoles } from './collections/ParticipantRoles'
 import { Partners } from './collections/Partners'
 import { PartnerTiers } from './collections/PartnerTiers'
 import { PartnerTypes } from './collections/PartnerTypes'
@@ -44,7 +44,7 @@ export default buildConfig({
     ImageTemplates,
     Invitations,
     Participants,
-    ParticipantTypes,
+    ParticipantRoles,
     Partners,
     PartnerTiers,
     PartnerTypes,

@@ -8,10 +8,10 @@ import { Loader2 } from 'lucide-react'
 import slugify from 'slugify'
 
 import {
-  participantTypeSchema,
-  type ParticipantTypeFormValues,
+  participantRoleSchema,
+  type ParticipantRoleFormValues,
   PARTICIPANT_FIELD_OPTIONS,
-} from '@/lib/schemas/participant-type'
+} from '@/lib/schemas/participant-role'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -43,15 +43,15 @@ type SharedCallbacks = {
 
 type Props =
   | ({ mode: 'create'; organizations: OrgOption[]; events: EventOption[] } & SharedCallbacks)
-  | ({ mode: 'edit'; participantTypeId: string; defaultValues: ParticipantTypeFormValues; organizations: OrgOption[]; events: EventOption[] } & SharedCallbacks)
+  | ({ mode: 'edit'; participantRoleId: string; defaultValues: ParticipantRoleFormValues; organizations: OrgOption[]; events: EventOption[] } & SharedCallbacks)
 
-export function ParticipantTypeForm(props: Props) {
+export function ParticipantRoleForm(props: Props) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
 
   const organizations = props.organizations
 
-  const defaultValues: Partial<ParticipantTypeFormValues> =
+  const defaultValues: Partial<ParticipantRoleFormValues> =
     props.mode === 'edit'
       ? props.defaultValues
       : {
@@ -70,8 +70,8 @@ export function ParticipantTypeForm(props: Props) {
     handleSubmit,
     control,
     formState: { isSubmitting },
-  } = useForm<ParticipantTypeFormValues>({
-    resolver: zodResolver(participantTypeSchema),
+  } = useForm<ParticipantRoleFormValues>({
+    resolver: zodResolver(participantRoleSchema),
     defaultValues,
     mode: 'onBlur',
   })
@@ -80,13 +80,13 @@ export function ParticipantTypeForm(props: Props) {
   const showOptionalFields = useWatch({ control, name: 'showOptionalFields' })
   const requiredFields = useWatch({ control, name: 'requiredFields' }) ?? []
 
-  const onSubmit = async (values: ParticipantTypeFormValues) => {
+  const onSubmit = async (values: ParticipantRoleFormValues) => {
     setServerError(null)
     try {
       const url =
         props.mode === 'edit'
-          ? `/api/participant-types/${props.participantTypeId}`
-          : '/api/participant-types'
+          ? `/api/participant-roles/${props.participantRoleId}`
+          : '/api/participant-roles'
       const method = props.mode === 'edit' ? 'PATCH' : 'POST'
 
       // Generate slug from name
@@ -109,7 +109,7 @@ export function ParticipantTypeForm(props: Props) {
         props.onSuccess()
         router.refresh()
       } else {
-        router.push('/dash/participant-types')
+        router.push('/dash/participant-roles')
         router.refresh()
       }
     } catch (err) {
@@ -194,7 +194,7 @@ export function ParticipantTypeForm(props: Props) {
                   id={field.name}
                   aria-invalid={fieldState.invalid}
                   className="bg-background"
-                  placeholder="Describe this participant type…"
+                  placeholder="Describe this participant role…"
                   rows={2}
                 />
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -246,7 +246,7 @@ export function ParticipantTypeForm(props: Props) {
                       aria-invalid={fieldState.invalid}
                     />
                     <span className="text-sm text-muted-foreground">
-                      This participant type is accepting registrations
+                      This participant role is accepting registrations
                     </span>
                   </div>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -377,12 +377,12 @@ export function ParticipantTypeForm(props: Props) {
       <div className="flex gap-3 pt-2">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {props.mode === 'edit' ? 'Save changes' : 'Create participant type'}
+          {props.mode === 'edit' ? 'Save changes' : 'Create participant role'}
         </Button>
         <Button
           type="button"
           variant="outline"
-          onClick={() => props.onCancel ? props.onCancel() : router.push('/dash/participant-types')}
+          onClick={() => props.onCancel ? props.onCancel() : router.push('/dash/participant-roles')}
           disabled={isSubmitting}
         >
           Cancel

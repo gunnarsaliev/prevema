@@ -107,9 +107,9 @@ export const OnboardingFlow = () => {
             {...props}
             organizationId={onboardingState.organizationId}
             eventId={onboardingState.eventId}
-            onGuestsConfigured={(participantTypeIds, partnerTypeIds) => {
+            onGuestsConfigured={(participantRoleIds, partnerTypeIds) => {
               updateOnboardingState({
-                participantTypeIds,
+                participantRoleIds,
                 partnerTypeIds,
               })
             }}

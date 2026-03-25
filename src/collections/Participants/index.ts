@@ -86,9 +86,9 @@ export const Participants: CollectionConfig = {
       },
     },
     {
-      name: 'participantType',
+      name: 'participantRole',
       type: 'relationship',
-      relationTo: 'participant-types',
+      relationTo: 'participant-roles',
       required: true,
       access: {
         create: () => true,

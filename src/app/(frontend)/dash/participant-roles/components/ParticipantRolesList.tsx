@@ -15,7 +15,7 @@ import {
   MoreHorizontal,
 } from 'lucide-react'
 
-import type { ParticipantType } from '@/payload-types'
+import type { ParticipantRole } from '@/payload-types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -37,10 +37,10 @@ import {
 } from '@/lib/entity-actions'
 
 interface Props {
-  participantTypes: ParticipantType[]
+  participantRoles: ParticipantRole[]
 }
 
-export function ParticipantTypesList({ participantTypes }: Props) {
+export function ParticipantRolesList({ participantRoles }: Props) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [bulkDeleting, setBulkDeleting] = useState(false)
@@ -64,8 +64,8 @@ export function ParticipantTypesList({ participantTypes }: Props) {
     await handleEntityDelete(
       { id, name } as any,
       {
-        apiEndpoint: '/api/participant-types',
-        entityName: 'participant type',
+        apiEndpoint: '/api/participant-roles',
+        entityName: 'participant role',
         getEntityName: (entity) => entity.name,
       },
       {
@@ -79,12 +79,12 @@ export function ParticipantTypesList({ participantTypes }: Props) {
     )
   }
 
-  const handleBulkDelete = async (rows: Row<ParticipantType>[]) => {
+  const handleBulkDelete = async (rows: Row<ParticipantRole>[]) => {
     await handleEntityBulkDelete(
       rows,
       {
-        apiEndpoint: '/api/participant-types',
-        entityName: 'participant type',
+        apiEndpoint: '/api/participant-roles',
+        entityName: 'participant role',
       },
       {
         onStart: () => setBulkDeleting(true),
@@ -97,7 +97,7 @@ export function ParticipantTypesList({ participantTypes }: Props) {
     )
   }
 
-  const bulkActions: BulkAction<ParticipantType>[] = [
+  const bulkActions: BulkAction<ParticipantRole>[] = [
     {
       label: 'Delete',
       icon: bulkDeleting ? (
@@ -108,17 +108,17 @@ export function ParticipantTypesList({ participantTypes }: Props) {
       variant: 'destructive',
       onClick: handleBulkDelete,
       confirmation: {
-        title: 'Delete participant types',
+        title: 'Delete participant roles',
         description: (count) =>
-          `Are you sure you want to delete ${count} participant type${count > 1 ? 's' : ''}? This action cannot be undone.`,
+          `Are you sure you want to delete ${count} participant role${count > 1 ? 's' : ''}? This action cannot be undone.`,
         confirmLabel: 'Delete',
         cancelLabel: 'Cancel',
       },
     },
   ]
 
-  const columns: ColumnDef<ParticipantType>[] = [
-    createSelectColumn<ParticipantType>(),
+  const columns: ColumnDef<ParticipantRole>[] = [
+    createSelectColumn<ParticipantRole>(),
     {
       accessorKey: 'name',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
@@ -158,9 +158,9 @@ export function ParticipantTypesList({ participantTypes }: Props) {
     {
       id: 'actions',
       cell: ({ row }) => {
-        const participantType = row.original
-        const isDeleting = deletingId === participantType.id
-        const isCopied = copiedId === participantType.id
+        const participantRole = row.original
+        const isDeleting = deletingId === participantRole.id
+        const isCopied = copiedId === participantRole.id
 
         return (
           <div className="flex justify-end">
@@ -173,11 +173,11 @@ export function ParticipantTypesList({ participantTypes }: Props) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                {participantType.publicFormLink && (
+                {participantRole.publicFormLink && (
                   <>
                     <DropdownMenuItem
                       onClick={() =>
-                        handleCopy(participantType.id, participantType.publicFormLink!)
+                        handleCopy(participantRole.id, participantRole.publicFormLink!)
                       }
                     >
                       {isCopied ? (
@@ -191,7 +191,7 @@ export function ParticipantTypesList({ participantTypes }: Props) {
                   </>
                 )}
                 <DropdownMenuItem asChild>
-                  <Link href={`/dash/participant-types/${participantType.id}/edit`}>
+                  <Link href={`/dash/participant-roles/${participantRole.id}/edit`}>
                     <Pencil className="mr-2 h-4 w-4" />
                     Edit
                   </Link>
@@ -199,7 +199,7 @@ export function ParticipantTypesList({ participantTypes }: Props) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   disabled={isDeleting}
-                  onClick={() => handleDelete(participantType.id, participantType.name)}
+                  onClick={() => handleDelete(participantRole.id, participantRole.name)}
                   className="text-destructive focus:text-destructive"
                 >
                   {isDeleting ? (
@@ -217,17 +217,17 @@ export function ParticipantTypesList({ participantTypes }: Props) {
     },
   ]
 
-  const config: EntityListConfig<ParticipantType> = {
-    title: 'Participant types',
-    createButtonLabel: 'New participant type',
-    createHref: '/dash/participant-types/create',
+  const config: EntityListConfig<ParticipantRole> = {
+    title: 'Participant roles',
+    createButtonLabel: 'New participant role',
+    createHref: '/dash/participant-roles/create',
     columns,
-    data: participantTypes,
+    data: participantRoles,
     searchKey: 'name',
-    searchPlaceholder: 'Search participant types...',
-    emptyTitle: 'No participant types yet',
-    emptyDescription: 'Create your first participant type to get started.',
-    emptyActionLabel: 'Create participant type',
+    searchPlaceholder: 'Search participant roles...',
+    emptyTitle: 'No participant roles yet',
+    emptyDescription: 'Create your first participant role to get started.',
+    emptyActionLabel: 'Create participant role',
     bulkActions,
   }
 

@@ -214,11 +214,11 @@ export function ParticipantsList({ participants, events, eventId }: Props) {
       cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
     },
     {
-      accessorKey: 'participantType',
+      accessorKey: 'participantRole',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Participant type" />
+        <DataTableColumnHeader column={column} title="Participant role" />
       ),
-      cell: ({ row }) => getRelationName(row.getValue('participantType')),
+      cell: ({ row }) => getRelationName(row.getValue('participantRole')),
       enableSorting: false,
     },
     {

@@ -77,7 +77,7 @@ export interface Config {
     'image-templates': ImageTemplate;
     invitations: Invitation;
     participants: Participant;
-    'participant-types': ParticipantType;
+    'participant-roles': ParticipantRole;
     partners: Partner;
     'partner-tiers': PartnerTier;
     'partner-types': PartnerType;
@@ -99,7 +99,7 @@ export interface Config {
     'image-templates': ImageTemplatesSelect<false> | ImageTemplatesSelect<true>;
     invitations: InvitationsSelect<false> | InvitationsSelect<true>;
     participants: ParticipantsSelect<false> | ParticipantsSelect<true>;
-    'participant-types': ParticipantTypesSelect<false> | ParticipantTypesSelect<true>;
+    'participant-roles': ParticipantRolesSelect<false> | ParticipantRolesSelect<true>;
     partners: PartnersSelect<false> | PartnersSelect<true>;
     'partner-tiers': PartnerTiersSelect<false> | PartnerTiersSelect<true>;
     'partner-types': PartnerTypesSelect<false> | PartnerTypesSelect<true>;
@@ -673,7 +673,7 @@ export interface Participant {
   name: string;
   email: string;
   event: number | Event;
-  participantType: number | ParticipantType;
+  participantRole: number | ParticipantRole;
   status?: ('not-approved' | 'approved' | 'need-info' | 'cancelled') | null;
   /**
    * Profile photo or headshot
@@ -733,18 +733,18 @@ export interface Participant {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "participant-types".
+ * via the `definition` "participant-roles".
  */
-export interface ParticipantType {
+export interface ParticipantRole {
   id: number;
   /**
-   * The organization this participant type belongs to
+   * The organization this participant role belongs to
    */
   organization: number | Organization;
   name: string;
   description?: string | null;
   /**
-   * Optional: Link this participant type to a specific event. If set, the public form will be for this event only.
+   * Optional: Link this participant role to a specific event. If set, the public form will be for this event only.
    */
   event?: (number | null) | Event;
   isActive?: boolean | null;
@@ -791,7 +791,7 @@ export interface ParticipantType {
       )[]
     | null;
   /**
-   * Share this link with people to register as this participant type
+   * Share this link with people to register as this participant role
    */
   publicFormLink?: string | null;
   updatedAt: string;
@@ -1023,8 +1023,8 @@ export interface PayloadLockedDocument {
         value: number | Participant;
       } | null)
     | ({
-        relationTo: 'participant-types';
-        value: number | ParticipantType;
+        relationTo: 'participant-roles';
+        value: number | ParticipantRole;
       } | null)
     | ({
         relationTo: 'partners';
@@ -1273,7 +1273,7 @@ export interface ParticipantsSelect<T extends boolean = true> {
   name?: T;
   email?: T;
   event?: T;
-  participantType?: T;
+  participantRole?: T;
   status?: T;
   imageUrl?: T;
   biography?: T;
@@ -1306,9 +1306,9 @@ export interface ParticipantsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "participant-types_select".
+ * via the `definition` "participant-roles_select".
  */
-export interface ParticipantTypesSelect<T extends boolean = true> {
+export interface ParticipantRolesSelect<T extends boolean = true> {
   organization?: T;
   name?: T;
   description?: T;

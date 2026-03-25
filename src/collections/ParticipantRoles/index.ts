@@ -29,8 +29,8 @@ const participantFieldOptions = [
   { label: 'Technical Requirements', value: 'technicalRequirements' },
 ]
 
-export const ParticipantTypes: CollectionConfig = {
-  slug: 'participant-types',
+export const ParticipantRoles: CollectionConfig = {
+  slug: 'participant-roles',
   admin: {
     useAsTitle: 'name',
     group: 'Event Planning',
@@ -50,7 +50,7 @@ export const ParticipantTypes: CollectionConfig = {
       required: true,
       defaultValue: defaultOrganizationValue,
       admin: {
-        description: 'The organization this participant type belongs to',
+        description: 'The organization this participant role belongs to',
       },
     },
     {
@@ -80,7 +80,7 @@ export const ParticipantTypes: CollectionConfig = {
       },
       admin: {
         description:
-          'Optional: Link this participant type to a specific event. If set, the public form will be for this event only.',
+          'Optional: Link this participant role to a specific event. If set, the public form will be for this event only.',
       },
     },
     {
@@ -144,7 +144,7 @@ export const ParticipantTypes: CollectionConfig = {
       admin: {
         readOnly: true,
         position: 'sidebar',
-        description: 'Share this link with people to register as this participant type',
+        description: 'Share this link with people to register as this participant role',
         components: {
           Field: {
             path: '@/components/fields/PublicFormLinkField',

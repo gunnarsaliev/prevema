@@ -37,9 +37,9 @@ export default async function ParticipantDetailPage({
       : null
   const eventName =
     participant.event && typeof participant.event === 'object' ? participant.event.name : null
-  const participantTypeName =
-    participant.participantType && typeof participant.participantType === 'object'
-      ? participant.participantType.name
+  const participantRoleName =
+    participant.participantRole && typeof participant.participantRole === 'object'
+      ? participant.participantRole.name
       : null
 
   return (
@@ -89,10 +89,10 @@ export default async function ParticipantDetailPage({
                   <dd className="mt-1 text-sm">{eventName}</dd>
                 </div>
               )}
-              {participantTypeName && (
+              {participantRoleName && (
                 <div>
-                  <dt className="text-sm font-medium text-muted-foreground">Participant Type</dt>
-                  <dd className="mt-1 text-sm">{participantTypeName}</dd>
+                  <dt className="text-sm font-medium text-muted-foreground">Participant Role</dt>
+                  <dd className="mt-1 text-sm">{participantRoleName}</dd>
                 </div>
               )}
               <div>

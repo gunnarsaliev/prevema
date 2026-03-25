@@ -21,7 +21,7 @@ const PublicFormLinkField: TextFieldClientComponent = ({ path, readOnly }) => {
       <div className="field-type text">
         <label className="field-label">Public Form Link</label>
         <p className="field-description">
-          Save this participant type to generate a public registration link
+          Save this participant role to generate a public registration link
         </p>
       </div>
     )
@@ -31,7 +31,7 @@ const PublicFormLinkField: TextFieldClientComponent = ({ path, readOnly }) => {
     <div className="field-type text">
       <label className="field-label">Public Form Link</label>
       <p className="field-description">
-        Share this link with people to register as this participant type
+        Share this link with people to register as this participant role
       </p>
       <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
         <input

@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
-import { ParticipantTypeForm } from '@/app/(frontend)/dash/participant-types/components/ParticipantTypeForm'
-import type { ParticipantTypeFormValues } from '@/lib/schemas/participant-type'
+import { ParticipantRoleForm } from '@/app/(frontend)/dash/participant-roles/components/ParticipantRoleForm'
+import type { ParticipantRoleFormValues } from '@/lib/schemas/participant-role'
 
 type OrgOption = { id: number; name: string }
 type EventOption = { id: number; name: string }
 
-type ParticipantTypeItem = {
+type ParticipantRoleItem = {
   id: number
   name: string
   description?: string | null
@@ -25,17 +25,17 @@ type ParticipantTypeItem = {
 }
 
 type Props = {
-  items: ParticipantTypeItem[]
+  items: ParticipantRoleItem[]
   eventId: number
   orgId: number
   organizations: OrgOption[]
   events: EventOption[]
 }
 
-export function ParticipantTypesSection({ items, eventId, orgId, organizations, events }: Props) {
+export function ParticipantRolesSection({ items, eventId, orgId, organizations, events }: Props) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [editing, setEditing] = useState<ParticipantTypeItem | null>(null)
+  const [editing, setEditing] = useState<ParticipantRoleItem | null>(null)
 
   const handleClose = () => {
     setOpen(false)
@@ -52,7 +52,7 @@ export function ParticipantTypesSection({ items, eventId, orgId, organizations, 
     setOpen(true)
   }
 
-  const openEdit = (item: ParticipantTypeItem) => {
+  const openEdit = (item: ParticipantRoleItem) => {
     setEditing(item)
     setOpen(true)
   }
@@ -60,7 +60,7 @@ export function ParticipantTypesSection({ items, eventId, orgId, organizations, 
   const isCreate = open && editing === null
   const isEdit = open && editing !== null
 
-  const editDefaultValues: ParticipantTypeFormValues | undefined = editing
+  const editDefaultValues: ParticipantRoleFormValues | undefined = editing
     ? {
         organization: typeof editing.organization === 'number' ? editing.organization : undefined,
         name: editing.name,
@@ -68,10 +68,10 @@ export function ParticipantTypesSection({ items, eventId, orgId, organizations, 
         event: editing.event ?? null,
         isActive: editing.isActive ?? true,
         requiredFields: (editing.requiredFields ??
-          []) as ParticipantTypeFormValues['requiredFields'],
+          []) as ParticipantRoleFormValues['requiredFields'],
         showOptionalFields: editing.showOptionalFields ?? false,
         optionalFields: (editing.optionalFields ??
-          []) as ParticipantTypeFormValues['optionalFields'],
+          []) as ParticipantRoleFormValues['optionalFields'],
       }
     : undefined
 
@@ -79,7 +79,7 @@ export function ParticipantTypesSection({ items, eventId, orgId, organizations, 
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Participant types
+          Participant roles
         </h2>
         <Button variant="outline" size="sm" onClick={openCreate}>
           Add
@@ -88,7 +88,7 @@ export function ParticipantTypesSection({ items, eventId, orgId, organizations, 
 
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground py-2">
-          No participant types linked to this event yet.
+          No participant roles linked to this event yet.
         </p>
       ) : (
         <div className="divide-y rounded-md border">
@@ -145,12 +145,12 @@ export function ParticipantTypesSection({ items, eventId, orgId, organizations, 
         <DrawerContent className="overflow-hidden sm:max-w-lg!">
           <DrawerHeader className="border-b shrink-0">
             <DrawerTitle>
-              {isCreate ? 'Add participant type' : `Edit: ${editing?.name}`}
+              {isCreate ? 'Add participant role' : `Edit: ${editing?.name}`}
             </DrawerTitle>
           </DrawerHeader>
           <div className="p-4 flex-1 overflow-y-auto overflow-x-hidden min-h-0">
             {isCreate && (
-              <ParticipantTypeForm
+              <ParticipantRoleForm
                 key="create"
                 mode="create"
                 organizations={organizations}
@@ -161,10 +161,10 @@ export function ParticipantTypesSection({ items, eventId, orgId, organizations, 
               />
             )}
             {isEdit && editDefaultValues && (
-              <ParticipantTypeForm
+              <ParticipantRoleForm
                 key={`edit-${editing!.id}`}
                 mode="edit"
-                participantTypeId={String(editing!.id)}
+                participantRoleId={String(editing!.id)}
                 defaultValues={editDefaultValues}
                 organizations={organizations}
                 events={events}

@@ -28,22 +28,22 @@ export const handleEmailAutomation: CollectionAfterChangeHook<Participant> = asy
     const fullDoc = doc
 
     // Fetch relationship data from the fully populated document
-    let participantTypeName = ''
+    let participantRoleName = ''
     let eventTitle = ''
 
-    // Get participantType name
-    if (fullDoc.participantType) {
-      if (typeof fullDoc.participantType === 'object' && fullDoc.participantType.name) {
-        participantTypeName = fullDoc.participantType.name
-      } else if (typeof fullDoc.participantType === 'number') {
+    // Get participantRole name
+    if (fullDoc.participantRole) {
+      if (typeof fullDoc.participantRole === 'object' && fullDoc.participantRole.name) {
+        participantRoleName = fullDoc.participantRole.name
+      } else if (typeof fullDoc.participantRole === 'number') {
         try {
           const typeDoc = await payload.findByID({
-            collection: 'participant-types',
-            id: fullDoc.participantType,
+            collection: 'participant-roles',
+            id: fullDoc.participantRole,
           })
-          participantTypeName = typeDoc.name || ''
+          participantRoleName = typeDoc.name || ''
         } catch (error) {
-          console.warn('Could not fetch participant type:', error)
+          console.warn('Could not fetch participant role:', error)
         }
       }
     }
@@ -70,7 +70,7 @@ export const handleEmailAutomation: CollectionAfterChangeHook<Participant> = asy
       name: doc.name,
       email: doc.email,
       status: doc.status || undefined,
-      participantType: participantTypeName,
+      participantRole: participantRoleName,
       event: eventTitle,
       companyName: doc.companyName,
       companyPosition: doc.companyPosition,

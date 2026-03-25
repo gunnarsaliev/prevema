@@ -4,7 +4,7 @@ export const participantSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),
   event: z.number(),
-  participantType: z.number(),
+  participantRole: z.number(),
   status: z.enum(['not-approved', 'approved', 'need-info', 'cancelled']),
   biography: z.string().nullish(),
   country: z.string().nullish(),

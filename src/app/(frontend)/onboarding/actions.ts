@@ -10,7 +10,7 @@ import {
   type OnboardingOrganizationFormValues,
 } from '@/lib/schemas/organization'
 import { eventSchema, type EventFormValues } from '@/lib/schemas/event'
-import { participantTypeSchema } from '@/lib/schemas/participant-type'
+import { participantRoleSchema } from '@/lib/schemas/participant-role'
 import { partnerTypeSchema } from '@/lib/schemas/partner-type'
 import { emailTemplateSchema } from '@/lib/schemas/emailTemplate'
 import { checkRole } from '@/access/utilities'
@@ -587,9 +587,9 @@ export async function createEventAction(
 }
 
 /**
- * Create participant type during onboarding
+ * Create participant role during onboarding
  */
-export async function createParticipantTypeAction(
+export async function createParticipantRoleAction(
   organizationId: number,
   eventId: number,
   formData: FormData,
@@ -625,7 +625,7 @@ export async function createParticipantTypeAction(
     if (ownerId !== user.id) {
       return {
         success: false,
-        message: 'You do not have permission to create participant types in this organization.',
+        message: 'You do not have permission to create participant roles in this organization.',
       }
     }
 
@@ -638,30 +638,30 @@ export async function createParticipantTypeAction(
       isActive: true,
     }
 
-    // Create participant type - use overrideAccess since we've verified ownership
-    const participantType = await payload.create({
-      collection: 'participant-types',
+    // Create participant role - use overrideAccess since we've verified ownership
+    const participantRole = await payload.create({
+      collection: 'participant-roles',
       data: rawData as any,
       user,
       overrideAccess: true,
     })
 
     const typeId =
-      typeof participantType.id === 'number' ? participantType.id : Number(participantType.id)
+      typeof participantRole.id === 'number' ? participantRole.id : Number(participantRole.id)
 
     revalidatePath('/dash/events')
 
     return {
       success: true,
-      message: 'Participant type created successfully',
+      message: 'Participant role created successfully',
       data: {
         id: typeId,
-        name: participantType.name,
-        publicFormLink: participantType.publicFormLink || '',
+        name: participantRole.name,
+        publicFormLink: participantRole.publicFormLink || '',
       },
     }
   } catch (error) {
-    console.error('[createParticipantTypeAction] Error:', error)
+    console.error('[createParticipantRoleAction] Error:', error)
 
     if (error && typeof error === 'object' && 'message' in error) {
       const errorMessage = error.message as string
@@ -670,7 +670,7 @@ export async function createParticipantTypeAction(
       if (errorMessage.includes('slug') || errorMessage.includes('unique')) {
         return {
           success: false,
-          message: 'A participant type with this name already exists. Please choose a different name.',
+          message: 'A participant role with this name already exists. Please choose a different name.',
         }
       }
 
@@ -682,7 +682,7 @@ export async function createParticipantTypeAction(
 
     return {
       success: false,
-      message: 'Failed to create participant type. Please try again.',
+      message: 'Failed to create participant role. Please try again.',
     }
   }
 }
@@ -1063,9 +1063,9 @@ export async function saveOnboardingImageTemplateAction(
 }
 
 /**
- * Get participant types for an event
+ * Get participant roles for an event
  */
-export async function getParticipantTypesAction(
+export async function getParticipantRolesAction(
   organizationId: number,
   eventId: number,
 ): Promise<OnboardingActionState<Array<{ id: number; name: string; publicFormLink: string }>>> {
@@ -1100,13 +1100,13 @@ export async function getParticipantTypesAction(
     if (ownerId !== user.id) {
       return {
         success: false,
-        message: 'You do not have permission to view participant types in this organization.',
+        message: 'You do not have permission to view participant roles in this organization.',
       }
     }
 
-    // Fetch participant types for this event
-    const participantTypes = await payload.find({
-      collection: 'participant-types',
+    // Fetch participant roles for this event
+    const participantRoles = await payload.find({
+      collection: 'participant-roles',
       where: {
         and: [
           {
@@ -1125,7 +1125,7 @@ export async function getParticipantTypesAction(
       overrideAccess: true,
     })
 
-    const types = participantTypes.docs.map((type) => ({
+    const types = participantRoles.docs.map((type) => ({
       id: typeof type.id === 'number' ? type.id : Number(type.id),
       name: type.name,
       publicFormLink: type.publicFormLink || '',
@@ -1136,7 +1136,7 @@ export async function getParticipantTypesAction(
       data: types,
     }
   } catch (error) {
-    console.error('[getParticipantTypesAction] Error:', error)
+    console.error('[getParticipantRolesAction] Error:', error)
 
     if (error && typeof error === 'object' && 'message' in error) {
       return {
@@ -1147,7 +1147,7 @@ export async function getParticipantTypesAction(
 
     return {
       success: false,
-      message: 'Failed to fetch participant types. Please try again.',
+      message: 'Failed to fetch participant roles. Please try again.',
     }
   }
 }
@@ -1243,9 +1243,9 @@ export async function getPartnerTypesAction(
 }
 
 /**
- * Delete participant type during onboarding
+ * Delete participant role during onboarding
  */
-export async function deleteParticipantTypeAction(
+export async function deleteParticipantRoleAction(
   organizationId: number,
   typeId: number,
 ): Promise<OnboardingActionState> {
@@ -1280,13 +1280,13 @@ export async function deleteParticipantTypeAction(
     if (ownerId !== user.id) {
       return {
         success: false,
-        message: 'You do not have permission to delete participant types in this organization.',
+        message: 'You do not have permission to delete participant roles in this organization.',
       }
     }
 
-    // Delete participant type
+    // Delete participant role
     await payload.delete({
-      collection: 'participant-types',
+      collection: 'participant-roles',
       id: typeId,
       user,
       overrideAccess: true,
@@ -1296,10 +1296,10 @@ export async function deleteParticipantTypeAction(
 
     return {
       success: true,
-      message: 'Participant type deleted successfully',
+      message: 'Participant role deleted successfully',
     }
   } catch (error) {
-    console.error('[deleteParticipantTypeAction] Error:', error)
+    console.error('[deleteParticipantRoleAction] Error:', error)
 
     if (error && typeof error === 'object' && 'message' in error) {
       return {
@@ -1310,7 +1310,7 @@ export async function deleteParticipantTypeAction(
 
     return {
       success: false,
-      message: 'Failed to delete participant type. Please try again.',
+      message: 'Failed to delete participant role. Please try again.',
     }
   }
 }

@@ -5,24 +5,24 @@ import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 
-interface EmptyParticipantTypeStateProps {
+interface EmptyParticipantRoleStateProps {
   className?: string
 }
 
-export const EmptyParticipantTypeState = ({ className }: EmptyParticipantTypeStateProps) => {
+export const EmptyParticipantRoleState = ({ className }: EmptyParticipantRoleStateProps) => {
   return (
     <section className={cn('overflow-hidden py-32', className)}>
       <div className="relative container">
         <h1 className="mx-auto max-w-4xl bg-gradient-to-r from-primary/60 via-primary to-primary/60 bg-clip-text text-center text-4xl font-semibold text-transparent lg:text-6xl">
-          No Participant Types Yet
+          No Participant Roles Yet
         </h1>
         <p className="mt-4 text-center text-lg lg:mt-10">
-          Create your first participant type before adding participants
+          Create your first participant role before adding participants
         </p>
         <div className="relative z-10 mt-8 flex justify-center lg:mt-16">
           <Button size="lg" asChild>
-            <Link href="/dash/participant-types">
-              Create your first participant type
+            <Link href="/dash/participant-roles">
+              Create your first participant role
               <ArrowRight />
             </Link>
           </Button>

@@ -91,13 +91,13 @@ export async function registerParticipant(
 
     // ── Assemble participant data ────────────────────────────────────────────
     const eventId = formData.get('event') as string
-    const participantTypeId = formData.get('participantType') as string
+    const participantRoleId = formData.get('participantRole') as string
 
     const participantData: Record<string, unknown> = {
       name,
       email: formData.get('email') as string,
       event: parseInt(eventId, 10),
-      participantType: parseInt(participantTypeId, 10),
+      participantRole: parseInt(participantRoleId, 10),
       status: 'not-approved',
     }
 
