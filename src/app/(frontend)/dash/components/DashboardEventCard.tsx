@@ -1,10 +1,13 @@
+'use client'
+
 import Image from 'next/image'
+import { Icon } from '@iconify/react'
 import { MapPin, Calendar as CalendarIcon, Clock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { format } from 'date-fns'
 
 interface DashboardEventCardProps {
-  image: string
+  image?: string | null
   startDate: string
   endDate?: string | null
   location: string
@@ -38,14 +41,20 @@ export function DashboardEventCard({
       <div className="grid md:grid-cols-[400px_1fr] gap-0">
         {/* Image Section */}
         <div className="relative h-[250px] md:h-full min-h-[250px] bg-muted">
-          <Image
-            src={image}
-            alt={title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 400px"
-            priority
-          />
+          {image ? (
+            <Image
+              src={image}
+              alt={title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 400px"
+              priority
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <Icon icon="solar:calendar-bold-duotone" className="text-muted-foreground/30 size-24" />
+            </div>
+          )}
           {eventType && (
             <div className="absolute top-4 left-4">
               <span className="inline-flex items-center rounded-full bg-primary/90 px-3 py-1 text-xs font-medium text-primary-foreground backdrop-blur-sm">

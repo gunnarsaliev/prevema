@@ -38,14 +38,11 @@ export function getEventDescription(event: Event): string {
 /**
  * Resolve image URL from Media object or provide placeholder
  */
-export function getEventImageUrl(image: Event['image']): string {
-  // Handle populated Media object
+export function getEventImageUrl(image: Event['image']): string | null {
   if (image && typeof image === 'object' && 'url' in image) {
-    return (image as Media).url || '/placeholder-event.jpg'
+    return (image as Media).url || null
   }
-
-  // Fallback placeholder
-  return '/placeholder-event.jpg'
+  return null
 }
 
 /**

@@ -1,8 +1,11 @@
+'use client'
+
 import Image from 'next/image'
+import { Icon } from '@iconify/react'
 import { MapPin } from 'lucide-react'
 
 interface EventCardProps {
-  image: string
+  image?: string | null
   day: number
   month: string
   location: string
@@ -23,14 +26,20 @@ export function EventCard({
   return (
     <div className="w-full h-[500px] md:rounded-3xl md:px-0 overflow-hidden bg-white dark:bg-zinc-800 flex flex-col">
       {/* Image Container */}
-      <div className="relative w-full h-48 md:rounded-3xl overflow-hidden flex-shrink-0">
-        <Image
-          src={image}
-          alt={title}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
+      <div className="relative w-full h-48 md:rounded-3xl overflow-hidden flex-shrink-0 bg-muted">
+        {image ? (
+          <Image
+            src={image}
+            alt={title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <Icon icon="solar:calendar-bold-duotone" className="text-muted-foreground/30 size-16" />
+          </div>
+        )}
       </div>
 
       {/* Content Container */}
