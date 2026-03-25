@@ -36,7 +36,7 @@ type OrgOption = { id: number; name: string }
 type EventOption = { id: number; name: string }
 
 type SharedCallbacks = {
-  onSuccess?: () => void
+  onSuccess?: (newTypeId?: number) => void
   onCancel?: () => void
   lockedValues?: { event?: number; organization?: number }
 }
@@ -106,7 +106,8 @@ export function PartnerTypeForm(props: Props) {
       }
 
       if (props.onSuccess) {
-        props.onSuccess()
+        const data = await res.json().catch(() => ({}))
+        props.onSuccess(data?.doc?.id)
         router.refresh()
       } else {
         router.push('/dash/partner-types')

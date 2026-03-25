@@ -2,6 +2,7 @@ import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { getUserOrganizationIds } from '@/access/utilities'
 
 import { PartnerForm } from '../components/PartnerForm'
 
@@ -17,40 +18,51 @@ export default async function CreatePartnerPage({
 
   if (!user) redirect('/admin/login')
 
-  // Fetch events, partner-types and partner-tiers in parallel
-  const [{ docs: eventDocs }, { docs: typeDocs }, { docs: tierDocs }] = await Promise.all([
-    payload.find({
-      collection: 'events',
-      overrideAccess: false,
-      user,
-      depth: 0,
-      limit: 200,
-      sort: 'name',
-      select: { name: true },
-    }),
-    payload.find({
-      collection: 'partner-types',
-      overrideAccess: false,
-      user,
-      depth: 0,
-      limit: 100,
-      sort: 'name',
-      select: { name: true },
-    }),
-    payload.find({
-      collection: 'partner-tiers',
-      overrideAccess: false,
-      user,
-      depth: 0,
-      limit: 100,
-      sort: 'name',
-      select: { name: true },
-    }),
-  ])
+  const organizationIds = await getUserOrganizationIds(payload, user)
+
+  // Fetch events, partner-types, partner-tiers and organizations in parallel
+  const [{ docs: eventDocs }, { docs: typeDocs }, { docs: tierDocs }, { docs: orgDocs }] =
+    await Promise.all([
+      payload.find({
+        collection: 'events',
+        overrideAccess: false,
+        user,
+        depth: 0,
+        limit: 200,
+        sort: 'name',
+        select: { name: true },
+      }),
+      payload.find({
+        collection: 'partner-types',
+        overrideAccess: false,
+        user,
+        depth: 0,
+        limit: 100,
+        sort: 'name',
+        select: { name: true },
+      }),
+      payload.find({
+        collection: 'partner-tiers',
+        overrideAccess: false,
+        user,
+        depth: 0,
+        limit: 100,
+        sort: 'name',
+        select: { name: true },
+      }),
+      payload.find({
+        collection: 'organizations',
+        where: { id: { in: organizationIds } },
+        depth: 0,
+        limit: 100,
+        select: { name: true },
+      }),
+    ])
 
   const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
   const partnerTypes = typeDocs.map((t) => ({ id: t.id, name: t.name as string }))
   const tiers = tierDocs.map((t) => ({ id: t.id, name: t.name as string }))
+  const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
     <div className="px-6 py-8">
@@ -65,6 +77,7 @@ export default async function CreatePartnerPage({
         events={events}
         partnerTypes={partnerTypes}
         tiers={tiers}
+        organizations={organizations}
         defaultEventId={eventId ? Number(eventId) : undefined}
       />
     </div>

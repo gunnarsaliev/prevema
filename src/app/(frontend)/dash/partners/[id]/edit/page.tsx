@@ -2,6 +2,7 @@ import { headers as getHeaders } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { getUserOrganizationIds } from '@/access/utilities'
 
 import { PartnerForm } from '../../components/PartnerForm'
 import type { PartnerFormValues } from '@/lib/schemas/partner'
@@ -14,7 +15,9 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
 
   if (!user) redirect('/admin/login')
 
-  const [partner, { docs: eventDocs }, { docs: typeDocs }, { docs: tierDocs }] = await Promise.all([
+  const organizationIds = await getUserOrganizationIds(payload, user)
+
+  const [partner, { docs: eventDocs }, { docs: typeDocs }, { docs: tierDocs }, { docs: orgDocs }] = await Promise.all([
     payload
       .findByID({
         collection: 'partners',
@@ -51,6 +54,13 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
       sort: 'name',
       select: { name: true },
     }),
+    payload.find({
+      collection: 'organizations',
+      where: { id: { in: organizationIds } },
+      depth: 0,
+      limit: 100,
+      select: { name: true },
+    }),
   ])
 
   if (!partner) notFound()
@@ -83,6 +93,7 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
   const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
   const partnerTypes = typeDocs.map((t) => ({ id: t.id, name: t.name as string }))
   const tiers = tierDocs.map((t) => ({ id: t.id, name: t.name as string }))
+  const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
     <div className="px-6 py-8">
@@ -97,6 +108,7 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
         events={events}
         partnerTypes={partnerTypes}
         tiers={tiers}
+        organizations={organizations}
       />
     </div>
   )
