@@ -147,7 +147,7 @@ export const PartnerTypes: CollectionConfig = {
           Field: {
             path: '@/components/fields/PublicFormLinkField',
             clientProps: {
-              baseUrl: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
+              baseUrl: process.env.NEXT_PUBLIC_SERVER_URL || '/',
             },
           },
         },

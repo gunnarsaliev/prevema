@@ -13,7 +13,7 @@ export const generatePublicFormLinkAfterCreate: CollectionAfterChangeHook = asyn
 
   // Only run on create operation and if link is missing
   if (operation === 'create' && !doc.publicFormLink && doc.id) {
-    const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+    const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || '/'
     const publicFormLink = `${baseUrl}/partner-register/${doc.id}`
 
     // Update the document directly in the database to avoid API routing issues
