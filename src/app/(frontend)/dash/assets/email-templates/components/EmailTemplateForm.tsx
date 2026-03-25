@@ -381,7 +381,7 @@ export function EmailTemplateForm(props: Props) {
                           className="h-7 text-sm px-3"
                         >
                           <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                          Generate with AI
+                          Generate with Prevema
                         </RainbowButton>
                       )}
                     </div>
@@ -486,7 +486,7 @@ export function EmailTemplateForm(props: Props) {
                         className="h-7 text-sm px-3"
                       >
                         <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                        Generate with AI
+                        Generate with Prevema
                       </RainbowButton>
                     )}
                   </div>
