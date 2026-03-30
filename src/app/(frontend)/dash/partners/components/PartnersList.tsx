@@ -26,6 +26,7 @@ import {
 } from '@/lib/entity-actions'
 import { BulkEmailModal } from '@/components/BulkEmailModal'
 import { GenerationModal } from '@/components/GenerationModal'
+import { StatusSelect } from '@/components/shared/StatusSelect'
 import {
   Drawer,
   DrawerContent,
@@ -255,14 +256,14 @@ export function PartnersList({ partners, events, organizations, eventId }: Props
     {
       accessorKey: 'status',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-      cell: ({ row }) => {
-        const status = row.getValue('status') as string
-        return (
-          <Badge variant={STATUS_VARIANT[status ?? 'default']}>
-            {status ?? 'default'}
-          </Badge>
-        )
-      },
+      cell: ({ row }) => (
+        <StatusSelect
+          entityType="partner"
+          entityId={row.original.id}
+          currentStatus={row.getValue('status') as string}
+          onStatusChange={() => router.refresh()}
+        />
+      ),
     },
     {
       accessorKey: 'contactPerson',

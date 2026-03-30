@@ -26,6 +26,7 @@ import {
 } from '@/lib/entity-actions'
 import { BulkEmailModal } from '@/components/BulkEmailModal'
 import { GenerationModal } from '@/components/GenerationModal'
+import { StatusSelect } from '@/components/shared/StatusSelect'
 import {
   Drawer,
   DrawerContent,
@@ -256,14 +257,14 @@ export function ParticipantsList({ participants, events, organizations, eventId 
     {
       accessorKey: 'status',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-      cell: ({ row }) => {
-        const status = row.getValue('status') as string
-        return (
-          <Badge variant={STATUS_VARIANT[status ?? 'not-approved']}>
-            {STATUS_LABEL[status ?? 'not-approved']}
-          </Badge>
-        )
-      },
+      cell: ({ row }) => (
+        <StatusSelect
+          entityType="participant"
+          entityId={row.original.id}
+          currentStatus={row.getValue('status') as string}
+          onStatusChange={() => router.refresh()}
+        />
+      ),
     },
     {
       accessorKey: 'email',
