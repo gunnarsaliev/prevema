@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useActionState, startTransition } from 'react'
-import { Loader2, Plus } from 'lucide-react'
+import { Loader2, Plus, User, Image, Building2, FileText } from 'lucide-react'
 
 import { type ParticipantFormValues } from '@/lib/schemas/participant'
 import { createParticipant, updateParticipant } from '../actions'
@@ -11,19 +11,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Field,
-  FieldError,
   FieldGroup,
   FieldLabel,
-  FieldSet,
-  FieldLegend,
 } from '@/components/ui/field'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   Drawer,
   DrawerContent,
@@ -39,6 +29,19 @@ import {
   FileUploadItemPreview,
   FileUploadList,
 } from '@/components/ui/file-upload'
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from '@/components/ui/accordion'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card'
 import { ParticipantRoleForm } from '../../participant-roles/components/ParticipantRoleForm'
 
 type EventOption = { id: number; name: string }
@@ -117,7 +120,7 @@ export function ParticipantForm(props: Props) {
     })
   }
 
-  const handleRoleCreated = async (newRoleId?: number) => {
+  const handleRoleCreated = async () => {
     try {
       const res = await fetch('/api/participant-roles?limit=100&sort=name&depth=0')
       if (res.ok) {
@@ -136,7 +139,7 @@ export function ParticipantForm(props: Props) {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
         {/* Display server-side error message */}
         {state?.message && !state.success && (
           <p className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">
@@ -144,10 +147,17 @@ export function ParticipantForm(props: Props) {
           </p>
         )}
 
-        {/* Participant */}
-        <FieldSet>
-          <FieldLegend>Participant</FieldLegend>
-          <FieldGroup>
+        {/* Basic Information & Contact */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <User className="h-5 w-5 text-muted-foreground" />
+              <CardTitle>Basic Information & Contact</CardTitle>
+            </div>
+            <CardDescription>Essential details and contact information for the participant</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FieldGroup className="space-y-4">
             <Field data-invalid={!!state?.errors?.name}>
               <FieldLabel htmlFor="name">Name *</FieldLabel>
               <Input
@@ -258,13 +268,29 @@ export function ParticipantForm(props: Props) {
                 <p className="text-sm text-destructive mt-1">{state.errors.status[0]}</p>
               )}
             </Field>
-          </FieldGroup>
-        </FieldSet>
+            </FieldGroup>
+          </CardContent>
+        </Card>
 
-        {/* Profile */}
-        <FieldSet>
-          <FieldLegend>Profile</FieldLegend>
-          <FieldGroup>
+        {/* More Details */}
+        <Accordion type="multiple" defaultValue={[]} className="space-y-4">
+          <AccordionItem value="more-details" className="border rounded-lg px-6 bg-card">
+            <AccordionTrigger>
+              <div className="flex flex-col items-start gap-1 text-left">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-semibold">More Details</span>
+                </div>
+                <span className="text-xs text-muted-foreground font-normal">Profile, company information, and presentation details</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <FieldGroup className="space-y-6">
+              {/* Profile & Images Section */}
+              <div className="flex items-center gap-2 mb-4">
+                <Image className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-sm font-medium">Profile & Images</h3>
+              </div>
             <Field>
               <FieldLabel>Profile image</FieldLabel>
               {/* Show existing image in edit mode */}
@@ -585,13 +611,15 @@ export function ParticipantForm(props: Props) {
                 <p className="text-sm text-destructive mt-1">{state.errors.companyWebsite[0]}</p>
               )}
             </Field>
-          </FieldGroup>
-        </FieldSet>
 
-        {/* Notes */}
-        <FieldSet>
-          <FieldLegend>Notes</FieldLegend>
-          <FieldGroup>
+            <div className="my-6 border-t"></div>
+
+            {/* Presentation Details Section */}
+            <div className="flex items-center gap-2 mb-4">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-medium">Presentation Details</h3>
+            </div>
+
             <Field data-invalid={!!state?.errors?.internalNotes}>
               <FieldLabel htmlFor="internalNotes">Internal notes</FieldLabel>
               <p className="text-xs text-muted-foreground -mt-1">
@@ -663,8 +691,10 @@ export function ParticipantForm(props: Props) {
                 </p>
               )}
             </Field>
-          </FieldGroup>
-        </FieldSet>
+              </FieldGroup>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
 
         {/* Actions */}
         <div className="flex gap-3 pt-2">
