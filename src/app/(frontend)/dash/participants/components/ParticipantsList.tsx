@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ColumnDef, Row } from '@tanstack/react-table'
-import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image, Plus } from 'lucide-react'
+import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image, Plus, Eye } from 'lucide-react'
 
 import type { Participant } from '@/payload-types'
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,10 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer'
 import { ParticipantRoleForm } from '../../participant-roles/components/ParticipantRoleForm'
+
+const ParticipantQuickView = lazy(() =>
+  import('./ParticipantQuickView').then((module) => ({ default: module.ParticipantQuickView }))
+)
 
 const STATUS_LABEL: Record<string, string> = {
   'not-approved': 'Not Approved',
@@ -76,6 +80,8 @@ export function ParticipantsList({ participants, events, organizations, eventId 
   const [loadingEmail, setLoadingEmail] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [imageParticipantIds, setImageParticipantIds] = useState<string[]>([])
+  const [quickViewParticipantId, setQuickViewParticipantId] = useState<number | null>(null)
+  const [quickViewOpen, setQuickViewOpen] = useState(false)
 
   const handleEventChange = (value: string) => {
     if (value === 'all') {
@@ -83,6 +89,11 @@ export function ParticipantsList({ participants, events, organizations, eventId 
     } else {
       router.push(`/dash/participants?eventId=${value}`)
     }
+  }
+
+  const handleQuickView = (id: number) => {
+    setQuickViewParticipantId(id)
+    setQuickViewOpen(true)
   }
 
   const handleDelete = async (id: number, name: string) => {
@@ -225,7 +236,14 @@ export function ParticipantsList({ participants, events, organizations, eventId 
     {
       accessorKey: 'name',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
-      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+      cell: ({ row }) => (
+        <button
+          onClick={() => handleQuickView(row.original.id)}
+          className="font-medium hover:underline text-left"
+        >
+          {row.getValue('name')}
+        </button>
+      ),
     },
     {
       accessorKey: 'participantRole',
@@ -268,6 +286,10 @@ export function ParticipantsList({ participants, events, organizations, eventId 
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleQuickView(participant.id)}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  View
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href={`/dash/participants/${participant.id}/edit`}>
                     <Pencil className="mr-2 h-4 w-4" />
@@ -369,6 +391,15 @@ export function ParticipantsList({ participants, events, organizations, eventId 
           entityType="participant"
         />
       )}
+
+      <Suspense fallback={null}>
+        <ParticipantQuickView
+          participantId={quickViewParticipantId}
+          open={quickViewOpen}
+          onClose={() => setQuickViewOpen(false)}
+          onDelete={handleDelete}
+        />
+      </Suspense>
     </>
   )
 }

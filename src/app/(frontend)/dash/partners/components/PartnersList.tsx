@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ColumnDef, Row } from '@tanstack/react-table'
-import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image, Plus } from 'lucide-react'
+import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image, Plus, Eye } from 'lucide-react'
 
 import type { Partner } from '@/payload-types'
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,10 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer'
 import { PartnerTypeForm } from '../../partner-types/components/PartnerTypeForm'
+
+const PartnerQuickView = lazy(() =>
+  import('./PartnerQuickView').then((module) => ({ default: module.PartnerQuickView }))
+)
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   default: 'secondary',
@@ -69,6 +73,8 @@ export function PartnersList({ partners, events, organizations, eventId }: Props
   const [loadingEmail, setLoadingEmail] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [imagePartnerIds, setImagePartnerIds] = useState<string[]>([])
+  const [quickViewPartnerId, setQuickViewPartnerId] = useState<number | null>(null)
+  const [quickViewOpen, setQuickViewOpen] = useState(false)
 
   const handleEventChange = (value: string) => {
     if (value === 'all') {
@@ -76,6 +82,11 @@ export function PartnersList({ partners, events, organizations, eventId }: Props
     } else {
       router.push(`/dash/partners?eventId=${value}`)
     }
+  }
+
+  const handleQuickView = (id: number) => {
+    setQuickViewPartnerId(id)
+    setQuickViewOpen(true)
   }
 
   const handleDelete = async (id: number, companyName: string) => {
@@ -218,7 +229,14 @@ export function PartnersList({ partners, events, organizations, eventId }: Props
     {
       accessorKey: 'companyName',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Company" />,
-      cell: ({ row }) => <div className="font-medium">{row.getValue('companyName')}</div>,
+      cell: ({ row }) => (
+        <button
+          onClick={() => handleQuickView(row.original.id)}
+          className="font-medium hover:underline text-left"
+        >
+          {row.getValue('companyName')}
+        </button>
+      ),
     },
     {
       accessorKey: 'partnerType',
@@ -267,6 +285,10 @@ export function PartnersList({ partners, events, organizations, eventId }: Props
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleQuickView(partner.id)}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  View
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href={`/dash/partners/${partner.id}/edit`}>
                     <Pencil className="mr-2 h-4 w-4" />
@@ -368,6 +390,15 @@ export function PartnersList({ partners, events, organizations, eventId }: Props
           entityType="partner"
         />
       )}
+
+      <Suspense fallback={null}>
+        <PartnerQuickView
+          partnerId={quickViewPartnerId}
+          open={quickViewOpen}
+          onClose={() => setQuickViewOpen(false)}
+          onDelete={handleDelete}
+        />
+      </Suspense>
     </>
   )
 }
