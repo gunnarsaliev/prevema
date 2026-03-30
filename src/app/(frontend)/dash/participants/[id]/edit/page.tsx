@@ -28,7 +28,7 @@ export default async function EditParticipantPage({
         id: Number(id),
         overrideAccess: false,
         user,
-        depth: 0,
+        depth: 1, // Fetch depth 1 to get image relationships
       })
       .catch(() => null),
     payload.find({
@@ -60,7 +60,7 @@ export default async function EditParticipantPage({
 
   if (!participant) notFound()
 
-  // Resolve relationships to their numeric IDs (depth:0 returns IDs, but types allow objects)
+  // Resolve relationships to their numeric IDs (depth:1 returns objects for relationships)
   const resolveId = (rel: unknown): number | undefined => {
     if (!rel) return undefined
     if (typeof rel === 'object' && rel !== null && 'id' in rel) return (rel as { id: number }).id
@@ -68,15 +68,29 @@ export default async function EditParticipantPage({
     return undefined
   }
 
+  // Extract image URLs from media relationships
+  const getImageUrl = (media: unknown): string | null => {
+    if (!media) return null
+    if (typeof media === 'object' && media !== null && 'url' in media) {
+      return (media as { url: string }).url
+    }
+    return null
+  }
+
+  const existingProfileImageUrl = getImageUrl(participant.imageUrl)
+  const existingCompanyLogoUrl = getImageUrl(participant.companyLogoUrl)
+
   const defaultValues: ParticipantFormValues = {
     name: participant.name,
     email: participant.email,
     event: resolveId(participant.event) ?? 0,
     participantRole: resolveId(participant.participantRole) ?? 0,
     status: (participant.status as ParticipantFormValues['status']) ?? 'not-approved',
+    imageUrl: resolveId(participant.imageUrl),
     biography: participant.biography ?? null,
     country: participant.country ?? null,
     phoneNumber: participant.phoneNumber ?? null,
+    companyLogoUrl: resolveId(participant.companyLogoUrl),
     companyName: participant.companyName ?? null,
     companyPosition: participant.companyPosition ?? null,
     companyWebsite: participant.companyWebsite ?? null,
@@ -100,6 +114,8 @@ export default async function EditParticipantPage({
         mode="edit"
         participantId={String(participant.id)}
         defaultValues={defaultValues}
+        existingProfileImageUrl={existingProfileImageUrl}
+        existingCompanyLogoUrl={existingCompanyLogoUrl}
         events={events}
         participantRoles={participantRoles}
         organizations={organizations}
