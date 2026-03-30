@@ -24,7 +24,7 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
         id: Number(id),
         overrideAccess: false,
         user,
-        depth: 0,
+        depth: 1, // Fetch depth 1 to get image relationships
       })
       .catch(() => null),
     payload.find({
@@ -65,13 +65,25 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
 
   if (!partner) notFound()
 
-  // Resolve relationships to their numeric IDs (depth:0 returns IDs, but types allow objects)
+  // Resolve relationships to their numeric IDs (depth:1 returns objects for relationships)
   const resolveId = (rel: unknown): number | undefined => {
     if (!rel) return undefined
     if (typeof rel === 'object' && rel !== null && 'id' in rel) return (rel as { id: number }).id
     if (typeof rel === 'number') return rel
     return undefined
   }
+
+  // Extract image URLs from media relationships
+  const getImageUrl = (media: unknown): string | null => {
+    if (!media) return null
+    if (typeof media === 'object' && media !== null && 'url' in media) {
+      return (media as { url: string }).url
+    }
+    return null
+  }
+
+  const existingCompanyLogoUrl = getImageUrl(partner.companyLogo)
+  const existingCompanyBannerUrl = getImageUrl(partner.companyBanner)
 
   const defaultValues: PartnerFormValues = {
     companyName: partner.companyName,
@@ -82,7 +94,9 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
     email: partner.email ?? null,
     fieldOfExpertise: partner.fieldOfExpertise ?? null,
     companyWebsiteUrl: partner.companyWebsiteUrl ?? null,
+    companyLogo: resolveId(partner.companyLogo),
     companyLogoUrl: partner.companyLogoUrl ?? null,
+    companyBanner: resolveId(partner.companyBanner),
     companyDescription: partner.companyDescription ?? null,
     tier: resolveId(partner.tier) ?? null,
     sponsorshipLevel: partner.sponsorshipLevel ?? null,
@@ -105,6 +119,8 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
         mode="edit"
         partnerId={String(partner.id)}
         defaultValues={defaultValues}
+        existingCompanyLogoUrl={existingCompanyLogoUrl}
+        existingCompanyBannerUrl={existingCompanyBannerUrl}
         events={events}
         partnerTypes={partnerTypes}
         tiers={tiers}
