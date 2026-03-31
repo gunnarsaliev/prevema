@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { ThemeProvider } from './components/theme-provider'
 
 export const metadata: Metadata = {
@@ -13,7 +14,9 @@ export default function ImageGeneratorLayout({
 }>) {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-      {children}
+      <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+        {children}
+      </Suspense>
     </ThemeProvider>
   )
 }

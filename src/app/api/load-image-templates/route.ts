@@ -54,11 +54,19 @@ export async function GET(req: NextRequest) {
         typeof template.backgroundImage === 'object' && template.backgroundImage !== null
           ? (template.backgroundImage as any).url
           : template.backgroundImage,
+      backgroundImageId:
+        typeof template.backgroundImage === 'object' && template.backgroundImage !== null
+          ? (template.backgroundImage as any).id
+          : template.backgroundImage,
       backgroundColor: template.backgroundColor,
       elements: template.elements,
       previewImage:
         typeof template.previewImage === 'object' && template.previewImage !== null
           ? (template.previewImage as any).url
+          : template.previewImage,
+      previewImageId:
+        typeof template.previewImage === 'object' && template.previewImage !== null
+          ? (template.previewImage as any).id
           : template.previewImage,
       createdAt: template.createdAt,
       updatedAt: template.updatedAt,

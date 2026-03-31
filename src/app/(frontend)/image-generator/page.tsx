@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Menubar,
@@ -73,6 +73,20 @@ const templates: Template[] = [
 
 export default function ImageTemplateGenerator() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Edit mode: Check if we're editing an existing template
+  const templateId = searchParams.get('templateId')
+  const [editMode] = useState<{
+    mode: 'create' | 'edit';
+    templateId?: string;
+    templateName?: string;
+    originalBackgroundImageId?: number;
+    originalPreviewImageId?: number;
+  }>(
+    templateId ? { mode: 'edit', templateId } : { mode: 'create' }
+  )
+
   const [selectedTemplate, setSelectedTemplate] = useState<Template>(templates[0])
   const imageInputRef = useRef<HTMLInputElement>(null)
   const backgroundInputRef = useRef<HTMLInputElement>(null)
@@ -562,8 +576,63 @@ export default function ImageTemplateGenerator() {
     performanceMonitor()
   }, [performanceMonitor])
 
+  // Load template if in edit mode
+  useEffect(() => {
+    if (editMode.mode === 'edit' && editMode.templateId) {
+      const loadTemplate = async () => {
+        try {
+          const response = await fetch('/api/load-image-templates', {
+            credentials: 'include',
+          })
+
+          if (!response.ok) {
+            throw new Error('Failed to load templates')
+          }
+
+          const result = (await response.json()) as { templates: any[] }
+          const template = result.templates?.find((t) => String(t.id) === editMode.templateId)
+
+          if (template) {
+            console.log('Loading template for editing:', template.name)
+
+            // Store original IDs for relationships before loading
+            editMode.templateName = template.name
+            editMode.originalBackgroundImageId = template.backgroundImageId
+            editMode.originalPreviewImageId = template.previewImageId
+
+            await handleApplyTemplate(template)
+          } else {
+            toast({
+              title: 'Template Not Found',
+              description: 'The template you are trying to edit could not be found.',
+              variant: 'destructive',
+            })
+            router.push('/dash/assets/image-templates')
+          }
+        } catch (error) {
+          console.error('Failed to load template:', error)
+          toast({
+            title: 'Load Failed',
+            description: 'Failed to load template for editing.',
+            variant: 'destructive',
+          })
+        }
+      }
+
+      loadTemplate()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editMode.mode, editMode.templateId])
+
   // Save template handler
   const handleSaveTemplate = async () => {
+    // In edit mode, skip the dialog and save directly
+    if (editMode.mode === 'edit') {
+      await saveTemplateToServer()
+      return
+    }
+
+    // In create mode, show dialog first
     if (!saveTemplateName.trim()) {
       toast({
         title: 'Missing Information',
@@ -573,6 +642,11 @@ export default function ImageTemplateGenerator() {
       return
     }
 
+    await saveTemplateToServer()
+  }
+
+  // Actual save logic extracted to a separate function
+  const saveTemplateToServer = async () => {
     setIsSaving(true)
 
     // Deselect any selected element before taking screenshot
@@ -611,20 +685,41 @@ export default function ImageTemplateGenerator() {
       }
 
       // Prepare template data
-      const templateData = {
-        name: saveTemplateName,
+      const templateData: any = {
+        name: editMode.mode === 'edit' ? editMode.templateName : saveTemplateName,
         usageType: saveUsageType,
-        organization: '', // Will be auto-populated from user session in API
         width: selectedTemplate.width,
         height: selectedTemplate.height,
-        backgroundImage: selectedTemplate.backgroundImage,
         backgroundColor: '#ffffff',
         elements: currentElements,
-        previewImageBase64: previewBase64,
+      }
+
+      // Handle backgroundImage based on mode
+      if (editMode.mode === 'edit') {
+        // In edit mode, only send backgroundImage if it's been changed (is base64)
+        // Otherwise, keep the original ID
+        if (selectedTemplate.backgroundImage.startsWith('data:')) {
+          templateData.backgroundImage = selectedTemplate.backgroundImage
+        } else if (editMode.originalBackgroundImageId) {
+          templateData.backgroundImage = editMode.originalBackgroundImageId
+        }
+      } else {
+        // In create mode, always send the backgroundImage
+        templateData.organization = '' // Will be auto-populated from user session in API
+        templateData.backgroundImage = selectedTemplate.backgroundImage
+        templateData.previewImageBase64 = previewBase64
+      }
+
+      // Only add preview in edit mode if we have a new one
+      if (editMode.mode === 'edit' && previewBase64) {
+        templateData.previewImageBase64 = previewBase64
+      } else if (editMode.mode === 'create') {
+        templateData.previewImageBase64 = previewBase64
       }
 
       // Log template dimensions and element coordinates for debugging alignment
       console.log('📐 Template dimensions:', {
+        mode: editMode.mode,
         width: selectedTemplate.width,
         height: selectedTemplate.height,
         elementCount: currentElements.length,
@@ -637,13 +732,22 @@ export default function ImageTemplateGenerator() {
         })),
       })
 
-      // Log what we're saving for debugging
-      console.log('Saving template:', {
+      // Call appropriate API based on mode
+      const apiUrl = editMode.mode === 'edit'
+        ? `/api/image-templates/${editMode.templateId}`
+        : '/api/save-image-template'
+      const method = editMode.mode === 'edit' ? 'PATCH' : 'POST'
+
+      console.log(`${editMode.mode === 'edit' ? 'Updating' : 'Saving'} template:`, {
+        mode: editMode.mode,
+        url: apiUrl,
         name: templateData.name,
         usageType: templateData.usageType,
         width: templateData.width,
         height: templateData.height,
-        backgroundImage: templateData.backgroundImage.substring(0, 50) + '...',
+        backgroundImage: typeof templateData.backgroundImage === 'string'
+          ? templateData.backgroundImage.substring(0, 50) + '...'
+          : templateData.backgroundImage,
         elementsCount: templateData.elements.length,
         elementTypes: templateData.elements.map((el) => ({
           type: el.type,
@@ -653,9 +757,8 @@ export default function ImageTemplateGenerator() {
         hasPreview: !!previewBase64,
       })
 
-      // Call save API
-      const response = await fetch('/api/save-image-template', {
-        method: 'POST',
+      const response = await fetch(apiUrl, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -665,13 +768,13 @@ export default function ImageTemplateGenerator() {
 
       if (!response.ok) {
         const error = (await response.json()) as { error?: string }
-        throw new Error(error.error || 'Failed to save template')
+        throw new Error(error.error || `Failed to ${editMode.mode === 'edit' ? 'update' : 'save'} template`)
       }
 
       const result = (await response.json()) as { template: { name: string } }
       toast({
         title: 'Success',
-        description: `Template "${result.template.name}" saved successfully!`,
+        description: `Template "${result.template.name}" ${editMode.mode === 'edit' ? 'updated' : 'saved'} successfully!`,
       })
 
       // Reset form
@@ -809,8 +912,8 @@ export default function ImageTemplateGenerator() {
                 Export Image <MenubarShortcut>⌘E</MenubarShortcut>
               </MenubarItem>
               <MenubarSeparator />
-              <MenubarItem onClick={() => setShowSaveDialog(true)}>
-                Save as Template <MenubarShortcut>⌘S</MenubarShortcut>
+              <MenubarItem onClick={() => editMode.mode === 'edit' ? handleSaveTemplate() : setShowSaveDialog(true)}>
+                {editMode.mode === 'edit' ? 'Save Changes' : 'Save as Template'} <MenubarShortcut>⌘S</MenubarShortcut>
               </MenubarItem>
               <MenubarItem onClick={handleLoadTemplates}>
                 Load Template <MenubarShortcut>⌘O</MenubarShortcut>
@@ -917,16 +1020,27 @@ export default function ImageTemplateGenerator() {
         </Menubar>
 
         {/* Quick Action Buttons */}
-
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => setShowSaveDialog(true)}
-          className="gap-2 mb-1"
-        >
-          <Save className="h-4 w-4" />
-          <span className="hidden sm:inline">Save</span>
-        </Button>
+        <div className="flex gap-2">
+          {editMode.mode === 'edit' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push('/dash/assets/image-templates')}
+              className="mb-1"
+            >
+              Cancel
+            </Button>
+          )}
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => editMode.mode === 'edit' ? handleSaveTemplate() : setShowSaveDialog(true)}
+            className="gap-2 mb-1"
+          >
+            <Save className="h-4 w-4" />
+            <span className="hidden sm:inline">{editMode.mode === 'edit' ? 'Save Changes' : 'Save'}</span>
+          </Button>
+        </div>
       </div>
 
       {/* Background Toolbar */}
