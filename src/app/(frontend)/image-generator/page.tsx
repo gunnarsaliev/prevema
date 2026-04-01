@@ -4,12 +4,12 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { DubSidebarLayout } from '@/components/layout/dub-sidebar'
+import { imageGeneratorSidebarConfig } from '@/config/image-generator-sidebar-config'
 import CanvasEditor from './components/canvas-editor'
 import FormattingToolbar from './components/formatting-toolbar'
 import BackgroundToolbar from './components/background-toolbar'
-import ModernTopbar from './components/modern-topbar'
-import LeftToolbar from './components/left-toolbar'
-import RightSidebar from './components/right-sidebar'
+import ImageGeneratorPanelContent from './components/image-generator-panel-content'
 import type { CanvasElement, Template } from '@/components/canvas/types/canvas-element'
 import { IMAGE_VARIABLES, TEXT_VARIABLES } from '@/components/canvas/types/canvas-element'
 import { restoreTemplateElements, type LoadedTemplate } from './utils/template-restoration'
@@ -769,7 +769,7 @@ export default function ImageTemplateGenerator() {
           ? templateData.backgroundImage.substring(0, 50) + '...'
           : templateData.backgroundImage,
         elementsCount: templateData.elements.length,
-        elementTypes: templateData.elements.map((el) => ({
+        elementTypes: templateData.elements.map((el: CanvasElement) => ({
           type: el.type,
           id: el.id,
           variableName: el.variableName,
@@ -948,22 +948,92 @@ export default function ImageTemplateGenerator() {
     }
   }
 
-  return (
-    <div className="h-screen bg-background flex flex-col">
-      {/* Modern Topbar */}
-      <ModernTopbar
-        selectedTemplate={selectedTemplate}
-        templates={templates}
-        onTemplateChange={handleTemplateChange}
-        onSave={() => editMode.mode === 'edit' ? handleSaveTemplate() : setShowSaveDialog(true)}
-        onExport={handleExportImage}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
-        editMode={editMode}
-      />
+  // Custom panel content for sidebar
+  const customPanelContent = (
+    <ImageGeneratorPanelContent
+      onAddText={addTextElement}
+      onAddImage={() => imageInputRef.current?.click()}
+      onAddShape={addShape}
+      onAddTextVariable={addTextVariable}
+      onAddImageVariable={addImageVariable}
+      textVariables={TEXT_VARIABLES}
+      imageVariables={IMAGE_VARIABLES}
+      selectedTemplate={selectedTemplate}
+      onTemplateUpdate={(updates) =>
+        setSelectedTemplate((prev) => ({
+          ...prev,
+          ...updates,
+        }))
+      }
+      elements={currentElements}
+      selectedElementId={currentSelectedElementId}
+      onElementSelect={handleElementSelect}
+      onMoveToFront={moveToFront}
+      onMoveToBack={moveToBack}
+      onMoveForward={moveForward}
+      onMoveBackward={moveBackward}
+      onToggleVisibility={toggleVisibility}
+      onDeleteElement={deleteElement}
+    />
+  )
 
+  // Top slot content for sidebar (template selector and actions)
+  const topSlot = (
+    <div className="space-y-2">
+      <select
+        value={selectedTemplate.id}
+        onChange={(e) => handleTemplateChange(e.target.value)}
+        className="w-full px-3 py-2 text-sm border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        {templates.map((template) => (
+          <option key={template.id} value={template.id}>
+            {template.name}
+          </option>
+        ))}
+      </select>
+
+      <div className="flex gap-2">
+        <Button
+          onClick={() => editMode.mode === 'edit' ? handleSaveTemplate() : setShowSaveDialog(true)}
+          className="flex-1 h-9 text-xs"
+          variant="default"
+        >
+          {editMode.mode === 'edit' ? 'Update' : 'Save'}
+        </Button>
+        <Button
+          onClick={handleExportImage}
+          className="flex-1 h-9 text-xs"
+          variant="outline"
+        >
+          Export
+        </Button>
+      </div>
+
+      <div className="flex gap-1 mt-2">
+        <Button
+          onClick={handleUndo}
+          disabled={!canUndo}
+          className="flex-1 h-8 text-xs"
+          variant="ghost"
+          size="sm"
+        >
+          Undo
+        </Button>
+        <Button
+          onClick={handleRedo}
+          disabled={!canRedo}
+          className="flex-1 h-8 text-xs"
+          variant="ghost"
+          size="sm"
+        >
+          Redo
+        </Button>
+      </div>
+    </div>
+  )
+
+  return (
+    <>
       {/* Hidden file inputs */}
       <input
         ref={imageInputRef}
@@ -986,21 +1056,15 @@ export default function ImageTemplateGenerator() {
         }}
       />
 
-      {/* Main Content Area */}
-      <div className="flex flex-1 min-h-0">
-        {/* Left Toolbar - Static */}
-        <LeftToolbar
-          onAddText={addTextElement}
-          onAddImage={() => imageInputRef.current?.click()}
-          onAddShape={addShape}
-          onAddTextVariable={addTextVariable}
-          onAddImageVariable={addImageVariable}
-          textVariables={TEXT_VARIABLES}
-          imageVariables={IMAGE_VARIABLES}
-        />
-
-        {/* Center - Canvas Area with independent scroll */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+      <DubSidebarLayout
+        config={imageGeneratorSidebarConfig}
+        activeModuleId="design"
+        onModuleChange={() => {}}
+        topSlot={topSlot}
+        customPanelContent={customPanelContent}
+      >
+        {/* Canvas Area */}
+        <div className="flex flex-1 flex-col overflow-hidden">
           {/* Background Toolbar */}
           <BackgroundToolbar
             selectedTemplate={selectedTemplate}
@@ -1041,33 +1105,7 @@ export default function ImageTemplateGenerator() {
             </div>
           </ScrollArea>
         </div>
-
-        {/* Right Sidebar - Independent scroll with ScrollArea */}
-        <div className="w-80 border-l border-border bg-background h-full">
-          <ScrollArea className="h-full">
-            <div className="p-4 space-y-4">
-              <RightSidebar
-                selectedTemplate={selectedTemplate}
-                onTemplateUpdate={(updates) =>
-                  setSelectedTemplate((prev) => ({
-                    ...prev,
-                    ...updates,
-                  }))
-                }
-                elements={currentElements}
-                selectedElementId={currentSelectedElementId}
-                onElementSelect={handleElementSelect}
-                onMoveToFront={moveToFront}
-                onMoveToBack={moveToBack}
-                onMoveForward={moveForward}
-                onMoveBackward={moveBackward}
-                onToggleVisibility={toggleVisibility}
-                onDeleteElement={deleteElement}
-              />
-            </div>
-          </ScrollArea>
-        </div>
-      </div>
+      </DubSidebarLayout>
 
       {/* Save Template Dialog */}
       {showSaveDialog && (
@@ -1169,6 +1207,6 @@ export default function ImageTemplateGenerator() {
 
       {/* Toast Notifications */}
       <Toaster />
-    </div>
+    </>
   )
 }
