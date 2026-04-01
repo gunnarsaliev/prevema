@@ -657,30 +657,42 @@ export default function ImageTemplateGenerator() {
     await new Promise((resolve) => setTimeout(resolve, 50))
 
     try {
-      // Get canvas preview as base64 with compression
-      const canvas = document.querySelector('canvas') as HTMLCanvasElement
+      // Get canvas preview as base64 with compression - composite all layers
+      const canvases = document.querySelectorAll<HTMLCanvasElement>('.relative.inline-block canvas')
       let previewBase64: string | undefined
 
-      if (canvas) {
-        // Create a smaller preview (max 800px width) to reduce payload size
-        const maxWidth = 800
-        const scale = Math.min(1, maxWidth / canvas.width)
+      if (canvases.length === 3) {
+        // Create a composite canvas from all layers (excluding interaction layer)
+        const compositeCanvas = document.createElement('canvas')
+        compositeCanvas.width = selectedTemplate.width
+        compositeCanvas.height = selectedTemplate.height
+        const compositeCtx = compositeCanvas.getContext('2d', { alpha: false })
 
-        if (scale < 1) {
-          // Create a temporary canvas for resizing
-          const tempCanvas = document.createElement('canvas')
-          tempCanvas.width = canvas.width * scale
-          tempCanvas.height = canvas.height * scale
-          const ctx = tempCanvas.getContext('2d')
+        if (compositeCtx) {
+          // Draw background and content layers
+          compositeCtx.drawImage(canvases[0], 0, 0) // Background
+          compositeCtx.drawImage(canvases[1], 0, 0) // Content
 
-          if (ctx) {
-            ctx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height)
+          // Create a smaller preview (max 800px width) to reduce payload size
+          const maxWidth = 800
+          const scale = Math.min(1, maxWidth / compositeCanvas.width)
+
+          if (scale < 1) {
+            // Create a temporary canvas for resizing
+            const tempCanvas = document.createElement('canvas')
+            tempCanvas.width = compositeCanvas.width * scale
+            tempCanvas.height = compositeCanvas.height * scale
+            const ctx = tempCanvas.getContext('2d')
+
+            if (ctx) {
+              ctx.drawImage(compositeCanvas, 0, 0, tempCanvas.width, tempCanvas.height)
+              // Use JPEG with quality 0.8 for better compression
+              previewBase64 = tempCanvas.toDataURL('image/jpeg', 0.8)
+            }
+          } else {
             // Use JPEG with quality 0.8 for better compression
-            previewBase64 = tempCanvas.toDataURL('image/jpeg', 0.8)
+            previewBase64 = compositeCanvas.toDataURL('image/jpeg', 0.8)
           }
-        } else {
-          // Use JPEG with quality 0.8 for better compression
-          previewBase64 = canvas.toDataURL('image/jpeg', 0.8)
         }
       }
 
@@ -885,16 +897,46 @@ export default function ImageTemplateGenerator() {
     })
   }
 
-  // Export image handler
+  // Export image handler - composites all canvas layers
   const handleExportImage = () => {
-    const canvas = document.querySelector('canvas') as HTMLCanvasElement
-    if (canvas) {
-      const link = document.createElement('a')
-      link.download = `${selectedTemplate.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`
-      link.href = canvas.toDataURL('image/png')
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+    // Get all three canvas layers
+    const canvases = document.querySelectorAll<HTMLCanvasElement>('.relative.inline-block canvas')
+
+    if (canvases.length === 3) {
+      // Create a composite canvas
+      const compositeCanvas = document.createElement('canvas')
+      compositeCanvas.width = selectedTemplate.width
+      compositeCanvas.height = selectedTemplate.height
+      const ctx = compositeCanvas.getContext('2d', { alpha: false })
+
+      if (ctx) {
+        // Draw each layer onto the composite canvas
+        // Layer 0: Background
+        ctx.drawImage(canvases[0], 0, 0)
+        // Layer 1: Content (elements)
+        ctx.drawImage(canvases[1], 0, 0)
+        // Layer 2: Interaction (skip - we don't want selection handles in export)
+        // ctx.drawImage(canvases[2], 0, 0)
+
+        // Export the composite
+        const link = document.createElement('a')
+        link.download = `${selectedTemplate.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`
+        link.href = compositeCanvas.toDataURL('image/png')
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
+    } else {
+      // Fallback to old method if canvas structure changed
+      const canvas = document.querySelector('canvas') as HTMLCanvasElement
+      if (canvas) {
+        const link = document.createElement('a')
+        link.download = `${selectedTemplate.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`
+        link.href = canvas.toDataURL('image/png')
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
     }
   }
 

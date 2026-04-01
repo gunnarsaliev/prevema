@@ -46,7 +46,10 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
   onToggleVisibility,
   onDeleteElement,
 }: CanvasEditorProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  // Multi-layer canvas architecture for better performance
+  const backgroundCanvasRef = useRef<HTMLCanvasElement>(null) // Static background layer
+  const contentCanvasRef = useRef<HTMLCanvasElement>(null) // Element content layer
+  const interactionCanvasRef = useRef<HTMLCanvasElement>(null) // Selection handles and guides layer
   const [backgroundImage, setBackgroundImage] = useState<HTMLImageElement | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
@@ -185,7 +188,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
     [],
   )
 
-  // Helper function to draw dotted rectangle for variables
+  // Helper function to draw dotted rectangle for variables (improved styling)
   const drawDottedRectangle = useCallback(
     (ctx: CanvasRenderingContext2D, element: CanvasElement) => {
       const x = element.x
@@ -193,20 +196,45 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
       const width = element.width || 150
       const height = element.height || 50
 
-      // Draw single dotted border
-      ctx.strokeStyle = '#000000'
-      ctx.lineWidth = 1
+      // Draw background with subtle gradient for better visibility
+      const gradient = ctx.createLinearGradient(x, y, x, y + height)
+      gradient.addColorStop(0, 'rgba(59, 130, 246, 0.08)') // Light blue tint
+      gradient.addColorStop(1, 'rgba(59, 130, 246, 0.12)')
+      ctx.fillStyle = gradient
+      ctx.fillRect(x, y, width, height)
+
+      // Draw double dotted border for better visibility
+      // Outer border (lighter)
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)'
+      ctx.lineWidth = 2
+      ctx.setLineDash([6, 3])
+      ctx.strokeRect(x - 1, y - 1, width + 2, height + 2)
+
+      // Inner border (darker)
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.8)'
+      ctx.lineWidth = 1.5
       ctx.setLineDash([4, 4])
       ctx.strokeRect(x, y, width, height)
       ctx.setLineDash([])
 
+      // Add a small "VAR" badge in top-left corner for clarity
+      const badgePadding = 4
+      const badgeHeight = 16
+      ctx.fillStyle = 'rgba(59, 130, 246, 0.9)'
+      ctx.fillRect(x, y, 32, badgeHeight)
+      ctx.fillStyle = '#ffffff'
+      ctx.font = 'bold 10px Arial'
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'top'
+      ctx.fillText('VAR', x + badgePadding, y + 3)
+
       // Draw variable name text with responsive font size
-      ctx.fillStyle = element.fill || '#000000'
-      const fontWeight = element.fontWeight || 'normal'
+      ctx.fillStyle = element.fill || '#1e40af' // Darker blue for better readability
+      const fontWeight = element.fontWeight || 'bold' // Make variables bold by default
       const fontStyle = element.fontStyle || 'normal'
 
       // Calculate responsive font size based on element dimensions
-      const minFontSize = 8
+      const minFontSize = 10
       const maxFontSize = 24
       const baseFontSize = element.fontSize || 14
 
@@ -218,7 +246,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
       let fontSize = Math.max(minFontSize, Math.min(maxFontSize, baseFontSize * scale))
 
       // Additional constraint: ensure text fits within height
-      fontSize = Math.min(fontSize, height * 0.4) // Use 40% of height max
+      fontSize = Math.min(fontSize, height * 0.35) // Use 35% of height max
 
       const fontFamily = element.fontFamily || 'Arial'
 
@@ -550,12 +578,12 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
     [alignmentGuides],
   )
 
-  // Draw canvas
-  const drawCanvas = useCallback(() => {
-    const canvas = canvasRef.current
+  // Draw background layer (static - only redraws when background changes)
+  const drawBackgroundLayer = useCallback(() => {
+    const canvas = backgroundCanvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d', { alpha: false }) // Performance optimization
     if (!ctx) return
 
     // Clear canvas
@@ -571,6 +599,18 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
         : '#f3f4f6'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
     }
+  }, [backgroundImage, selectedTemplate.backgroundImage, drawBackgroundCover])
+
+  // Draw content layer (elements)
+  const drawContentLayer = useCallback(() => {
+    const canvas = contentCanvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d', { alpha: true })
+    if (!ctx) return
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     // Draw elements
     elements.forEach((element) => {
@@ -614,8 +654,28 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
           break
       }
     })
+  }, [
+    elements,
+    drawRotatedElement,
+    drawImageWithRadius,
+    drawImagePlaceholder,
+    drawDottedRectangle,
+    getValidImage,
+    drawTextElement,
+  ])
 
-    // Draw alignment guides (before selection handles for proper layering)
+  // Draw interaction layer (selection handles and alignment guides)
+  const drawInteractionLayer = useCallback(() => {
+    const canvas = interactionCanvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d', { alpha: true })
+    if (!ctx) return
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Draw alignment guides (when dragging or resizing)
     if (isDragging || isResizing) {
       drawAlignmentGuidesOnCanvas(ctx, canvas.width, canvas.height)
     }
@@ -628,28 +688,38 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
       }
     }
   }, [
-    backgroundImage,
-    selectedTemplate.backgroundImage,
-    elements,
-    selectedElementId,
     isDragging,
     isResizing,
     isRotating,
-    drawBackgroundCover,
-    drawRotatedElement,
-    drawImageWithRadius,
-    drawImagePlaceholder,
-    drawDottedRectangle,
-    getValidImage,
-    drawTextElement,
-    drawSelectionHandles,
+    selectedElementId,
+    elements,
     drawAlignmentGuidesOnCanvas,
+    drawSelectionHandles,
   ])
 
-  // Redraw canvas when dependencies change
+  // Main draw function that coordinates all layers
+  const drawCanvas = useCallback(() => {
+    drawBackgroundLayer()
+    drawContentLayer()
+    drawInteractionLayer()
+  }, [drawBackgroundLayer, drawContentLayer, drawInteractionLayer])
+
+  // Optimized layer-specific redraws for better performance
+
+  // Redraw background layer only when background changes
   useEffect(() => {
-    drawCanvas()
-  }, [drawCanvas])
+    drawBackgroundLayer()
+  }, [drawBackgroundLayer])
+
+  // Redraw content layer when elements change
+  useEffect(() => {
+    drawContentLayer()
+  }, [drawContentLayer])
+
+  // Redraw interaction layer when selection or interaction state changes
+  useEffect(() => {
+    drawInteractionLayer()
+  }, [drawInteractionLayer])
 
   // Get element at position
   const getElementAtPosition = useCallback(
@@ -697,7 +767,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
   // Update the handleMouseDown function
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
-      const canvas = canvasRef.current
+      const canvas = interactionCanvasRef.current
       if (!canvas) return
 
       const rect = canvas.getBoundingClientRect()
@@ -791,7 +861,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
   const handleContextMenu = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       e.preventDefault()
-      const canvas = canvasRef.current
+      const canvas = interactionCanvasRef.current
       if (!canvas) return
 
       const rect = canvas.getBoundingClientRect()
@@ -821,7 +891,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
   // Calculate and update alignment guides
   const updateAlignmentGuides = useCallback(
     async (element: CanvasElement) => {
-      const canvas = canvasRef.current
+      const canvas = contentCanvasRef.current // Use content canvas for dimensions
       if (!canvas) return
 
       const utils = await loadAlignmentUtils()
@@ -850,7 +920,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
   // Optimized handleMouseMove function with debounced history updates
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
-      const canvas = canvasRef.current
+      const canvas = interactionCanvasRef.current
       if (!canvas) return
 
       const rect = canvas.getBoundingClientRect()
@@ -1058,11 +1128,66 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
     setResizeHandle(null)
     setInitialElementState(null)
 
-    const canvas = canvasRef.current
+    const canvas = interactionCanvasRef.current
     if (canvas) {
       canvas.style.cursor = 'default'
     }
   }, [selectedElementId, initialElementState, elements, onElementDragEnd, cancelHistoryUpdate])
+
+  // Touch event handlers for mobile/tablet support (after mouse handlers)
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLCanvasElement>) => {
+      if (e.touches.length === 1) {
+        // Single touch - treat as mouse down
+        const touch = e.touches[0]
+
+        // Create a synthetic mouse event
+        const syntheticEvent = {
+          clientX: touch.clientX,
+          clientY: touch.clientY,
+          preventDefault: () => e.preventDefault(),
+          stopPropagation: () => e.stopPropagation(),
+        } as React.MouseEvent<HTMLCanvasElement>
+
+        handleMouseDown(syntheticEvent)
+      }
+      // Prevent default to avoid scrolling while editing
+      e.preventDefault()
+    },
+    [handleMouseDown],
+  )
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent<HTMLCanvasElement>) => {
+      if (e.touches.length === 1) {
+        // Single touch - treat as mouse move
+        const touch = e.touches[0]
+
+        // Create a synthetic mouse event
+        const syntheticEvent = {
+          clientX: touch.clientX,
+          clientY: touch.clientY,
+          preventDefault: () => e.preventDefault(),
+          stopPropagation: () => e.stopPropagation(),
+        } as React.MouseEvent<HTMLCanvasElement>
+
+        handleMouseMove(syntheticEvent)
+      }
+      // Prevent default to avoid scrolling while editing
+      e.preventDefault()
+    },
+    [handleMouseMove],
+  )
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent<HTMLCanvasElement>) => {
+      // Treat as mouse up
+      handleMouseUp()
+      // Prevent default to avoid ghost clicks
+      e.preventDefault()
+    },
+    [handleMouseUp],
+  )
 
   const handleTextEditComplete = useCallback(() => {
     if (editingElementId && editingText !== undefined) {
@@ -1132,17 +1257,42 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
         <div className="border border-border rounded-lg overflow-hidden shadow-lg bg-card">
           <ContextMenu>
             <ContextMenuTrigger>
-              <canvas
-                ref={canvasRef}
-                width={selectedTemplate.width}
-                height={selectedTemplate.height}
-                className="cursor-pointer"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-                onContextMenu={handleContextMenu}
-              />
+              {/* Multi-layer canvas stack for optimal performance */}
+              <div className="relative inline-block">
+                {/* Layer 1: Background (static) */}
+                <canvas
+                  ref={backgroundCanvasRef}
+                  width={selectedTemplate.width}
+                  height={selectedTemplate.height}
+                  className="absolute top-0 left-0"
+                  style={{ pointerEvents: 'none' }}
+                />
+                {/* Layer 2: Content (elements) */}
+                <canvas
+                  ref={contentCanvasRef}
+                  width={selectedTemplate.width}
+                  height={selectedTemplate.height}
+                  className="absolute top-0 left-0"
+                  style={{ pointerEvents: 'none' }}
+                />
+                {/* Layer 3: Interaction (selection handles, guides) */}
+                <canvas
+                  ref={interactionCanvasRef}
+                  width={selectedTemplate.width}
+                  height={selectedTemplate.height}
+                  className="cursor-pointer relative"
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                  onContextMenu={handleContextMenu}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                  onTouchCancel={handleTouchEnd}
+                  style={{ touchAction: 'none' }}
+                />
+              </div>
             </ContextMenuTrigger>
             {contextMenuElement && (
               <ContextMenuContent className="w-48">
