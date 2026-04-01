@@ -39,8 +39,7 @@ export function DubSidebarPanel({
     [pathname],
   )
 
-  const isSetupActive =
-    setupSection?.items.some((item) => isItemActive(item.path)) ?? false
+  const isSetupActive = setupSection?.items.some((item) => isItemActive(item.path)) ?? false
 
   React.useEffect(() => {
     if (isSetupActive) {
@@ -50,7 +49,7 @@ export function DubSidebarPanel({
 
   return (
     <div
-      className="relative flex h-screen flex-col overflow-hidden rounded-l-xl bg-[var(--shell-panel)]"
+      className="relative flex h-screen flex-col overflow-hidden rounded-l-xl bg-slate-200"
       style={{ width: `${SIDEBAR_PANEL_WIDTH}px` }}
     >
       <div
@@ -73,17 +72,11 @@ export function DubSidebarPanel({
                 {primarySections.map((section) => (
                   <div key={section.id}>
                     {section.label && (
-                      <div className="mb-2 pl-3 text-sm text-muted-foreground">
-                        {section.label}
-                      </div>
+                      <div className="mb-2 pl-3 text-sm text-muted-foreground">{section.label}</div>
                     )}
                     <nav className="flex flex-col gap-0.5">
                       {section.items.map((item) => (
-                        <NavItem
-                          key={item.id}
-                          item={item}
-                          isActive={isItemActive(item.path)}
-                        />
+                        <NavItem key={item.id} item={item} isActive={isItemActive(item.path)} />
                       ))}
                     </nav>
                   </div>
@@ -95,17 +88,8 @@ export function DubSidebarPanel({
             {((setupSection && setupSection.items.length > 0) || utilities.length > 0) && (
               <div className="shrink-0 px-3 pt-1 pb-3">
                 {setupSection && setupSection.items.length > 0 && (
-                  <Collapsible
-                    open={setupOpen}
-                    onOpenChange={setSetupOpen}
-                    className="group/setup"
-                  >
-                    <div
-                      className={cn(
-                        'rounded-lg p-2',
-                        setupOpen && 'bg-background/20',
-                      )}
-                    >
+                  <Collapsible open={setupOpen} onOpenChange={setSetupOpen} className="group/setup">
+                    <div className={cn('rounded-lg p-2', setupOpen && 'bg-background/20')}>
                       <CollapsibleTrigger
                         className={cn(
                           'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
@@ -118,18 +102,14 @@ export function DubSidebarPanel({
                         <Settings
                           className={cn(
                             'size-4',
-                            isSetupActive
-                              ? 'text-primary'
-                              : 'text-muted-foreground',
+                            isSetupActive ? 'text-primary' : 'text-muted-foreground',
                           )}
                         />
                         <span className="font-medium">Configuration</span>
                         <ChevronRight
                           className={cn(
                             'ml-auto size-4',
-                            isSetupActive
-                              ? 'text-primary/60'
-                              : 'text-muted-foreground/60',
+                            isSetupActive ? 'text-primary/60' : 'text-muted-foreground/60',
                           )}
                         />
                       </CollapsibleTrigger>
@@ -137,11 +117,7 @@ export function DubSidebarPanel({
                       <AnimatePresence initial={false}>
                         {setupOpen && (
                           <motion.nav
-                            initial={
-                              prefersReducedMotion
-                                ? false
-                                : { height: 0, opacity: 0 }
-                            }
+                            initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
                             animate={{
                               height: 'auto',
                               opacity: 1,
@@ -154,9 +130,7 @@ export function DubSidebarPanel({
                                       damping: 40,
                                       mass: 1,
                                     },
-                                opacity: prefersReducedMotion
-                                  ? { duration: 0 }
-                                  : { duration: 0.2 },
+                                opacity: prefersReducedMotion ? { duration: 0 } : { duration: 0.2 },
                               },
                             }}
                             exit={{
@@ -187,11 +161,7 @@ export function DubSidebarPanel({
                             {setupSection.items.map((item, i) => (
                               <motion.div
                                 key={item.id}
-                                initial={
-                                  prefersReducedMotion
-                                    ? false
-                                    : { opacity: 0, x: -8 }
-                                }
+                                initial={prefersReducedMotion ? false : { opacity: 0, x: -8 }}
                                 animate={{
                                   opacity: 1,
                                   x: 0,
@@ -222,11 +192,7 @@ export function DubSidebarPanel({
                   <div className="mt-3 border-t border-border pt-3">
                     <nav className="flex flex-col gap-0.5">
                       {utilities.map((item) => (
-                        <NavItem
-                          key={item.id}
-                          item={item}
-                          isActive={isItemActive(item.path)}
-                        />
+                        <NavItem key={item.id} item={item} isActive={isItemActive(item.path)} />
                       ))}
                     </nav>
                   </div>
@@ -258,10 +224,7 @@ function NavItem({ item, isActive }: { item: NavItemConfig; isActive: boolean })
     >
       <span className="flex min-w-0 items-center gap-2.5">
         <Icon
-          className={cn(
-            'size-4 shrink-0',
-            isActive ? 'text-primary' : 'text-muted-foreground',
-          )}
+          className={cn('size-4 shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')}
         />
         <span className="truncate">{item.label}</span>
       </span>

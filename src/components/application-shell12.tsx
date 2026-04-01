@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
   Bell,
   BookOpen,
@@ -18,18 +18,13 @@ import {
   Plus,
   Settings,
   Users,
-} from "lucide-react";
-import * as React from "react";
+} from 'lucide-react'
+import * as React from 'react'
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Collapsible, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,75 +32,64 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/dropdown-menu'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 
-const SIDEBAR_WIDTH = 304;
-const SIDEBAR_RAIL_WIDTH = 64;
-const SIDEBAR_PANEL_WIDTH = SIDEBAR_WIDTH - SIDEBAR_RAIL_WIDTH;
-const SIDEBAR_KEYBOARD_SHORTCUT = "b";
+const SIDEBAR_WIDTH = 304
+const SIDEBAR_RAIL_WIDTH = 64
+const SIDEBAR_PANEL_WIDTH = SIDEBAR_WIDTH - SIDEBAR_RAIL_WIDTH
+const SIDEBAR_KEYBOARD_SHORTCUT = 'b'
 
 interface SidebarContextValue {
-  isPanelOpen: boolean;
-  setPanelOpen: (open: boolean) => void;
-  togglePanel: () => void;
-  panelState: "expanded" | "collapsed";
+  isPanelOpen: boolean
+  setPanelOpen: (open: boolean) => void
+  togglePanel: () => void
+  panelState: 'expanded' | 'collapsed'
 }
 
-const SidebarContext = React.createContext<SidebarContextValue | null>(null);
+const SidebarContext = React.createContext<SidebarContextValue | null>(null)
 
 function useSidebar() {
-  const context = React.useContext(SidebarContext);
+  const context = React.useContext(SidebarContext)
   if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider");
+    throw new Error('useSidebar must be used within a SidebarProvider')
   }
-  return context;
+  return context
 }
 
 interface SidebarProviderProps {
-  defaultOpen?: boolean;
-  children: React.ReactNode;
+  defaultOpen?: boolean
+  children: React.ReactNode
 }
 
-function SidebarProvider({
-  defaultOpen = true,
-  children,
-}: SidebarProviderProps) {
-  const [_isPanelOpen, _setIsPanelOpen] = React.useState(defaultOpen);
-  const isPanelOpen = _isPanelOpen;
+function SidebarProvider({ defaultOpen = true, children }: SidebarProviderProps) {
+  const [_isPanelOpen, _setIsPanelOpen] = React.useState(defaultOpen)
+  const isPanelOpen = _isPanelOpen
 
   const setPanelOpen = React.useCallback((open: boolean) => {
-    _setIsPanelOpen(open);
-  }, []);
+    _setIsPanelOpen(open)
+  }, [])
 
   const togglePanel = React.useCallback(() => {
-    setPanelOpen(!isPanelOpen);
-  }, [isPanelOpen, setPanelOpen]);
+    setPanelOpen(!isPanelOpen)
+  }, [isPanelOpen, setPanelOpen])
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-        (event.metaKey || event.ctrlKey)
-      ) {
-        event.preventDefault();
-        togglePanel();
+      if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault()
+        togglePanel()
       }
-    };
+    }
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [togglePanel]);
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [togglePanel])
 
-  const panelState = isPanelOpen ? "expanded" : "collapsed";
+  const panelState = isPanelOpen ? 'expanded' : 'collapsed'
 
   const value = React.useMemo<SidebarContextValue>(
     () => ({
@@ -115,149 +99,146 @@ function SidebarProvider({
       panelState,
     }),
     [isPanelOpen, setPanelOpen, togglePanel, panelState],
-  );
+  )
 
-  return (
-    <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>
-  );
+  return <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>
 }
 
 interface NavItemConfig {
-  id: string;
-  label: string;
-  icon: LucideIcon;
-  path: string;
+  id: string
+  label: string
+  icon: LucideIcon
+  path: string
 }
 
 interface NavSectionConfig {
-  id: string;
-  label?: string;
-  items: NavItemConfig[];
+  id: string
+  label?: string
+  items: NavItemConfig[]
 }
 
 interface NavModuleConfig {
-  id: string;
-  label: string;
-  icon: LucideIcon;
-  defaultPath: string;
-  sections: NavSectionConfig[];
+  id: string
+  label: string
+  icon: LucideIcon
+  defaultPath: string
+  sections: NavSectionConfig[]
 }
 
 interface RailIconConfig {
-  moduleId: string;
-  label: string;
-  icon: LucideIcon;
-  defaultPath: string;
+  moduleId: string
+  label: string
+  icon: LucideIcon
+  defaultPath: string
 }
 
 const data = {
   user: {
-    name: "Jordan Lee",
-    email: "jordan@example.com",
-    avatar:
-      "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/avatar/avatar1.jpg",
+    name: 'Jordan Lee',
+    email: 'jordan@example.com',
+    avatar: 'https://deifkwefumgah.cloudfront.net/shadcnblocks/block/avatar/avatar1.jpg',
   },
   organization: {
-    name: "Acme Inc",
-    logo: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblocks-logo.svg",
+    name: 'Acme Inc',
+    logo: 'https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblocks-logo.svg',
   },
   railIcons: [
-    { moduleId: "home", label: "Home", icon: Home, defaultPath: "#" },
+    { moduleId: 'home', label: 'Home', icon: Home, defaultPath: '#' },
     {
-      moduleId: "projects",
-      label: "Projects",
+      moduleId: 'projects',
+      label: 'Projects',
       icon: FileText,
-      defaultPath: "#",
+      defaultPath: '#',
     },
     {
-      moduleId: "calendar",
-      label: "Calendar",
+      moduleId: 'calendar',
+      label: 'Calendar',
       icon: Calendar,
-      defaultPath: "#",
+      defaultPath: '#',
     },
-    { moduleId: "team", label: "Team", icon: Users, defaultPath: "#" },
+    { moduleId: 'team', label: 'Team', icon: Users, defaultPath: '#' },
   ] as RailIconConfig[],
   modules: [
     {
-      id: "home",
-      label: "Home",
+      id: 'home',
+      label: 'Home',
       icon: Home,
-      defaultPath: "#",
+      defaultPath: '#',
       sections: [
         {
-          id: "main",
+          id: 'main',
           items: [
-            { id: "overview", label: "Overview", icon: Home, path: "#" },
-            { id: "documents", label: "Documents", icon: FileText, path: "#" },
+            { id: 'overview', label: 'Overview', icon: Home, path: '#' },
+            { id: 'documents', label: 'Documents', icon: FileText, path: '#' },
             {
-              id: "messages",
-              label: "Messages",
+              id: 'messages',
+              label: 'Messages',
               icon: MessageSquare,
-              path: "#",
+              path: '#',
             },
           ],
         },
         {
-          id: "library",
-          label: "Library",
+          id: 'library',
+          label: 'Library',
           items: [
-            { id: "guides", label: "Guides", icon: BookOpen, path: "#" },
-            { id: "resources", label: "Resources", icon: FileText, path: "#" },
+            { id: 'guides', label: 'Guides', icon: BookOpen, path: '#' },
+            { id: 'resources', label: 'Resources', icon: FileText, path: '#' },
           ],
         },
       ],
     },
     {
-      id: "projects",
-      label: "Projects",
+      id: 'projects',
+      label: 'Projects',
       icon: FileText,
-      defaultPath: "#",
+      defaultPath: '#',
       sections: [
         {
-          id: "main",
+          id: 'main',
           items: [
             {
-              id: "all-projects",
-              label: "All Projects",
+              id: 'all-projects',
+              label: 'All Projects',
               icon: FileText,
-              path: "#",
+              path: '#',
             },
-            { id: "recent", label: "Recent", icon: Calendar, path: "#" },
-            { id: "starred", label: "Starred", icon: BookOpen, path: "#" },
+            { id: 'recent', label: 'Recent', icon: Calendar, path: '#' },
+            { id: 'starred', label: 'Starred', icon: BookOpen, path: '#' },
           ],
         },
       ],
     },
     {
-      id: "calendar",
-      label: "Calendar",
+      id: 'calendar',
+      label: 'Calendar',
       icon: Calendar,
-      defaultPath: "#",
+      defaultPath: '#',
       sections: [
         {
-          id: "main",
+          id: 'main',
           items: [
-            { id: "schedule", label: "Schedule", icon: Calendar, path: "#" },
-            { id: "events", label: "Events", icon: Bell, path: "#" },
+            { id: 'schedule', label: 'Schedule', icon: Calendar, path: '#' },
+            { id: 'events', label: 'Events', icon: Bell, path: '#' },
           ],
         },
       ],
     },
     {
-      id: "team",
-      label: "Team",
+      id: 'team',
+      label: 'Team',
       icon: Users,
-      defaultPath: "#",
+      defaultPath: '#',
       sections: [
         {
-          id: "main",
+          id: 'main',
           items: [
-            { id: "members", label: "Members", icon: Users, path: "#" },
+            { id: 'members', label: 'Members', icon: Users, path: '#' },
             {
-              id: "activity",
-              label: "Activity",
+              id: 'activity',
+              label: 'Activity',
               icon: MessageSquare,
-              path: "#",
+              path: '#',
             },
           ],
         },
@@ -265,78 +246,70 @@ const data = {
     },
   ] as NavModuleConfig[],
   utilities: [
-    { id: "help", label: "Help & Support", icon: HelpCircle, path: "#" },
+    { id: 'help', label: 'Help & Support', icon: HelpCircle, path: '#' },
   ] as NavItemConfig[],
-};
+}
 
 function getInitials(name: string) {
   return (
     name
-      .split(" ")
+      .split(' ')
       .filter(Boolean)
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase())
-      .join("") || "U"
-  );
+      .join('') || 'U'
+  )
 }
 
 const SidebarTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ComponentPropsWithoutRef<typeof Button> & { showTooltip?: boolean }
 >(({ className, onClick, showTooltip = true, ...props }, ref) => {
-  const { isPanelOpen, togglePanel } = useSidebar();
+  const { isPanelOpen, togglePanel } = useSidebar()
 
   const button = (
     <Button
       ref={ref}
       variant="ghost"
       size="icon"
-      className={cn("size-8", className)}
+      className={cn('size-8', className)}
       onClick={(event) => {
-        onClick?.(event);
-        togglePanel();
+        onClick?.(event)
+        togglePanel()
       }}
-      aria-label={isPanelOpen ? "Collapse sidebar" : "Expand sidebar"}
+      aria-label={isPanelOpen ? 'Collapse sidebar' : 'Expand sidebar'}
       aria-expanded={isPanelOpen}
       {...props}
     >
-      {isPanelOpen ? (
-        <PanelLeftClose className="size-4" />
-      ) : (
-        <PanelLeft className="size-4" />
-      )}
+      {isPanelOpen ? <PanelLeftClose className="size-4" /> : <PanelLeft className="size-4" />}
     </Button>
-  );
+  )
 
   if (!showTooltip) {
-    return button;
+    return button
   }
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>{button}</TooltipTrigger>
       <TooltipContent side="right" sideOffset={8}>
-        <span>{isPanelOpen ? "Collapse" : "Expand"}</span>
+        <span>{isPanelOpen ? 'Collapse' : 'Expand'}</span>
         <kbd className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-          {"\u2318"}B
+          {'\u2318'}B
         </kbd>
       </TooltipContent>
     </Tooltip>
-  );
-});
-SidebarTrigger.displayName = "SidebarTrigger";
+  )
+})
+SidebarTrigger.displayName = 'SidebarTrigger'
 
 interface SidebarRailProps {
-  railIcons: RailIconConfig[];
-  activeModuleId: string;
-  onModuleChange: (moduleId: string) => void;
+  railIcons: RailIconConfig[]
+  activeModuleId: string
+  onModuleChange: (moduleId: string) => void
 }
 
-function SidebarRail({
-  railIcons,
-  activeModuleId,
-  onModuleChange,
-}: SidebarRailProps) {
+function SidebarRail({ railIcons, activeModuleId, onModuleChange }: SidebarRailProps) {
   return (
     <div className="flex h-full w-16 flex-col items-center justify-between">
       <div className="flex flex-col items-center gap-3 p-2">
@@ -357,8 +330,8 @@ function SidebarRail({
 
         <div className="flex flex-col items-center gap-3">
           {railIcons.map((item) => {
-            const isActive = item.moduleId === activeModuleId;
-            const Icon = item.icon;
+            const isActive = item.moduleId === activeModuleId
+            const Icon = item.icon
             return (
               <Tooltip key={item.moduleId}>
                 <TooltipTrigger asChild>
@@ -367,10 +340,10 @@ function SidebarRail({
                     onClick={() => onModuleChange(item.moduleId)}
                     aria-label={item.label}
                     className={cn(
-                      "relative flex size-11 items-center justify-center rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      'relative flex size-11 items-center justify-center rounded-lg transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring',
                       isActive
-                        ? "bg-background text-foreground"
-                        : "text-muted-foreground hover:bg-accent active:bg-accent/80",
+                        ? 'bg-background text-foreground'
+                        : 'text-muted-foreground hover:bg-accent active:bg-accent/80',
                     )}
                   >
                     <Icon className="size-5" />
@@ -380,7 +353,7 @@ function SidebarRail({
                   {item.label}
                 </TooltipContent>
               </Tooltip>
-            );
+            )
           })}
         </div>
       </div>
@@ -400,7 +373,7 @@ function SidebarRail({
         </Tooltip>
       </div>
     </div>
-  );
+  )
 }
 
 function UserMenu() {
@@ -413,9 +386,7 @@ function UserMenu() {
         >
           <Avatar className="size-7">
             <AvatarImage src={data.user.avatar} alt={data.user.name} />
-            <AvatarFallback className="text-xs">
-              {getInitials(data.user.name)}
-            </AvatarFallback>
+            <AvatarFallback className="text-xs">{getInitials(data.user.name)}</AvatarFallback>
           </Avatar>
         </button>
       </DropdownMenuTrigger>
@@ -434,7 +405,7 @@ function UserMenu() {
         <DropdownMenuItem>Log out</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }
 
 function OrganizationSwitcher() {
@@ -461,7 +432,7 @@ function OrganizationSwitcher() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }
 
 function NotificationBell() {
@@ -474,7 +445,7 @@ function NotificationBell() {
     >
       <Bell className="size-4" />
     </Button>
-  );
+  )
 }
 
 function NewActionButton() {
@@ -492,37 +463,34 @@ function NewActionButton() {
         <DropdownMenuItem>New Event</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }
 
 interface SidebarPanelProps {
-  module: NavModuleConfig;
-  utilities: NavItemConfig[];
+  module: NavModuleConfig
+  utilities: NavItemConfig[]
 }
 
 function isItemActive(_pathname: string, itemPath: string): boolean {
-  return itemPath === "#" && _pathname === "#";
+  return itemPath === '#' && _pathname === '#'
 }
 
 function SidebarPanel({ module, utilities }: SidebarPanelProps) {
-  const [setupOpen, setSetupOpen] = React.useState(false);
-  const prefersReducedMotion = useReducedMotion();
-  const pathname = "#";
+  const [setupOpen, setSetupOpen] = React.useState(false)
+  const prefersReducedMotion = useReducedMotion()
+  const pathname = '#'
 
-  const primarySections = module.sections.filter(
-    (s) => s.id !== "studio-setup",
-  );
-  const setupSection = module.sections.find((s) => s.id === "studio-setup");
+  const primarySections = module.sections.filter((s) => s.id !== 'studio-setup')
+  const setupSection = module.sections.find((s) => s.id === 'studio-setup')
 
   const isSetupActive =
-    setupSection?.items.some((item) => isItemActive(pathname, item.path)) ??
-    false;
+    setupSection?.items.some((item) => isItemActive(pathname, item.path)) ?? false
 
   React.useEffect(() => {
     if (isSetupActive) {
-      setSetupOpen(true);
+      setSetupOpen(true)
     }
-  }, [isSetupActive]);
+  }, [isSetupActive])
 
   return (
     <div
@@ -549,16 +517,14 @@ function SidebarPanel({ module, utilities }: SidebarPanelProps) {
             {primarySections.map((section) => (
               <div key={section.id}>
                 {section.label && (
-                  <div className="mb-2 pl-3 text-sm text-muted-foreground">
-                    {section.label}
-                  </div>
+                  <div className="mb-2 pl-3 text-sm text-muted-foreground">{section.label}</div>
                 )}
                 <nav className="flex flex-col gap-0.5">
                   {section.items.map((item, index) => (
                     <NavItem
                       key={item.id}
                       item={item}
-                      isActive={index === 0 && section.id === "main"}
+                      isActive={index === 0 && section.id === 'main'}
                     />
                   ))}
                 </nav>
@@ -567,45 +533,31 @@ function SidebarPanel({ module, utilities }: SidebarPanelProps) {
           </div>
         </ScrollArea>
 
-        {(setupSection && setupSection.items.length > 0) ||
-        utilities.length > 0 ? (
+        {(setupSection && setupSection.items.length > 0) || utilities.length > 0 ? (
           <div className="shrink-0 px-3 pt-1 pb-3">
             {setupSection && setupSection.items.length > 0 && (
-              <Collapsible
-                open={setupOpen}
-                onOpenChange={setSetupOpen}
-                className="group/setup"
-              >
-                <div
-                  className={cn(
-                    "rounded-lg p-2",
-                    setupOpen && "bg-background/20",
-                  )}
-                >
+              <Collapsible open={setupOpen} onOpenChange={setSetupOpen} className="group/setup">
+                <div className={cn('rounded-lg p-2', setupOpen && 'bg-background/20')}>
                   <CollapsibleTrigger
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
-                      setupOpen && "hidden",
+                      'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
+                      setupOpen && 'hidden',
                       isSetupActive
-                        ? "bg-primary/10 font-medium text-primary"
-                        : "text-muted-foreground hover:bg-accent/50",
+                        ? 'bg-primary/10 font-medium text-primary'
+                        : 'text-muted-foreground hover:bg-accent/50',
                     )}
                   >
                     <Settings
                       className={cn(
-                        "size-4",
-                        isSetupActive
-                          ? "text-primary"
-                          : "text-muted-foreground",
+                        'size-4',
+                        isSetupActive ? 'text-primary' : 'text-muted-foreground',
                       )}
                     />
                     <span className="font-medium">Configuration</span>
                     <ChevronRight
                       className={cn(
-                        "ml-auto size-4",
-                        isSetupActive
-                          ? "text-primary/60"
-                          : "text-muted-foreground/60",
+                        'ml-auto size-4',
+                        isSetupActive ? 'text-primary/60' : 'text-muted-foreground/60',
                       )}
                     />
                   </CollapsibleTrigger>
@@ -613,26 +565,20 @@ function SidebarPanel({ module, utilities }: SidebarPanelProps) {
                   <AnimatePresence initial={false}>
                     {setupOpen && (
                       <motion.nav
-                        initial={
-                          prefersReducedMotion
-                            ? false
-                            : { height: 0, opacity: 0 }
-                        }
+                        initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
                         animate={{
-                          height: "auto",
+                          height: 'auto',
                           opacity: 1,
                           transition: {
                             height: prefersReducedMotion
                               ? { duration: 0 }
                               : {
-                                  type: "spring",
+                                  type: 'spring',
                                   stiffness: 500,
                                   damping: 40,
                                   mass: 1,
                                 },
-                            opacity: prefersReducedMotion
-                              ? { duration: 0 }
-                              : { duration: 0.2 },
+                            opacity: prefersReducedMotion ? { duration: 0 } : { duration: 0.2 },
                           },
                         }}
                         exit={{
@@ -642,14 +588,12 @@ function SidebarPanel({ module, utilities }: SidebarPanelProps) {
                             height: prefersReducedMotion
                               ? { duration: 0 }
                               : {
-                                  type: "spring",
+                                  type: 'spring',
                                   stiffness: 500,
                                   damping: 40,
                                   mass: 1,
                                 },
-                            opacity: prefersReducedMotion
-                              ? { duration: 0 }
-                              : { duration: 0.15 },
+                            opacity: prefersReducedMotion ? { duration: 0 } : { duration: 0.15 },
                           },
                         }}
                         className="relative flex max-h-[40vh] flex-col gap-0.5 overflow-y-auto pr-6"
@@ -663,11 +607,7 @@ function SidebarPanel({ module, utilities }: SidebarPanelProps) {
                         {setupSection.items.map((item, i) => (
                           <motion.div
                             key={item.id}
-                            initial={
-                              prefersReducedMotion
-                                ? false
-                                : { opacity: 0, x: -8 }
-                            }
+                            initial={prefersReducedMotion ? false : { opacity: 0, x: -8 }}
                             animate={{
                               opacity: 1,
                               x: 0,
@@ -684,10 +624,7 @@ function SidebarPanel({ module, utilities }: SidebarPanelProps) {
                               },
                             }}
                           >
-                            <NavItem
-                              item={item}
-                              isActive={isItemActive(pathname, item.path)}
-                            />
+                            <NavItem item={item} isActive={isItemActive(pathname, item.path)} />
                           </motion.div>
                         ))}
                       </motion.nav>
@@ -714,37 +651,28 @@ function SidebarPanel({ module, utilities }: SidebarPanelProps) {
         ) : null}
       </div>
     </div>
-  );
+  )
 }
 
-function NavItem({
-  item,
-  isActive,
-}: {
-  item: NavItemConfig;
-  isActive: boolean;
-}) {
-  const isExternal = item.path.startsWith("http");
-  const Icon = item.icon;
+function NavItem({ item, isActive }: { item: NavItemConfig; isActive: boolean }) {
+  const isExternal = item.path.startsWith('http')
+  const Icon = item.icon
 
   return (
     <a
       href={item.path}
-      target={isExternal ? "_blank" : undefined}
-      rel={isExternal ? "noopener noreferrer" : undefined}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
       className={cn(
-        "group flex h-8 items-center justify-between rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
+        'group flex h-8 items-center justify-between rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75',
         isActive
-          ? "bg-primary/10 font-medium text-primary hover:bg-primary/15 active:bg-primary/20"
-          : "text-foreground hover:bg-accent active:bg-accent/80",
+          ? 'bg-primary/10 font-medium text-primary hover:bg-primary/15 active:bg-primary/20'
+          : 'text-foreground hover:bg-accent active:bg-accent/80',
       )}
     >
       <span className="flex min-w-0 items-center gap-2.5">
         <Icon
-          className={cn(
-            "size-4 shrink-0",
-            isActive ? "text-primary" : "text-muted-foreground",
-          )}
+          className={cn('size-4 shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')}
         />
         <span className="truncate">{item.label}</span>
       </span>
@@ -752,27 +680,27 @@ function NavItem({
         <ExternalLink className="size-3.5 text-muted-foreground transition-transform duration-75 group-hover:translate-x-px group-hover:-translate-y-px" />
       )}
     </a>
-  );
+  )
 }
 
 function Area({
   visible,
-  direction = "right",
+  direction = 'right',
   children,
 }: {
-  visible: boolean;
-  direction?: "left" | "right";
-  children: React.ReactNode;
+  visible: boolean
+  direction?: 'left' | 'right'
+  children: React.ReactNode
 }) {
   return (
     <div
       className={cn(
-        "top-0 left-0 flex size-full flex-col transition-[opacity,transform] duration-300",
+        'top-0 left-0 flex size-full flex-col transition-[opacity,transform] duration-300',
         visible
-          ? "relative opacity-100"
+          ? 'relative opacity-100'
           : cn(
-              "pointer-events-none absolute opacity-0",
-              direction === "left" ? "-translate-x-full" : "translate-x-full",
+              'pointer-events-none absolute opacity-0',
+              direction === 'left' ? '-translate-x-full' : 'translate-x-full',
             ),
       )}
       aria-hidden={!visible}
@@ -780,26 +708,26 @@ function Area({
     >
       {children}
     </div>
-  );
+  )
 }
 
 function ContentArea({ activeModule }: { activeModule: NavModuleConfig }) {
-  const { isPanelOpen } = useSidebar();
-  const showCornerFills = isPanelOpen;
+  const { isPanelOpen } = useSidebar()
+  const showCornerFills = isPanelOpen
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background md:bg-[var(--shell-chrome)] md:py-2 md:pr-2">
+    <div className="flex min-h-0 flex-1 flex-col bg-background md:bg-slate-200 md:py-2 md:pr-2">
       <div className="relative flex min-h-0 flex-1 flex-col">
-        <div
+        {/* <div
           className={cn(
-            "absolute top-0 -left-2 z-0 hidden h-3 w-5 bg-[var(--shell-panel)] transition-opacity duration-300 md:block",
-            showCornerFills ? "opacity-100" : "opacity-0",
+            'absolute top-0 -left-2 z-0 hidden h-3 w-5 bg-[var(--shell-panel)] transition-opacity duration-300 md:block',
+            showCornerFills ? 'opacity-100' : 'opacity-0',
           )}
-        />
+        /> */}
         <div
           className={cn(
-            "absolute bottom-0 -left-2 z-0 hidden h-3 w-5 bg-[var(--shell-panel)] transition-opacity duration-300 md:block",
-            showCornerFills ? "opacity-100" : "opacity-0",
+            'absolute bottom-0 -left-2 z-0 hidden h-3 w-5 bg-[var(--shell-panel)] transition-opacity duration-300 md:block',
+            showCornerFills ? 'opacity-100' : 'opacity-0',
           )}
         />
         <main className="z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-background pb-20 md:rounded-xl md:pb-0">
@@ -820,15 +748,15 @@ function ContentArea({ activeModule }: { activeModule: NavModuleConfig }) {
         </main>
       </div>
     </div>
-  );
+  )
 }
 
 interface DubSidebarProps {
-  railIcons: RailIconConfig[];
-  activeModule: NavModuleConfig | null;
-  activeModuleId: string;
-  utilities: NavItemConfig[];
-  onModuleChange: (moduleId: string) => void;
+  railIcons: RailIconConfig[]
+  activeModule: NavModuleConfig | null
+  activeModuleId: string
+  utilities: NavItemConfig[]
+  onModuleChange: (moduleId: string) => void
 }
 
 function DubSidebar({
@@ -838,26 +766,24 @@ function DubSidebar({
   utilities,
   onModuleChange,
 }: DubSidebarProps) {
-  const { isPanelOpen } = useSidebar();
+  const { isPanelOpen } = useSidebar()
 
-  const hasContent = activeModule !== null;
-  const showPanel = hasContent && isPanelOpen;
+  const hasContent = activeModule !== null
+  const showPanel = hasContent && isPanelOpen
 
   return (
     <TooltipProvider delayDuration={0}>
       <aside
-        className={cn(
-          "sticky top-0 z-40 hidden h-screen transition-[width] duration-300 md:block",
-        )}
+        className={cn('sticky top-0 z-40 hidden h-screen transition-[width] duration-300 md:block')}
         style={
           {
             width: showPanel ? SIDEBAR_WIDTH : SIDEBAR_RAIL_WIDTH,
-            "--sidebar-width": `${showPanel ? SIDEBAR_WIDTH : SIDEBAR_RAIL_WIDTH}px`,
-            "--sidebar-rail-width": `${SIDEBAR_RAIL_WIDTH}px`,
-            "--sidebar-panel-width": `${SIDEBAR_PANEL_WIDTH}px`,
+            '--sidebar-width': `${showPanel ? SIDEBAR_WIDTH : SIDEBAR_RAIL_WIDTH}px`,
+            '--sidebar-rail-width': `${SIDEBAR_RAIL_WIDTH}px`,
+            '--sidebar-panel-width': `${SIDEBAR_PANEL_WIDTH}px`,
           } as React.CSSProperties
         }
-        data-panel-state={isPanelOpen ? "expanded" : "collapsed"}
+        data-panel-state={isPanelOpen ? 'expanded' : 'collapsed'}
         data-has-content={hasContent}
       >
         <nav className="grid size-full grid-cols-[64px_1fr]">
@@ -868,30 +794,28 @@ function DubSidebar({
           />
           <div
             className={cn(
-              "relative size-full overflow-hidden py-2 transition-opacity duration-300",
-              !showPanel && "opacity-0",
+              'relative size-full overflow-hidden py-2 transition-opacity duration-300',
+              !showPanel && 'opacity-0',
             )}
           >
             <Area visible={true} direction="left">
-              {activeModule && (
-                <SidebarPanel module={activeModule} utilities={utilities} />
-              )}
+              {activeModule && <SidebarPanel module={activeModule} utilities={utilities} />}
             </Area>
           </div>
         </nav>
       </aside>
     </TooltipProvider>
-  );
+  )
 }
 
 interface MobileNavigationProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  railIcons: RailIconConfig[];
-  activeModule: NavModuleConfig | null;
-  activeModuleId: string;
-  utilities: NavItemConfig[];
-  onModuleChange: (moduleId: string) => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  railIcons: RailIconConfig[]
+  activeModule: NavModuleConfig | null
+  activeModuleId: string
+  utilities: NavItemConfig[]
+  onModuleChange: (moduleId: string) => void
 }
 
 function MobileNavigation({
@@ -903,15 +827,15 @@ function MobileNavigation({
   utilities,
   onModuleChange,
 }: MobileNavigationProps) {
-  const pathname = "#";
-  const handleItemSelect = () => onOpenChange(false);
+  const pathname = '#'
+  const handleItemSelect = () => onOpenChange(false)
 
   return (
     <>
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="md:hidden">
           <DrawerHeader>
-            <DrawerTitle>{activeModule?.label ?? "Navigation"}</DrawerTitle>
+            <DrawerTitle>{activeModule?.label ?? 'Navigation'}</DrawerTitle>
           </DrawerHeader>
           <ScrollArea className="max-h-[70vh] px-4 pb-6">
             {activeModule ? (
@@ -929,7 +853,7 @@ function MobileNavigation({
                           <MobileNavItem
                             key={item.id}
                             item={item}
-                            isActive={index === 0 && section.id === "main"}
+                            isActive={index === 0 && section.id === 'main'}
                             onSelect={handleItemSelect}
                           />
                         ))}
@@ -969,21 +893,19 @@ function MobileNavigation({
           }}
         >
           {railIcons.map((module) => {
-            const Icon = module.icon;
-            const isActive = module.moduleId === activeModuleId;
+            const Icon = module.icon
+            const isActive = module.moduleId === activeModuleId
             return (
               <button
                 key={module.moduleId}
                 type="button"
                 onClick={() => {
-                  onModuleChange(module.moduleId);
-                  onOpenChange(true);
+                  onModuleChange(module.moduleId)
+                  onOpenChange(true)
                 }}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-3 text-xs",
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
+                  'flex flex-col items-center gap-1 py-3 text-xs',
+                  isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
                 )}
                 aria-label={module.label}
               >
@@ -991,12 +913,12 @@ function MobileNavigation({
                 <span className="sr-only">{module.label}</span>
                 <span aria-hidden="true">{module.label}</span>
               </button>
-            );
+            )
           })}
         </div>
       </nav>
     </>
-  );
+  )
 }
 
 function MobileNavItem({
@@ -1004,32 +926,29 @@ function MobileNavItem({
   isActive,
   onSelect,
 }: {
-  item: NavItemConfig;
-  isActive: boolean;
-  onSelect?: () => void;
+  item: NavItemConfig
+  isActive: boolean
+  onSelect?: () => void
 }) {
-  const isExternal = item.path.startsWith("http");
-  const Icon = item.icon;
+  const isExternal = item.path.startsWith('http')
+  const Icon = item.icon
 
   return (
     <a
       href={item.path}
-      target={isExternal ? "_blank" : undefined}
-      rel={isExternal ? "noopener noreferrer" : undefined}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
       onClick={onSelect}
       className={cn(
-        "group flex h-8 items-center justify-between rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
+        'group flex h-8 items-center justify-between rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75',
         isActive
-          ? "bg-primary/10 font-medium text-primary hover:bg-primary/15 active:bg-primary/20"
-          : "text-foreground hover:bg-accent active:bg-accent/80",
+          ? 'bg-primary/10 font-medium text-primary hover:bg-primary/15 active:bg-primary/20'
+          : 'text-foreground hover:bg-accent active:bg-accent/80',
       )}
     >
       <span className="flex min-w-0 items-center gap-2.5">
         <Icon
-          className={cn(
-            "size-4 shrink-0",
-            isActive ? "text-primary" : "text-muted-foreground",
-          )}
+          className={cn('size-4 shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')}
         />
         <span className="truncate">{item.label}</span>
       </span>
@@ -1037,33 +956,30 @@ function MobileNavItem({
         <ExternalLink className="size-3.5 text-muted-foreground transition-transform duration-75 group-hover:translate-x-px group-hover:-translate-y-px" />
       )}
     </a>
-  );
+  )
 }
 
-export const iframeHeight = "800px";
+export const iframeHeight = '800px'
 
-export const description =
-  "Two-tier sidebar with organization switcher and notifications.";
+export const description = 'Two-tier sidebar with organization switcher and notifications.'
 
 export function ApplicationShell12() {
-  const [isMobilePanelOpen, setIsMobilePanelOpen] = React.useState(false);
-  const [activeModuleId, setActiveModuleId] = React.useState("home");
+  const [isMobilePanelOpen, setIsMobilePanelOpen] = React.useState(false)
+  const [activeModuleId, setActiveModuleId] = React.useState('home')
 
   const activeModule = React.useMemo(
     () => data.modules.find((m) => m.id === activeModuleId) ?? data.modules[0],
     [activeModuleId],
-  );
+  )
 
   return (
     <SidebarProvider>
       <div
-        className="flex h-screen flex-col overflow-hidden bg-[var(--shell-chrome)]"
+        className="flex h-screen flex-col overflow-hidden bg-slate-200"
         style={
           {
-            "--shell-panel":
-              "color-mix(in oklch, var(--background) 94%, var(--foreground))",
-            "--shell-chrome":
-              "color-mix(in oklch, var(--background) 88%, var(--foreground))",
+            '--shell-panel': 'color-mix(in oklch, var(--background) 94%, var(--foreground))',
+            '--shell-chrome': 'color-mix(in oklch, var(--background) 88%, var(--foreground))',
           } as React.CSSProperties
         }
       >
@@ -1077,10 +993,7 @@ export function ApplicationShell12() {
               />
             </div>
           </a>
-          <Separator
-            orientation="vertical"
-            className="data-[orientation=vertical]:h-4"
-          />
+          <Separator orientation="vertical" className="data-[orientation=vertical]:h-4" />
           <div className="shrink-0">
             <OrganizationSwitcher />
           </div>
@@ -1112,5 +1025,5 @@ export function ApplicationShell12() {
         />
       </div>
     </SidebarProvider>
-  );
+  )
 }

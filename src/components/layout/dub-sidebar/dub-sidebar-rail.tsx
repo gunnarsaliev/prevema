@@ -5,11 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { PanelLeft, PanelLeftClose } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { useDubSidebar } from './dub-sidebar-provider'
 import type { RailIconConfig } from './types'
@@ -34,7 +30,7 @@ export function DubSidebarRail({
   const { isPanelOpen, togglePanel } = useDubSidebar()
 
   return (
-    <div className="flex h-full w-16 flex-col items-center justify-between bg-[var(--shell-chrome)]">
+    <div className="flex h-full w-16 flex-col items-center justify-between bg-[var(--)]">
       <div className="flex flex-col items-center gap-3 p-2">
         {/* Logo */}
         <div className="pt-2 pb-1">
@@ -118,9 +114,7 @@ export function DubSidebarRail({
         {userMenuSlot && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex size-11 items-center justify-center">
-                {userMenuSlot}
-              </div>
+              <div className="flex size-11 items-center justify-center">{userMenuSlot}</div>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={8}>
               Account

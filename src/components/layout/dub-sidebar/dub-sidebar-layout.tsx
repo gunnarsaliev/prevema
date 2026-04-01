@@ -48,7 +48,7 @@ function DubSidebarContent({
 
   return (
     <div
-      className="flex h-screen flex-col overflow-hidden bg-[var(--shell-chrome)]"
+      className="flex h-screen flex-col overflow-hidden bg-slate-200"
       style={
         {
           '--shell-panel': 'color-mix(in oklch, var(--background) 94%, var(--foreground))',
@@ -62,11 +62,13 @@ function DubSidebarContent({
         <TooltipProvider delayDuration={0}>
           <aside
             className={cn('sticky top-0 z-40 h-screen transition-[width] duration-300')}
-            style={{
-              width: showPanel ? SIDEBAR_WIDTH : SIDEBAR_RAIL_WIDTH,
-              '--sidebar-width': `${showPanel ? SIDEBAR_WIDTH : SIDEBAR_RAIL_WIDTH}px`,
-              '--sidebar-rail-width': `${SIDEBAR_RAIL_WIDTH}px`,
-            } as React.CSSProperties}
+            style={
+              {
+                width: showPanel ? SIDEBAR_WIDTH : SIDEBAR_RAIL_WIDTH,
+                '--sidebar-width': `${showPanel ? SIDEBAR_WIDTH : SIDEBAR_RAIL_WIDTH}px`,
+                '--sidebar-rail-width': `${SIDEBAR_RAIL_WIDTH}px`,
+              } as React.CSSProperties
+            }
             data-panel-state={isPanelOpen ? 'expanded' : 'collapsed'}
             data-has-content={hasContent}
           >
@@ -113,15 +115,15 @@ function DubSidebarContent({
         </TooltipProvider>
 
         {/* Content Area */}
-        <div className="flex min-h-0 flex-1 flex-col bg-background md:bg-[var(--shell-chrome)] md:py-2 md:pr-2">
+        <div className="flex min-h-0 flex-1 flex-col bg-background md:bg-slate-200 md:py-2 md:pr-2">
           <div className="relative flex min-h-0 flex-1 flex-col">
             {/* Corner fills for visual effect */}
-            <div
+            {/* <div
               className={cn(
                 'absolute top-0 -left-2 z-0 hidden h-3 w-5 bg-[var(--shell-panel)] transition-opacity duration-300 md:block',
                 showPanel ? 'opacity-100' : 'opacity-0',
               )}
-            />
+            /> */}
             <div
               className={cn(
                 'absolute bottom-0 -left-2 z-0 hidden h-3 w-5 bg-[var(--shell-panel)] transition-opacity duration-300 md:block',

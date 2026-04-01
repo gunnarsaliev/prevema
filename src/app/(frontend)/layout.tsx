@@ -25,13 +25,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           disableTransitionOnChange
         >
           <HeroUIProvider>
-            <AuthProvider>
-              {/* <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> */}
-              {/* <Navbar17 /> */}
-              {children}
-              {/* <Footer16 /> */}
-              {/* </main> */}
-            </AuthProvider>
+            <AuthProvider>{children}</AuthProvider>
           </HeroUIProvider>
           <Toaster />
         </ThemeProvider>

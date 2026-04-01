@@ -65,7 +65,9 @@ export default async function DashLayout({ children }: { children: React.ReactNo
 
   return (
     <DashClientLayout initialEvents={initialEvents} permissions={permissions}>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{children}</main>
+      {/* <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> */}
+      {children}
+      {/* </main> */}
     </DashClientLayout>
   )
 }

@@ -42,7 +42,12 @@ export function DashClientLayout({
   useMemo(() => {
     if (pathname.startsWith('/dash/events')) {
       setActiveModuleId('events')
-    } else if (pathname.startsWith('/dash/participants') || pathname.startsWith('/dash/partners') || pathname.startsWith('/dash/participant-roles') || pathname.startsWith('/dash/partner-types')) {
+    } else if (
+      pathname.startsWith('/dash/participants') ||
+      pathname.startsWith('/dash/partners') ||
+      pathname.startsWith('/dash/participant-roles') ||
+      pathname.startsWith('/dash/partner-types')
+    ) {
       setActiveModuleId('guests')
     } else if (pathname.startsWith('/dash/assets')) {
       setActiveModuleId('assets')
@@ -70,7 +75,11 @@ export function DashClientLayout({
         <div className="flex-1 min-w-0">
           <EventSwitcher />
         </div>
-        <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:bg-accent">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-8 text-muted-foreground hover:bg-accent"
+        >
           <Bell className="size-4" />
         </Button>
       </div>
@@ -107,7 +116,7 @@ export function DashClientLayout({
             topSlot={topSlot}
             userMenuSlot={userData ? <DubSidebarUserMenu user={userData} /> : undefined}
           >
-            <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+            <div className="flex flex-1 flex-col gap-4 p-4 md:p-6 bg-slate-100 shadow-lg">
               {children}
             </div>
           </DubSidebarLayout>
