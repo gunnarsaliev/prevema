@@ -548,6 +548,77 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
     [wrapText],
   )
 
+  // Helper function to draw shapes
+  const drawShape = useCallback(
+    (ctx: CanvasRenderingContext2D, element: CanvasElement) => {
+      const x = element.x
+      const y = element.y
+      const width = element.width || 100
+      const height = element.height || 100
+      const fillColor = element.fill || '#3b82f6'
+      const strokeColor = element.stroke || '#1e40af'
+      const strokeWidth = element.strokeWidth || 2
+
+      ctx.fillStyle = fillColor
+      ctx.strokeStyle = strokeColor
+      ctx.lineWidth = strokeWidth
+
+      switch (element.shapeType) {
+        case 'square':
+          ctx.fillRect(x, y, width, height)
+          ctx.strokeRect(x, y, width, height)
+          break
+
+        case 'circle':
+          ctx.beginPath()
+          const centerX = x + width / 2
+          const centerY = y + height / 2
+          const radius = Math.min(width, height) / 2
+          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.stroke()
+          break
+
+        case 'triangle':
+          ctx.beginPath()
+          ctx.moveTo(x + width / 2, y) // Top point
+          ctx.lineTo(x + width, y + height) // Bottom right
+          ctx.lineTo(x, y + height) // Bottom left
+          ctx.closePath()
+          ctx.fill()
+          ctx.stroke()
+          break
+
+        case 'star':
+          ctx.beginPath()
+          const cx = x + width / 2
+          const cy = y + height / 2
+          const outerRadius = Math.min(width, height) / 2
+          const innerRadius = outerRadius * 0.4
+          const points = 5
+
+          for (let i = 0; i < points * 2; i++) {
+            const radius = i % 2 === 0 ? outerRadius : innerRadius
+            const angle = (Math.PI * i) / points - Math.PI / 2
+            const px = cx + Math.cos(angle) * radius
+            const py = cy + Math.sin(angle) * radius
+
+            if (i === 0) {
+              ctx.moveTo(px, py)
+            } else {
+              ctx.lineTo(px, py)
+            }
+          }
+
+          ctx.closePath()
+          ctx.fill()
+          ctx.stroke()
+          break
+      }
+    },
+    [],
+  )
+
   // Optimized selection handles drawing
   const drawSelectionHandles = useCallback(
     (ctx: CanvasRenderingContext2D, element: CanvasElement) => {
@@ -693,6 +764,12 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
             drawDottedRectangle(ctx, element)
           })
           break
+
+        case 'shape':
+          drawRotatedElement(ctx, element, () => {
+            drawShape(ctx, element)
+          })
+          break
       }
     })
   }, [
@@ -703,6 +780,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
     drawDottedRectangle,
     getValidImage,
     drawTextElement,
+    drawShape,
   ])
 
   // Draw interaction layer (selection handles and alignment guides)
@@ -1514,6 +1592,8 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
                   return `Text Variable: ${element.variableName}`
                 case 'image-variable':
                   return `Image Variable: ${element.variableName}`
+                case 'shape':
+                  return `Shape: ${element.shapeType?.charAt(0).toUpperCase()}${element.shapeType?.slice(1)}`
                 default:
                   return 'Element'
               }

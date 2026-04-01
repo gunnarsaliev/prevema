@@ -64,11 +64,8 @@ export default async function DashLayout({ children }: { children: React.ReactNo
   const initialEvents: Event[] = docs.map((doc) => ({ id: String(doc.id), name: doc.name }))
 
   return (
-    <DashClientLayout
-      initialEvents={initialEvents}
-      permissions={permissions}
-    >
-      {children}
+    <DashClientLayout initialEvents={initialEvents} permissions={permissions}>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{children}</main>
     </DashClientLayout>
   )
 }

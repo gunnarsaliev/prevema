@@ -2,35 +2,19 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Card, CardContent } from '@/components/ui/card'
-import {
-  Menubar,
-  MenubarContent,
-  MenubarItem,
-  MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
-  MenubarSub,
-  MenubarSubContent,
-  MenubarSubTrigger,
-  MenubarTrigger,
-  MenubarRadioGroup,
-  MenubarRadioItem,
-} from './components/ui/menubar'
 import { Button } from '@/components/ui/button'
 import CanvasEditor from './components/canvas-editor'
-import LayersPanel from './components/layers-panel'
 import FormattingToolbar from './components/formatting-toolbar'
 import BackgroundToolbar from './components/background-toolbar'
-import ColorPalettePicker from './components/color-palette-picker'
+import ModernTopbar from './components/modern-topbar'
+import LeftToolbar from './components/left-toolbar'
+import RightSidebar from './components/right-sidebar'
 import type { CanvasElement, Template } from '@/components/canvas/types/canvas-element'
 import { IMAGE_VARIABLES, TEXT_VARIABLES } from '@/components/canvas/types/canvas-element'
 import { restoreTemplateElements, type LoadedTemplate } from './utils/template-restoration'
 import { useHistory } from './hooks/use-history'
 import { useImageCache } from './hooks/use-image-cache'
 import { useKeyboardShortcuts } from './hooks/use-keyboard-shortcuts'
-import { Save } from 'lucide-react'
-import Link from 'next/link'
 import { useToast } from './hooks/use-toast'
 import { Toaster } from './components/ui/toaster'
 
@@ -445,6 +429,28 @@ export default function ImageTemplateGenerator() {
       variableType,
       variableName,
       aspectRatio: 1.5, // Default aspect ratio for image variables
+    }
+    const newElements = [...currentElements, newElement]
+    setCurrentElements(newElements)
+    setCurrentSelectedElementId(null)
+    pushState(newElements, null)
+  }
+
+  const addShape = (shapeType: 'square' | 'circle' | 'triangle' | 'star') => {
+    const newElement: CanvasElement = {
+      id: `shape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: 'shape',
+      shapeType,
+      x: 100,
+      y: 100,
+      width: 100,
+      height: 100,
+      fill: '#3b82f6', // Default blue color
+      stroke: '#1e40af', // Darker blue stroke
+      strokeWidth: 2,
+      draggable: true,
+      visible: true,
+      rotation: 0,
     }
     const newElements = [...currentElements, newElement]
     setCurrentElements(newElements)
@@ -942,167 +948,19 @@ export default function ImageTemplateGenerator() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Page Header */}
-
-      {/* Menubar */}
-      <div className="border-b border-border px-4 py-1 flex items-center justify-between mt-4">
-        <Menubar className="border-none bg-transparent flex-1">
-          <MenubarMenu>
-            <MenubarTrigger>File</MenubarTrigger>
-            <MenubarContent>
-              <MenubarItem onClick={handleExportImage}>
-                Export Image <MenubarShortcut>⌘E</MenubarShortcut>
-              </MenubarItem>
-              <MenubarSeparator />
-              <MenubarItem onClick={() => editMode.mode === 'edit' ? handleSaveTemplate() : setShowSaveDialog(true)}>
-                {editMode.mode === 'edit' ? 'Save Changes' : 'Save as Template'} <MenubarShortcut>⌘S</MenubarShortcut>
-              </MenubarItem>
-              <MenubarItem onClick={handleLoadTemplates}>
-                Load Template <MenubarShortcut>⌘O</MenubarShortcut>
-              </MenubarItem>
-              <MenubarSeparator />
-              <MenubarItem onClick={resetCanvas}>
-                New Canvas <MenubarShortcut>⌘N</MenubarShortcut>
-              </MenubarItem>
-              <MenubarItem onClick={resetCanvas}>Reset Canvas</MenubarItem>
-            </MenubarContent>
-          </MenubarMenu>
-
-          <MenubarMenu>
-            <MenubarTrigger>Edit</MenubarTrigger>
-            <MenubarContent>
-              <MenubarItem onClick={handleUndo} disabled={!canUndo}>
-                Undo <MenubarShortcut>⌘Z</MenubarShortcut>
-              </MenubarItem>
-              <MenubarItem onClick={handleRedo} disabled={!canRedo}>
-                Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
-              </MenubarItem>
-            </MenubarContent>
-          </MenubarMenu>
-
-          <MenubarMenu>
-            <MenubarTrigger>Insert</MenubarTrigger>
-            <MenubarContent>
-              <MenubarItem onClick={() => imageInputRef.current?.click()}>Upload Image</MenubarItem>
-              <MenubarItem onClick={addTextElement}>Add Text</MenubarItem>
-              <MenubarSeparator />
-              <MenubarSub>
-                <MenubarSubTrigger>Image Variables</MenubarSubTrigger>
-                <MenubarSubContent>
-                  {IMAGE_VARIABLES.map((variable) => (
-                    <MenubarItem
-                      key={variable.id}
-                      onClick={() => addImageVariable(variable.id, variable.displayName)}
-                    >
-                      {variable.name}
-                    </MenubarItem>
-                  ))}
-                </MenubarSubContent>
-              </MenubarSub>
-              <MenubarSub>
-                <MenubarSubTrigger>Text Variables</MenubarSubTrigger>
-                <MenubarSubContent>
-                  {TEXT_VARIABLES.map((variable) => (
-                    <MenubarItem
-                      key={variable.id}
-                      onClick={() => addTextVariable(variable.id, variable.displayName)}
-                    >
-                      {variable.name}
-                    </MenubarItem>
-                  ))}
-                </MenubarSubContent>
-              </MenubarSub>
-            </MenubarContent>
-          </MenubarMenu>
-
-          <MenubarMenu>
-            <MenubarTrigger>Variables</MenubarTrigger>
-            <MenubarContent>
-              <MenubarSub>
-                <MenubarSubTrigger>Image Variables</MenubarSubTrigger>
-                <MenubarSubContent>
-                  {IMAGE_VARIABLES.map((variable) => (
-                    <MenubarItem
-                      key={variable.id}
-                      onClick={() => addImageVariable(variable.id, variable.displayName)}
-                    >
-                      {variable.name}
-                    </MenubarItem>
-                  ))}
-                </MenubarSubContent>
-              </MenubarSub>
-              <MenubarSub>
-                <MenubarSubTrigger>Text Variables</MenubarSubTrigger>
-                <MenubarSubContent>
-                  {TEXT_VARIABLES.map((variable) => (
-                    <MenubarItem
-                      key={variable.id}
-                      onClick={() => addTextVariable(variable.id, variable.displayName)}
-                    >
-                      {variable.name}
-                    </MenubarItem>
-                  ))}
-                </MenubarSubContent>
-              </MenubarSub>
-            </MenubarContent>
-          </MenubarMenu>
-
-          <MenubarMenu>
-            <MenubarTrigger>Template</MenubarTrigger>
-            <MenubarContent>
-              <MenubarRadioGroup value={selectedTemplate.id} onValueChange={handleTemplateChange}>
-                {templates.map((template) => (
-                  <MenubarRadioItem key={template.id} value={template.id}>
-                    {template.name}
-                  </MenubarRadioItem>
-                ))}
-              </MenubarRadioGroup>
-            </MenubarContent>
-          </MenubarMenu>
-        </Menubar>
-
-        {/* Quick Action Buttons */}
-        <div className="flex gap-2">
-          {editMode.mode === 'edit' && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/dash/assets/image-templates')}
-              className="mb-1"
-            >
-              Cancel
-            </Button>
-          )}
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => editMode.mode === 'edit' ? handleSaveTemplate() : setShowSaveDialog(true)}
-            className="gap-2 mb-1"
-          >
-            <Save className="h-4 w-4" />
-            <span className="hidden sm:inline">{editMode.mode === 'edit' ? 'Save Changes' : 'Save'}</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Background Toolbar */}
-      <BackgroundToolbar
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Modern Topbar */}
+      <ModernTopbar
         selectedTemplate={selectedTemplate}
-        onTemplateUpdate={(updates) =>
-          setSelectedTemplate((prev) => ({
-            ...prev,
-            ...updates,
-          }))
-        }
-        onBackgroundImageUpload={() => backgroundInputRef.current?.click()}
-      />
-
-      {/* Formatting Toolbar */}
-      <FormattingToolbar
-        selectedElement={selectedElement}
-        onElementUpdate={updateElement}
-        onDeleteElement={deleteElement}
+        templates={templates}
+        onTemplateChange={handleTemplateChange}
+        onSave={() => editMode.mode === 'edit' ? handleSaveTemplate() : setShowSaveDialog(true)}
+        onExport={handleExportImage}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        editMode={editMode}
       />
 
       {/* Hidden file inputs */}
@@ -1127,99 +985,79 @@ export default function ImageTemplateGenerator() {
         }}
       />
 
-      {/* Main Content */}
-      <div className="p-4 bg-gradient-to-br from-background via-background to-muted/20">
-        <div className="max-w-full mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* Canvas Area - Now takes up more space */}
-            <div className="lg:col-span-4">
-              <Card className="shadow-xl border-2 bg-gradient-to-br from-card to-card/95">
-                <CardContent className="p-8">
-                  <CanvasEditor
-                    selectedTemplate={selectedTemplate}
-                    elements={currentElements}
-                    selectedElementId={currentSelectedElementId}
-                    onElementSelect={handleElementSelect}
-                    onElementUpdate={updateElement}
-                    onElementDragEnd={handleElementDragEnd}
-                    onReset={resetCanvas}
-                    onMoveToFront={moveToFront}
-                    onMoveToBack={moveToBack}
-                    onMoveForward={moveForward}
-                    onMoveBackward={moveBackward}
-                    onToggleVisibility={toggleVisibility}
-                    onDeleteElement={deleteElement}
-                  />
+      {/* Main Content Area */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Toolbar */}
+        <LeftToolbar
+          onAddText={addTextElement}
+          onAddImage={() => imageInputRef.current?.click()}
+          onAddShape={addShape}
+          onAddTextVariable={addTextVariable}
+          onAddImageVariable={addImageVariable}
+          textVariables={TEXT_VARIABLES}
+          imageVariables={IMAGE_VARIABLES}
+        />
 
-                  {/* Template name and dimensions */}
-                  <div className="text-center mt-4 mb-2">
-                    <p className="text-sm text-foreground">
-                      <span className="font-semibold">{selectedTemplate.name}</span>
-                      <span className="text-muted-foreground mx-2">•</span>
-                      <span className="text-xs text-muted-foreground">
-                        {selectedTemplate.width * 2} × {selectedTemplate.height * 2} px
-                      </span>
-                    </p>
-                  </div>
+        {/* Center - Canvas Area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Background Toolbar */}
+          <BackgroundToolbar
+            selectedTemplate={selectedTemplate}
+            onTemplateUpdate={(updates) =>
+              setSelectedTemplate((prev) => ({
+                ...prev,
+                ...updates,
+              }))
+            }
+            onBackgroundImageUpload={() => backgroundInputRef.current?.click()}
+          />
 
-                  {/* Keyboard shortcuts info with improved undo/redo status */}
-                  <div className="text-center text-xs text-muted-foreground mt-4">
-                    <div>
-                      Keyboard shortcuts: Ctrl+Z (Undo) • Ctrl+Y (Redo) • Delete (Remove selected)
-                    </div>
-                    <div className="flex items-center justify-center gap-4 mt-1">
-                      <span
-                        className={
-                          canUndo
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-muted-foreground/50'
-                        }
-                      >
-                        Undo: {canUndo ? 'Available' : 'Not available'}
-                      </span>
-                      <span
-                        className={
-                          canRedo
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-muted-foreground/50'
-                        }
-                      >
-                        Redo: {canRedo ? 'Available' : 'Not available'}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          {/* Formatting Toolbar */}
+          <FormattingToolbar
+            selectedElement={selectedElement}
+            onElementUpdate={updateElement}
+            onDeleteElement={deleteElement}
+          />
 
-            {/* Layers Panel - Moved to the right */}
-            <div className="lg:col-span-1 space-y-4">
-              <Link href={'/dash'}>
-                <Button variant="outline" size="sm" className="w-full mb-4 shadow-sm hover:shadow-md transition-shadow">
-                  Go to dashboard
-                </Button>
-              </Link>
-
-              {/* Color Palette Picker for background */}
-              <ColorPalettePicker
-                selectedColor={selectedTemplate.backgroundImage.startsWith('#') ? selectedTemplate.backgroundImage : '#ffffff'}
-                onColorChange={(color) => setSelectedTemplate(prev => ({ ...prev, backgroundImage: color }))}
-              />
-
-              <LayersPanel
-                elements={currentElements}
-                selectedElementId={currentSelectedElementId}
-                onElementSelect={handleElementSelect}
-                onMoveToFront={moveToFront}
-                onMoveToBack={moveToBack}
-                onMoveForward={moveForward}
-                onMoveBackward={moveBackward}
-                onToggleVisibility={toggleVisibility}
-                onDeleteElement={deleteElement}
-              />
-            </div>
+          {/* Canvas Container - Centered */}
+          <div className="flex-1 overflow-auto bg-muted/20 flex items-center justify-center">
+            <CanvasEditor
+              selectedTemplate={selectedTemplate}
+              elements={currentElements}
+              selectedElementId={currentSelectedElementId}
+              onElementSelect={handleElementSelect}
+              onElementUpdate={updateElement}
+              onElementDragEnd={handleElementDragEnd}
+              onReset={resetCanvas}
+              onMoveToFront={moveToFront}
+              onMoveToBack={moveToBack}
+              onMoveForward={moveForward}
+              onMoveBackward={moveBackward}
+              onToggleVisibility={toggleVisibility}
+              onDeleteElement={deleteElement}
+            />
           </div>
         </div>
+
+        {/* Right Sidebar */}
+        <RightSidebar
+          selectedTemplate={selectedTemplate}
+          onTemplateUpdate={(updates) =>
+            setSelectedTemplate((prev) => ({
+              ...prev,
+              ...updates,
+            }))
+          }
+          elements={currentElements}
+          selectedElementId={currentSelectedElementId}
+          onElementSelect={handleElementSelect}
+          onMoveToFront={moveToFront}
+          onMoveToBack={moveToBack}
+          onMoveForward={moveForward}
+          onMoveBackward={moveBackward}
+          onToggleVisibility={toggleVisibility}
+          onDeleteElement={deleteElement}
+        />
       </div>
 
       {/* Save Template Dialog */}

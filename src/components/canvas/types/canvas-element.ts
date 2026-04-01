@@ -1,6 +1,6 @@
 export interface CanvasElement {
   id: string
-  type: 'image' | 'text' | 'image-variable' | 'text-variable'
+  type: 'image' | 'text' | 'image-variable' | 'text-variable' | 'shape'
   x: number
   y: number
   width?: number
@@ -27,6 +27,9 @@ export interface CanvasElement {
   variableType?: string // Specific variable type (e.g., "COMPANY_LOGO", "COMPANY_NAME")
   loadError?: boolean // Flag indicating image failed to load from imageData.src
   borderRadius?: number // Border radius for images in pixels
+  shapeType?: 'square' | 'circle' | 'triangle' | 'star' // For shape elements
+  stroke?: string // Stroke color for shapes
+  strokeWidth?: number // Stroke width for shapes
 }
 
 export interface Template {
