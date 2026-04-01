@@ -959,6 +959,11 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
         const updates: Partial<CanvasElement> = {}
         const isTextElement = element.type === 'text' || element.type === 'text-variable'
 
+        // Store original font size if text element (for scaling)
+        const originalFontSize = element.fontSize || 24
+        const originalWidth = element.width || 200
+        const originalHeight = element.height || 40
+
         switch (resizeHandle) {
           case 'se':
             updates.width = Math.max(20, (element.width || 0) + deltaX)
@@ -969,8 +974,12 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
             }
             break
           case 'sw':
-            updates.width = Math.max(20, (element.width || 0) - deltaX)
-            updates.x = element.x + deltaX
+            const newWidthSW = Math.max(20, (element.width || 0) - deltaX)
+            updates.width = newWidthSW
+            // Only update x if width actually changed (prevents disappearing)
+            if (newWidthSW > 20) {
+              updates.x = element.x + ((element.width || 0) - newWidthSW)
+            }
             if (element.aspectRatio && !isTextElement) {
               updates.height = updates.width / element.aspectRatio
             } else {
@@ -979,23 +988,32 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
             break
           case 'ne':
             updates.width = Math.max(20, (element.width || 0) + deltaX)
-            updates.y = element.y + deltaY
+            const newHeightNE = Math.max(20, (element.height || 0) - deltaY)
+            updates.height = newHeightNE
+            // Only update y if height actually changed (prevents disappearing)
+            if (newHeightNE > 20) {
+              updates.y = element.y + ((element.height || 0) - newHeightNE)
+            }
             if (element.aspectRatio && !isTextElement) {
               updates.height = updates.width / element.aspectRatio
               updates.y = element.y + (element.height || 0) - updates.height
-            } else {
-              updates.height = Math.max(20, (element.height || 0) - deltaY)
             }
             break
           case 'nw':
-            updates.width = Math.max(20, (element.width || 0) - deltaX)
-            updates.x = element.x + deltaX
+            const newWidthNW = Math.max(20, (element.width || 0) - deltaX)
+            const newHeightNW = Math.max(20, (element.height || 0) - deltaY)
+            updates.width = newWidthNW
+            updates.height = newHeightNW
+            // Only update position if size actually changed (prevents disappearing)
+            if (newWidthNW > 20) {
+              updates.x = element.x + ((element.width || 0) - newWidthNW)
+            }
+            if (newHeightNW > 20) {
+              updates.y = element.y + ((element.height || 0) - newHeightNW)
+            }
             if (element.aspectRatio && !isTextElement) {
               updates.height = updates.width / element.aspectRatio
               updates.y = element.y + (element.height || 0) - updates.height
-            } else {
-              updates.height = Math.max(20, (element.height || 0) - deltaY)
-              updates.y = element.y + deltaY
             }
             break
           case 'e':
@@ -1005,19 +1023,36 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
             }
             break
           case 'w':
-            updates.width = Math.max(20, (element.width || 0) - deltaX)
-            updates.x = element.x + deltaX
+            const newWidthW = Math.max(20, (element.width || 0) - deltaX)
+            updates.width = newWidthW
+            // Only update x if width actually changed (prevents disappearing)
+            if (newWidthW > 20) {
+              updates.x = element.x + ((element.width || 0) - newWidthW)
+            }
             if (element.aspectRatio && !isTextElement) {
               updates.height = updates.width / element.aspectRatio
             }
             break
           case 'n':
-            updates.height = Math.max(20, (element.height || 0) - deltaY)
-            updates.y = element.y + deltaY
+            const newHeightN = Math.max(20, (element.height || 0) - deltaY)
+            updates.height = newHeightN
+            // Only update y if height actually changed (prevents disappearing)
+            if (newHeightN > 20) {
+              updates.y = element.y + ((element.height || 0) - newHeightN)
+            }
             break
           case 's':
             updates.height = Math.max(20, (element.height || 0) + deltaY)
             break
+        }
+
+        // Scale font size for text elements based on resize
+        if (isTextElement && updates.width && updates.height) {
+          const widthScale = updates.width / originalWidth
+          const heightScale = updates.height / originalHeight
+          // Use average of both scales for more natural resizing
+          const scale = (widthScale + heightScale) / 2
+          updates.fontSize = Math.max(8, Math.min(72, Math.round(originalFontSize * scale)))
         }
 
         // Update immediately for visual feedback
