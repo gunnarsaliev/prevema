@@ -36,8 +36,7 @@ export default function RightSidebar({
   onDeleteElement,
 }: RightSidebarProps) {
   return (
-    <div className="w-80 border-l border-border bg-background overflow-y-auto">
-      <div className="p-4 space-y-4">
+    <>
         {/* Canvas Settings */}
         <Card className="shadow-sm">
           <CardHeader className="pb-3">
@@ -126,7 +125,6 @@ export default function RightSidebar({
           onToggleVisibility={onToggleVisibility}
           onDeleteElement={onDeleteElement}
         />
-      </div>
-    </div>
+    </>
   )
 }

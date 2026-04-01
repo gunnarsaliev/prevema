@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import CanvasEditor from './components/canvas-editor'
 import FormattingToolbar from './components/formatting-toolbar'
 import BackgroundToolbar from './components/background-toolbar'
@@ -948,7 +949,7 @@ export default function ImageTemplateGenerator() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col">
       {/* Modern Topbar */}
       <ModernTopbar
         selectedTemplate={selectedTemplate}
@@ -986,8 +987,8 @@ export default function ImageTemplateGenerator() {
       />
 
       {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Toolbar */}
+      <div className="flex flex-1 min-h-0">
+        {/* Left Toolbar - Static */}
         <LeftToolbar
           onAddText={addTextElement}
           onAddImage={() => imageInputRef.current?.click()}
@@ -998,7 +999,7 @@ export default function ImageTemplateGenerator() {
           imageVariables={IMAGE_VARIABLES}
         />
 
-        {/* Center - Canvas Area */}
+        {/* Center - Canvas Area with independent scroll */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Background Toolbar */}
           <BackgroundToolbar
@@ -1019,45 +1020,53 @@ export default function ImageTemplateGenerator() {
             onDeleteElement={deleteElement}
           />
 
-          {/* Canvas Container - Centered */}
-          <div className="flex-1 overflow-auto bg-muted/20 flex items-center justify-center">
-            <CanvasEditor
-              selectedTemplate={selectedTemplate}
-              elements={currentElements}
-              selectedElementId={currentSelectedElementId}
-              onElementSelect={handleElementSelect}
-              onElementUpdate={updateElement}
-              onElementDragEnd={handleElementDragEnd}
-              onReset={resetCanvas}
-              onMoveToFront={moveToFront}
-              onMoveToBack={moveToBack}
-              onMoveForward={moveForward}
-              onMoveBackward={moveBackward}
-              onToggleVisibility={toggleVisibility}
-              onDeleteElement={deleteElement}
-            />
-          </div>
+          {/* Canvas Container - Scrollable independently with ScrollArea */}
+          <ScrollArea className="flex-1 bg-muted/20">
+            <div className="flex items-center justify-center min-h-full p-8">
+              <CanvasEditor
+                selectedTemplate={selectedTemplate}
+                elements={currentElements}
+                selectedElementId={currentSelectedElementId}
+                onElementSelect={handleElementSelect}
+                onElementUpdate={updateElement}
+                onElementDragEnd={handleElementDragEnd}
+                onReset={resetCanvas}
+                onMoveToFront={moveToFront}
+                onMoveToBack={moveToBack}
+                onMoveForward={moveForward}
+                onMoveBackward={moveBackward}
+                onToggleVisibility={toggleVisibility}
+                onDeleteElement={deleteElement}
+              />
+            </div>
+          </ScrollArea>
         </div>
 
-        {/* Right Sidebar */}
-        <RightSidebar
-          selectedTemplate={selectedTemplate}
-          onTemplateUpdate={(updates) =>
-            setSelectedTemplate((prev) => ({
-              ...prev,
-              ...updates,
-            }))
-          }
-          elements={currentElements}
-          selectedElementId={currentSelectedElementId}
-          onElementSelect={handleElementSelect}
-          onMoveToFront={moveToFront}
-          onMoveToBack={moveToBack}
-          onMoveForward={moveForward}
-          onMoveBackward={moveBackward}
-          onToggleVisibility={toggleVisibility}
-          onDeleteElement={deleteElement}
-        />
+        {/* Right Sidebar - Independent scroll with ScrollArea */}
+        <div className="w-80 border-l border-border bg-background h-full">
+          <ScrollArea className="h-full">
+            <div className="p-4 space-y-4">
+              <RightSidebar
+                selectedTemplate={selectedTemplate}
+                onTemplateUpdate={(updates) =>
+                  setSelectedTemplate((prev) => ({
+                    ...prev,
+                    ...updates,
+                  }))
+                }
+                elements={currentElements}
+                selectedElementId={currentSelectedElementId}
+                onElementSelect={handleElementSelect}
+                onMoveToFront={moveToFront}
+                onMoveToBack={moveToBack}
+                onMoveForward={moveForward}
+                onMoveBackward={moveBackward}
+                onToggleVisibility={toggleVisibility}
+                onDeleteElement={deleteElement}
+              />
+            </div>
+          </ScrollArea>
+        </div>
       </div>
 
       {/* Save Template Dialog */}
