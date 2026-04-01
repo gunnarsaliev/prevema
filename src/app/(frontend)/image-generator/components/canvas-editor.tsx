@@ -108,12 +108,12 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
   useEffect(() => {
     if (!isClient) return
 
-    // Check if backgroundImage is a color (starts with #) or an image URL
-    if (selectedTemplate.backgroundImage.startsWith('#')) {
-      // It's a color, not an image
+    // Check if backgroundImage is a color, gradient, or an image URL
+    if (selectedTemplate.backgroundImage.startsWith('#') || selectedTemplate.backgroundImage.startsWith('linear-gradient')) {
+      // It's a color or gradient, not an image
       setBackgroundImage(null)
     } else {
-      // It's an image URL
+      // It's an image URL (base64 or remote URL)
       const img = new Image()
       img.crossOrigin = 'anonymous'
       img.onload = () => {
@@ -121,6 +121,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
       }
       img.onerror = () => {
         console.error('Failed to load background image')
+        setBackgroundImage(null)
       }
       img.src = selectedTemplate.backgroundImage
     }
@@ -167,6 +168,43 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
       }
 
       ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight)
+    },
+    [],
+  )
+
+  // Helper function to parse and draw gradient backgrounds
+  const drawGradientBackground = useCallback(
+    (ctx: CanvasRenderingContext2D, gradientString: string, width: number, height: number) => {
+      // Parse linear-gradient string
+      const match = gradientString.match(/linear-gradient\(([^)]+)\)/)
+      if (!match) return false
+
+      const parts = match[1].split(',').map(s => s.trim())
+      const angle = parts[0].includes('deg') ? parseInt(parts[0]) : 135
+
+      // Convert angle to radians and calculate gradient line
+      const angleRad = (angle - 90) * (Math.PI / 180)
+      const x1 = width / 2 - Math.cos(angleRad) * width / 2
+      const y1 = height / 2 - Math.sin(angleRad) * height / 2
+      const x2 = width / 2 + Math.cos(angleRad) * width / 2
+      const y2 = height / 2 + Math.sin(angleRad) * height / 2
+
+      const gradient = ctx.createLinearGradient(x1, y1, x2, y2)
+
+      // Parse color stops
+      for (let i = 1; i < parts.length; i++) {
+        const part = parts[i].trim()
+        const colorMatch = part.match(/(#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}|rgb\([^)]+\))\s*(\d+%)?/)
+        if (colorMatch) {
+          const color = colorMatch[1]
+          const position = colorMatch[2] ? parseInt(colorMatch[2]) / 100 : i / (parts.length - 1)
+          gradient.addColorStop(position, color)
+        }
+      }
+
+      ctx.fillStyle = gradient
+      ctx.fillRect(0, 0, width, height)
+      return true
     },
     [],
   )
@@ -592,6 +630,9 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
     // Draw background with object-cover behavior
     if (backgroundImage) {
       drawBackgroundCover(ctx, backgroundImage, canvas.width, canvas.height)
+    } else if (selectedTemplate.backgroundImage.startsWith('linear-gradient')) {
+      // Draw gradient background
+      drawGradientBackground(ctx, selectedTemplate.backgroundImage, canvas.width, canvas.height)
     } else {
       // Draw solid color background
       ctx.fillStyle = selectedTemplate.backgroundImage.startsWith('#')
@@ -599,7 +640,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
         : '#f3f4f6'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
     }
-  }, [backgroundImage, selectedTemplate.backgroundImage, drawBackgroundCover])
+  }, [backgroundImage, selectedTemplate.backgroundImage, drawBackgroundCover, drawGradientBackground])
 
   // Draw content layer (elements)
   const drawContentLayer = useCallback(() => {
@@ -1289,7 +1330,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
   return (
     <div className="space-y-4">
       <div className="flex justify-center">
-        <div className="border border-border rounded-lg overflow-hidden shadow-lg bg-card">
+        <div className="border-4 border-border/30 rounded-2xl overflow-hidden shadow-2xl bg-white dark:bg-gray-900 ring-1 ring-black/5">
           <ContextMenu>
             <ContextMenuTrigger>
               {/* Multi-layer canvas stack for optimal performance */}

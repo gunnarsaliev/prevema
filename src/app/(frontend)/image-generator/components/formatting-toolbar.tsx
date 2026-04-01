@@ -37,9 +37,12 @@ export default function FormattingToolbar({
 }: FormattingToolbarProps) {
   if (!selectedElement) {
     return (
-      <div className="border-b border-border bg-card px-2 sm:px-4 py-2">
+      <div className="border-b border-border bg-gradient-to-r from-muted/30 to-muted/10 px-2 sm:px-4 py-3">
         <div className="flex items-center gap-2 text-sm text-muted-foreground justify-center h-8">
-          Select an element to see formatting options
+          <div className="flex items-center gap-2 px-4 py-2 bg-background/50 rounded-lg border border-border/50">
+            <span className="text-xs font-medium">💡</span>
+            <span>Select an element to see formatting options</span>
+          </div>
         </div>
       </div>
     )
@@ -86,10 +89,10 @@ export default function FormattingToolbar({
   // Text element or text variable toolbar
   if (selectedElement.type === 'text' || selectedElement.type === 'text-variable') {
     return (
-      <div className="border-b border-border bg-card px-2 sm:px-4 py-2 overflow-x-auto">
+      <div className="border-b border-border bg-gradient-to-r from-card via-card to-muted/20 px-2 sm:px-4 py-2.5 overflow-x-auto shadow-sm">
         <div className="flex items-center gap-1 sm:gap-2 min-w-max">
           {/* Element Type Indicator */}
-          <div className="text-xs text-foreground font-medium px-2 py-1 bg-muted rounded whitespace-nowrap">
+          <div className="text-xs text-foreground font-semibold px-3 py-1.5 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg border border-primary/30 whitespace-nowrap shadow-sm">
             {getElementTypeDisplay()}
           </div>
 
@@ -251,10 +254,10 @@ export default function FormattingToolbar({
   // Image element or image variable toolbar
   if (selectedElement.type === 'image' || selectedElement.type === 'image-variable') {
     return (
-      <div className="border-b border-border bg-card px-2 sm:px-4 py-2 overflow-x-auto">
+      <div className="border-b border-border bg-gradient-to-r from-card via-card to-muted/20 px-2 sm:px-4 py-2.5 overflow-x-auto shadow-sm">
         <div className="flex items-center gap-1 sm:gap-2 min-w-max">
           {/* Element Type Indicator */}
-          <div className="text-xs text-foreground font-medium px-2 py-1 bg-muted rounded whitespace-nowrap">
+          <div className="text-xs text-foreground font-semibold px-3 py-1.5 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg border border-primary/30 whitespace-nowrap shadow-sm">
             {getElementTypeDisplay()}
           </div>
 

@@ -22,6 +22,7 @@ import CanvasEditor from './components/canvas-editor'
 import LayersPanel from './components/layers-panel'
 import FormattingToolbar from './components/formatting-toolbar'
 import BackgroundToolbar from './components/background-toolbar'
+import ColorPalettePicker from './components/color-palette-picker'
 import type { CanvasElement, Template } from '@/components/canvas/types/canvas-element'
 import { IMAGE_VARIABLES, TEXT_VARIABLES } from '@/components/canvas/types/canvas-element'
 import { restoreTemplateElements, type LoadedTemplate } from './utils/template-restoration'
@@ -1127,13 +1128,13 @@ export default function ImageTemplateGenerator() {
       />
 
       {/* Main Content */}
-      <div className="p-4">
+      <div className="p-4 bg-gradient-to-br from-background via-background to-muted/20">
         <div className="max-w-full mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* Canvas Area - Now takes up more space */}
             <div className="lg:col-span-4">
-              <Card>
-                <CardContent className="p-6">
+              <Card className="shadow-xl border-2 bg-gradient-to-br from-card to-card/95">
+                <CardContent className="p-8">
                   <CanvasEditor
                     selectedTemplate={selectedTemplate}
                     elements={currentElements}
@@ -1194,10 +1195,17 @@ export default function ImageTemplateGenerator() {
             {/* Layers Panel - Moved to the right */}
             <div className="lg:col-span-1 space-y-4">
               <Link href={'/dash'}>
-                <Button variant="outline" size="sm" className="w-full mb-4">
+                <Button variant="outline" size="sm" className="w-full mb-4 shadow-sm hover:shadow-md transition-shadow">
                   Go to dashboard
                 </Button>
               </Link>
+
+              {/* Color Palette Picker for background */}
+              <ColorPalettePicker
+                selectedColor={selectedTemplate.backgroundImage.startsWith('#') ? selectedTemplate.backgroundImage : '#ffffff'}
+                onColorChange={(color) => setSelectedTemplate(prev => ({ ...prev, backgroundImage: color }))}
+              />
+
               <LayersPanel
                 elements={currentElements}
                 selectedElementId={currentSelectedElementId}

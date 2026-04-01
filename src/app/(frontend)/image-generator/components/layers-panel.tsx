@@ -59,15 +59,21 @@ export default function LayersPanel({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Layers</CardTitle>
+    <Card className="shadow-lg border-2">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold">Layers</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {elements.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">No elements added yet</p>
+          <div className="text-center py-8 px-4">
+            <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-muted/50 flex items-center justify-center">
+              <Type className="w-8 h-8 text-muted-foreground/50" />
+            </div>
+            <p className="text-sm text-muted-foreground">No elements yet</p>
+            <p className="text-xs text-muted-foreground/70 mt-1">Add text or images to get started</p>
+          </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {/* Render elements in reverse order (top layer first) */}
             {[...elements].reverse().map((element, reverseIndex) => {
               const actualIndex = elements.length - 1 - reverseIndex
@@ -77,10 +83,10 @@ export default function LayersPanel({
               return (
                 <div
                   key={element.id}
-                  className={`flex items-center gap-2 p-2 rounded border transition-colors ${
+                  className={`flex items-center gap-2 p-2.5 rounded-lg border-2 transition-all duration-200 ${
                     isSelected
-                      ? 'bg-primary/10 border-primary'
-                      : 'bg-muted/50 border-border hover:bg-muted'
+                      ? 'bg-primary/15 border-primary shadow-md scale-[1.02]'
+                      : 'bg-muted/30 border-border/50 hover:bg-muted/60 hover:border-border hover:shadow-sm'
                   }`}
                 >
                   {/* Element Icon */}
