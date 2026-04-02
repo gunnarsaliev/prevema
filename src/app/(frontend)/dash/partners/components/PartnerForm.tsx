@@ -178,9 +178,12 @@ export function PartnerForm(props: Props) {
             <div className="grid grid-cols-2 gap-4">
               <Field data-invalid={!!state?.errors?.event}>
                 <FieldLabel htmlFor="event">Event *</FieldLabel>
+                {props.events.length === 1 && defaultValues.event && (
+                  <input type="hidden" name="event" value={defaultValues.event} />
+                )}
                 <select
                   id="event"
-                  name="event"
+                  name={props.events.length === 1 ? undefined : "event"}
                   defaultValue={defaultValues.event}
                   required
                   disabled={props.events.length === 1}
@@ -188,7 +191,7 @@ export function PartnerForm(props: Props) {
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-invalid={!!state?.errors?.event}
                 >
-                  <option value="">Select event</option>
+                  {!defaultValues.event && <option value="">Select event</option>}
                   {props.events.map((e) => (
                     <option key={e.id} value={e.id}>
                       {e.name}
@@ -214,16 +217,19 @@ export function PartnerForm(props: Props) {
                     New type
                   </Button>
                 </div>
+                {localPartnerTypes.length === 1 && defaultValues.partnerType && (
+                  <input type="hidden" name="partnerType" value={defaultValues.partnerType} />
+                )}
                 <select
                   id="partnerType"
-                  name="partnerType"
+                  name={localPartnerTypes.length === 1 ? undefined : "partnerType"}
                   defaultValue={defaultValues.partnerType}
                   required
                   disabled={localPartnerTypes.length === 1}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-invalid={!!state?.errors?.partnerType}
                 >
-                  <option value="">Select type</option>
+                  {!defaultValues.partnerType && <option value="">Select type</option>}
                   {localPartnerTypes.map((pt) => (
                     <option key={pt.id} value={pt.id}>
                       {pt.name}

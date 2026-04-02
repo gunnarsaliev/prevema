@@ -195,9 +195,12 @@ export function ParticipantForm(props: Props) {
             <div className="grid grid-cols-2 gap-4">
               <Field data-invalid={!!state?.errors?.event}>
                 <FieldLabel htmlFor="event">Event *</FieldLabel>
+                {props.events.length === 1 && defaultValues.event && (
+                  <input type="hidden" name="event" value={defaultValues.event} />
+                )}
                 <select
                   id="event"
-                  name="event"
+                  name={props.events.length === 1 ? undefined : "event"}
                   defaultValue={defaultValues.event}
                   required
                   disabled={props.events.length === 1}
@@ -205,7 +208,7 @@ export function ParticipantForm(props: Props) {
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-invalid={!!state?.errors?.event}
                 >
-                  <option value="">Select event</option>
+                  {!defaultValues.event && <option value="">Select event</option>}
                   {props.events.map((e) => (
                     <option key={e.id} value={e.id}>
                       {e.name}
@@ -231,16 +234,19 @@ export function ParticipantForm(props: Props) {
                     New role
                   </Button>
                 </div>
+                {localRoles.length === 1 && defaultValues.participantRole && (
+                  <input type="hidden" name="participantRole" value={defaultValues.participantRole} />
+                )}
                 <select
                   id="participantRole"
-                  name="participantRole"
+                  name={localRoles.length === 1 ? undefined : "participantRole"}
                   defaultValue={defaultValues.participantRole}
                   required
                   disabled={localRoles.length === 1}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-invalid={!!state?.errors?.participantRole}
                 >
-                  <option value="">Select role</option>
+                  {!defaultValues.participantRole && <option value="">Select role</option>}
                   {localRoles.map((pr) => (
                     <option key={pr.id} value={pr.id}>
                       {pr.name}
