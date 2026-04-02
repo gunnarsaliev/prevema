@@ -88,7 +88,8 @@ export function ParticipantForm(props: Props) {
           name: '',
           email: '',
           status: 'not-approved',
-          ...(props.defaultEventId ? { event: props.defaultEventId } : {}),
+          ...(props.defaultEventId ? { event: props.defaultEventId } : props.events.length === 1 ? { event: props.events[0].id } : {}),
+          ...(props.participantRoles.length === 1 ? { participantRole: props.participantRoles[0].id } : {}),
         }
 
   // Use Next.js useActionState for optimal server action handling
@@ -199,6 +200,7 @@ export function ParticipantForm(props: Props) {
                   name="event"
                   defaultValue={defaultValues.event}
                   required
+                  disabled={props.events.length === 1}
                   onChange={(e) => setSelectedEvent(Number(e.target.value))}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-invalid={!!state?.errors?.event}
@@ -234,6 +236,7 @@ export function ParticipantForm(props: Props) {
                   name="participantRole"
                   defaultValue={defaultValues.participantRole}
                   required
+                  disabled={localRoles.length === 1}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-invalid={!!state?.errors?.participantRole}
                 >
