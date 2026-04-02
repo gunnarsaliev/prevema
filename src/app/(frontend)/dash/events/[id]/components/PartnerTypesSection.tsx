@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Copy, ExternalLink } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
@@ -36,6 +37,7 @@ export function PartnerTypesSection({ items, eventId, orgId, organizations, even
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<PartnerTypeItem | null>(null)
+  const [copiedId, setCopiedId] = useState<number | null>(null)
 
   const handleClose = () => {
     setOpen(false)
@@ -91,7 +93,10 @@ export function PartnerTypesSection({ items, eventId, orgId, organizations, even
       ) : (
         <div className="divide-y rounded-md border">
           {items.map((item) => (
-            <div key={item.id} className="flex items-center justify-between gap-4 px-4 py-3">
+            <div
+              key={item.id}
+              className="flex items-center justify-between gap-4 px-4 py-3 bg-slate-50 shadow-sm rounded-lg"
+            >
               <div className="min-w-0 space-y-0.5">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">{item.name}</span>
@@ -118,11 +123,31 @@ export function PartnerTypesSection({ items, eventId, orgId, organizations, even
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {item.publicFormLink && (
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={item.publicFormLink} target="_blank" rel="noopener noreferrer">
-                      Form link
-                    </a>
-                  </Button>
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const url = `${window.location.origin}/partner-register/${item.id}`
+                        navigator.clipboard.writeText(url)
+                        setCopiedId(item.id)
+                        setTimeout(() => setCopiedId(null), 2000)
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                      {copiedId === item.id && <span className="ml-1 text-xs">Copied!</span>}
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <a
+                        href={`/partner-register/${item.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Open
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                      </a>
+                    </Button>
+                  </>
                 )}
                 <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
                   Edit

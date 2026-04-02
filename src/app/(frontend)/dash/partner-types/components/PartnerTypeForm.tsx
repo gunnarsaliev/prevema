@@ -266,36 +266,58 @@ export function PartnerTypeForm(props: Props) {
           <Controller
             name="requiredFields"
             control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>Required fields</FieldLabel>
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  {PARTNER_FIELD_OPTIONS.map((option) => {
-                    const checked = field.value?.includes(option.value) ?? false
-                    return (
-                      <label
-                        key={option.value}
-                        className="flex items-center gap-2 text-sm cursor-pointer"
-                      >
-                        <Checkbox
-                          checked={checked}
-                          onCheckedChange={(c) => {
-                            const current = field.value ?? []
-                            field.onChange(
-                              c
-                                ? [...current, option.value]
-                                : current.filter((v) => v !== option.value),
-                            )
-                          }}
-                        />
-                        {option.label}
-                      </label>
-                    )
-                  })}
-                </div>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
+            render={({ field, fieldState }) => {
+              const allFieldValues = PARTNER_FIELD_OPTIONS.map(opt => opt.value)
+              const allSelected = allFieldValues.every(val => field.value?.includes(val))
+
+              return (
+                <Field data-invalid={fieldState.invalid}>
+                  <div className="flex items-center justify-between">
+                    <FieldLabel>Required fields</FieldLabel>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        if (allSelected) {
+                          field.onChange([])
+                        } else {
+                          field.onChange(allFieldValues)
+                        }
+                      }}
+                    >
+                      {allSelected ? 'Deselect All' : 'Select All'}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    {PARTNER_FIELD_OPTIONS.map((option) => {
+                      const checked = field.value?.includes(option.value) ?? false
+                      return (
+                        <label
+                          key={option.value}
+                          className="flex items-center gap-2 text-sm cursor-pointer"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(c) => {
+                              const current = field.value ?? []
+                              field.onChange(
+                                c
+                                  ? [...current, option.value]
+                                  : current.filter((v) => v !== option.value),
+                              )
+                            }}
+                          />
+                          {option.label}
+                        </label>
+                      )
+                    })}
+                  </div>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )
+            }}
           />
 
           {/* Show optional fields toggle */}
