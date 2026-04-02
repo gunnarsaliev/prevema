@@ -22,6 +22,8 @@ type EmailTemplate = {
   subject: string
   description?: string | null
   isActive?: boolean
+  isPublic?: boolean
+  isPremium?: boolean
   automationTriggers?: {
     triggerEvent?: string | null
   }
@@ -71,6 +73,28 @@ export function EmailTemplatesList({ templates }: EmailTemplatesListProps) {
       cell: ({ row }) => (
         <div className="max-w-xs truncate">{row.getValue('subject')}</div>
       ),
+    },
+    {
+      accessorKey: 'isPublic',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Public" />,
+      cell: ({ row }) => {
+        const isPublic = row.getValue('isPublic') as boolean | undefined
+        return isPublic ? (
+          <Badge variant="outline">Public</Badge>
+        ) : (
+          <Badge variant="secondary">Private</Badge>
+        )
+      },
+    },
+    {
+      accessorKey: 'isPremium',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Premium" />,
+      cell: ({ row }) => {
+        const isPremium = row.getValue('isPremium') as boolean | undefined
+        return isPremium ? (
+          <Badge variant="default">Premium</Badge>
+        ) : null
+      },
     },
     {
       id: 'trigger',

@@ -30,20 +30,29 @@ export const ImageTemplates: CollectionConfig = {
         return true
       }
 
-      // Regular users can only read templates for their organizations
+      // Regular users can read public templates + their organization's private templates
       if (!user) return false
 
       const organizationIds = await getUserOrganizationIds(payload, user)
 
-      if (organizationIds.length > 0) {
-        return {
-          organization: {
-            in: organizationIds,
+      return {
+        or: [
+          // Public templates (accessible to all authenticated users)
+          { isPublic: { equals: true } },
+          // Private templates from user's organizations
+          {
+            and: [
+              {
+                or: [
+                  { isPublic: { equals: false } },
+                  { isPublic: { exists: false } },
+                ],
+              },
+              { organization: { in: organizationIds } },
+            ],
           },
-        }
+        ],
       }
-
-      return false
     },
     update: async ({ req: { user, payload } }) => {
       // Super-admins and admins can update any template
@@ -91,7 +100,7 @@ export const ImageTemplates: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     group: 'System',
-    defaultColumns: ['name', 'organization', 'usageType', 'updatedAt'],
+    defaultColumns: ['name', 'organization', 'isPublic', 'isPremium', 'updatedAt'],
     description: 'Saved canvas templates from the image generator for bulk image creation',
   },
   fields: [
@@ -107,24 +116,10 @@ export const ImageTemplates: CollectionConfig = {
       name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
-      required: false, // Make optional for API usage from frontend
+      required: false, // Optional for public templates
       defaultValue: defaultOrganizationValue,
       admin: {
-        description: 'The organization this template belongs to',
-      },
-    },
-    {
-      name: 'usageType',
-      type: 'select',
-      required: true,
-      options: [
-        { label: 'Participants', value: 'participant' },
-        { label: 'Partners', value: 'partner' },
-        { label: 'Both', value: 'both' },
-      ],
-      defaultValue: 'participant',
-      admin: {
-        description: 'Who this template is designed for',
+        description: 'The organization this template belongs to (leave empty for public templates)',
       },
     },
     {
@@ -133,6 +128,22 @@ export const ImageTemplates: CollectionConfig = {
       defaultValue: true,
       admin: {
         description: 'Whether this template is active and can be used',
+      },
+    },
+    {
+      name: 'isPublic',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Public templates are available to all users across all organizations',
+      },
+    },
+    {
+      name: 'isPremium',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Premium templates require a premium subscription to use',
       },
     },
     {

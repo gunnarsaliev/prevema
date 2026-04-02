@@ -91,9 +91,6 @@ export default function ImageTemplateGenerator() {
   const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [saveTemplateName, setSaveTemplateName] = useState('')
-  const [saveUsageType, setSaveUsageType] = useState<'participant' | 'partner' | 'both'>(
-    'participant',
-  )
   const [isSaving, setIsSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [savedTemplates, setSavedTemplates] = useState<any[]>([])
@@ -707,7 +704,8 @@ export default function ImageTemplateGenerator() {
       // Prepare template data
       const templateData: any = {
         name: editMode.mode === 'edit' ? editMode.templateName : saveTemplateName,
-        usageType: saveUsageType,
+        isPublic: false,
+        isPremium: false,
         width: selectedTemplate.width,
         height: selectedTemplate.height,
         backgroundColor: '#ffffff',
@@ -762,7 +760,8 @@ export default function ImageTemplateGenerator() {
         mode: editMode.mode,
         url: apiUrl,
         name: templateData.name,
-        usageType: templateData.usageType,
+        isPublic: templateData.isPublic,
+        isPremium: templateData.isPremium,
         width: templateData.width,
         height: templateData.height,
         backgroundImage: typeof templateData.backgroundImage === 'string'
@@ -1064,7 +1063,7 @@ export default function ImageTemplateGenerator() {
         customPanelContent={customPanelContent}
       >
         {/* Canvas Area */}
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden h-full">
           {/* Background Toolbar */}
           <BackgroundToolbar
             selectedTemplate={selectedTemplate}
@@ -1085,8 +1084,8 @@ export default function ImageTemplateGenerator() {
           />
 
           {/* Canvas Container - Scrollable independently with ScrollArea */}
-          <ScrollArea className="flex-1 bg-muted/20">
-            <div className="flex items-center justify-center min-h-full p-8">
+          <ScrollArea className="flex-1 h-full bg-muted/20">
+            <div className="flex items-center justify-center h-full py-8 px-8">
               <CanvasEditor
                 selectedTemplate={selectedTemplate}
                 elements={currentElements}
@@ -1130,18 +1129,6 @@ export default function ImageTemplateGenerator() {
                   className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
                   placeholder="e.g., Business Card - Blue Theme"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1 text-foreground">Usage Type</label>
-                <select
-                  value={saveUsageType}
-                  onChange={(e) => setSaveUsageType(e.target.value as any)}
-                  className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-                >
-                  <option value="participant">Participants</option>
-                  <option value="partner">Partners</option>
-                  <option value="both">Both</option>
-                </select>
               </div>
               <div className="flex gap-2 justify-end mt-6">
                 <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
@@ -1190,7 +1177,7 @@ export default function ImageTemplateGenerator() {
                     )}
                     <h4 className="font-medium text-sm text-foreground">{template.name}</h4>
                     <p className="text-xs text-muted-foreground">
-                      {template.width}x{template.height} • {template.usageType}
+                      {template.width} × {template.height}
                     </p>
                   </div>
                 ))}

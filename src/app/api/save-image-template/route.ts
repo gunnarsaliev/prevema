@@ -6,7 +6,8 @@ import type { CanvasElement } from '@/components/canvas/types/canvas-element'
 
 interface SaveTemplateRequest {
   name: string
-  usageType: 'participant' | 'partner' | 'both'
+  isPublic?: boolean
+  isPremium?: boolean
   organization: string
   width: number
   height: number
@@ -62,7 +63,8 @@ export async function POST(req: NextRequest) {
     }
     const {
       name,
-      usageType,
+      isPublic,
+      isPremium,
       organization,
       width,
       height,
@@ -73,9 +75,9 @@ export async function POST(req: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!name || !usageType || !width || !height || !elements) {
+    if (!name || !width || !height || !elements) {
       return NextResponse.json(
-        { error: 'Missing required fields: name, usageType, width, height, elements' },
+        { error: 'Missing required fields: name, width, height, elements' },
         { status: 400 },
       )
     }
@@ -225,7 +227,8 @@ export async function POST(req: NextRequest) {
     // Create image template document
     const templateData: any = {
       name,
-      usageType,
+      isPublic: isPublic || false,
+      isPremium: isPremium || false,
       width,
       height,
       backgroundColor: finalBackgroundColor,

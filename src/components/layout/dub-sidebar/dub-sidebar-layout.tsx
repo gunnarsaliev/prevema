@@ -132,7 +132,7 @@ function DubSidebarContent({
             />
 
             {/* Main Content */}
-            <main className="z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-background md:rounded-xl">
+            <main className="z-10 flex min-h-0 flex-1 flex-col overflow-auto bg-background md:rounded-xl">
               {children}
             </main>
           </div>

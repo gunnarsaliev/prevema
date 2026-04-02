@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Where } from 'payload'
 import { checkRole, getUserOrganizationIds } from '@/access/utilities'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
@@ -38,20 +38,27 @@ export const EmailTemplates: CollectionConfig = {
         return true
       }
 
-      // Regular users can only read templates for their organizations
+      // Regular users can read public templates + their organization's private templates
       if (!user) return false
 
       const organizationIds = await getUserOrganizationIds(payload, user)
 
-      if (organizationIds.length > 0) {
-        return {
-          organization: {
-            in: organizationIds,
+      return {
+        or: [
+          { isPublic: { equals: true } },
+          {
+            and: [
+              {
+                or: [
+                  { isPublic: { equals: false } },
+                  { isPublic: { exists: false } },
+                ],
+              },
+              { organization: { in: organizationIds } },
+            ],
           },
-        }
-      }
-
-      return false
+        ],
+      } as Where
     },
     update: async ({ req: { user, payload } }) => {
       // Super-admins and admins can update any template
@@ -124,10 +131,10 @@ export const EmailTemplates: CollectionConfig = {
       name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
-      required: true,
+      required: false, // Optional for public templates
       defaultValue: defaultOrganizationValue,
       admin: {
-        description: 'The organization this template belongs to',
+        description: 'The organization this template belongs to (leave empty for public templates)',
         position: 'sidebar',
       },
     },
@@ -149,6 +156,24 @@ export const EmailTemplates: CollectionConfig = {
       defaultValue: true,
       admin: {
         description: 'Whether this template is active and can be used',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'isPublic',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Public templates are available to all users across all organizations',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'isPremium',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Premium templates require a premium subscription to use',
         position: 'sidebar',
       },
     },

@@ -44,8 +44,9 @@ export function ImageTemplateForm(props: Props) {
       ? props.defaultValues
       : {
           name: '',
-          usageType: 'participant',
           isActive: true,
+          isPublic: false,
+          isPremium: false,
           width: 800,
           height: 600,
           backgroundColor: '#ffffff',
@@ -82,8 +83,9 @@ export function ImageTemplateForm(props: Props) {
 
       const payload = {
         name: values.name,
-        usageType: values.usageType,
         isActive: values.isActive,
+        isPublic: values.isPublic,
+        isPremium: values.isPremium,
         width: values.width,
         height: values.height,
         backgroundImage: values.backgroundImage,
@@ -143,30 +145,6 @@ export function ImageTemplateForm(props: Props) {
           />
 
           <Controller
-            name="usageType"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="usageType">Usage type *</FieldLabel>
-                <p className="text-xs text-muted-foreground -mt-1">
-                  Who this template is designed for
-                </p>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id="usageType" ref={field.ref} aria-invalid={fieldState.invalid}>
-                    <SelectValue placeholder="Select usage type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="participant">Participants</SelectItem>
-                    <SelectItem value="partner">Partners</SelectItem>
-                    <SelectItem value="both">Both</SelectItem>
-                  </SelectContent>
-                </Select>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-
-          <Controller
             name="isActive"
             control={control}
             render={({ field }) => (
@@ -181,6 +159,50 @@ export function ImageTemplateForm(props: Props) {
                 </div>
                 <Switch
                   id="isActive"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </div>
+            )}
+          />
+
+          <Controller
+            name="isPublic"
+            control={control}
+            render={({ field }) => (
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="isPublic" className="text-base">
+                    Public Template
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Make this template available to all users across all organizations
+                  </p>
+                </div>
+                <Switch
+                  id="isPublic"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </div>
+            )}
+          />
+
+          <Controller
+            name="isPremium"
+            control={control}
+            render={({ field }) => (
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="isPremium" className="text-base">
+                    Premium Template
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Require a premium subscription to use this template
+                  </p>
+                </div>
+                <Switch
+                  id="isPremium"
                   checked={field.value}
                   onCheckedChange={field.onChange}
                 />

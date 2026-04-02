@@ -36,9 +36,10 @@ interface CanvasElement {
 interface TemplateOption {
   id: string
   name: string
-  usageType: 'participant' | 'partner' | 'both'
   width: number
   height: number
+  isPublic?: boolean
+  isPremium?: boolean
   previewImage?: string
   elements: CanvasElement[]
 }
@@ -120,8 +121,8 @@ export const GenerationModal: React.FC<GenerationModalProps> = ({
     const fetchData = async () => {
       setLoading(true)
       try {
-        // Fetch templates filtered for entity usage type
-        const templatesResponse = await fetch(`/api/load-image-templates?usageType=${entityType}`, {
+        // Fetch templates (all templates are now usable for both participants and partners)
+        const templatesResponse = await fetch('/api/load-image-templates', {
           credentials: 'include',
         })
         const templatesData = (await templatesResponse.json()) as {

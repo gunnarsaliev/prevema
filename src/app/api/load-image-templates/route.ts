@@ -5,7 +5,7 @@ import config from '@/payload.config'
 /**
  * GET /api/load-image-templates
  * Fetches user's image templates with optional filtering
- * Query params: organization, usageType
+ * Query params: organization
  */
 export async function GET(req: NextRequest) {
   try {
@@ -14,7 +14,6 @@ export async function GET(req: NextRequest) {
     // Get query parameters
     const { searchParams } = new URL(req.url)
     const organizationFilter = searchParams.get('organization')
-    const usageTypeFilter = searchParams.get('usageType')
 
     // Build query
     const where: any = {
@@ -26,12 +25,6 @@ export async function GET(req: NextRequest) {
     if (organizationFilter) {
       where.organization = {
         equals: organizationFilter,
-      }
-    }
-
-    if (usageTypeFilter && usageTypeFilter !== 'all') {
-      where.usageType = {
-        in: [usageTypeFilter, 'both'],
       }
     }
 
@@ -47,7 +40,8 @@ export async function GET(req: NextRequest) {
     const formattedTemplates = templates.docs.map((template) => ({
       id: template.id,
       name: template.name,
-      usageType: template.usageType,
+      isPublic: template.isPublic,
+      isPremium: template.isPremium,
       width: template.width,
       height: template.height,
       backgroundImage:

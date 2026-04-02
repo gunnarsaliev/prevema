@@ -284,3 +284,36 @@ export const getUserOrganizationIdsWithMinRole = async (
     return []
   }
 }
+
+/**
+ * Check if user has premium access
+ * @param payload - The Payload instance
+ * @param user - The user object
+ * @param organizationIds - Optional array of organization IDs to check (for organization-level premium)
+ * @returns True if user has premium access
+ */
+export const checkUserPremiumAccess = async (
+  payload: Payload,
+  user?: User | null,
+  organizationIds?: (number | string)[],
+): Promise<boolean> => {
+  // Super-admins and admins always have premium access
+  if (checkRole(['super-admin', 'admin'], user)) {
+    return true
+  }
+
+  if (!user) return false
+
+  // Check user's pricing plan
+  // Premium plans: 'pro', 'organizations', 'unlimited'
+  const premiumPlans: User['pricingPlan'][] = ['pro', 'organizations', 'unlimited']
+  if (user.pricingPlan && premiumPlans.includes(user.pricingPlan)) {
+    return true
+  }
+
+  // TODO: Add organization-level subscription checks here
+  // This would involve querying a subscriptions collection to check
+  // if any of the user's organizations have active premium subscriptions
+
+  return false
+}

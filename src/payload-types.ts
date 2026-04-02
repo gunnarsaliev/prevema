@@ -452,14 +452,22 @@ export interface EmailTemplate {
    */
   description?: string | null;
   /**
-   * The organization this template belongs to
+   * The organization this template belongs to (leave empty for public templates)
    */
-  organization: number | Organization;
+  organization?: (number | null) | Organization;
   slug?: string | null;
   /**
    * Whether this template is active and can be used
    */
   isActive?: boolean | null;
+  /**
+   * Public templates are available to all users across all organizations
+   */
+  isPublic?: boolean | null;
+  /**
+   * Premium templates require a premium subscription to use
+   */
+  isPremium?: boolean | null;
   /**
    * Email subject line. Use {{variable}} for dynamic content.
    */
@@ -580,17 +588,21 @@ export interface ImageTemplate {
    */
   name: string;
   /**
-   * The organization this template belongs to
+   * The organization this template belongs to (leave empty for public templates)
    */
   organization?: (number | null) | Organization;
-  /**
-   * Who this template is designed for
-   */
-  usageType: 'participant' | 'partner' | 'both';
   /**
    * Whether this template is active and can be used
    */
   isActive?: boolean | null;
+  /**
+   * Public templates are available to all users across all organizations
+   */
+  isPublic?: boolean | null;
+  /**
+   * Premium templates require a premium subscription to use
+   */
+  isPremium?: boolean | null;
   /**
    * Canvas width in pixels
    */
@@ -1238,8 +1250,9 @@ export interface EventsSelect<T extends boolean = true> {
 export interface ImageTemplatesSelect<T extends boolean = true> {
   name?: T;
   organization?: T;
-  usageType?: T;
   isActive?: T;
+  isPublic?: T;
+  isPremium?: T;
   width?: T;
   height?: T;
   backgroundImage?: T;
@@ -1400,6 +1413,8 @@ export interface EmailTemplatesSelect<T extends boolean = true> {
   organization?: T;
   slug?: T;
   isActive?: T;
+  isPublic?: T;
+  isPremium?: T;
   subject?: T;
   htmlBody?: T;
   automationTriggers?:

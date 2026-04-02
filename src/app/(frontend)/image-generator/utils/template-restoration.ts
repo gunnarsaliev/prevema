@@ -30,7 +30,8 @@ export interface RestorationError {
 export interface LoadedTemplate {
   id: string
   name: string
-  usageType: 'participant' | 'partner' | 'both'
+  isPublic?: boolean
+  isPremium?: boolean
   width: number
   height: number
   backgroundImage?: string

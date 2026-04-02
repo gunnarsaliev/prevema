@@ -19,8 +19,9 @@ import { EntityList, EntityListConfig } from '@/components/shared/EntityList'
 type ImageTemplate = {
   id: number
   name: string
-  usageType?: 'participant' | 'partner' | 'both'
   isActive?: boolean
+  isPublic?: boolean
+  isPremium?: boolean
   width: number
   height: number
   updatedAt: string
@@ -31,14 +32,6 @@ interface ImageTemplatesListProps {
 }
 
 export function ImageTemplatesList({ templates }: ImageTemplatesListProps) {
-  const formatUsageType = (type: string) => {
-    const map: Record<string, string> = {
-      participant: 'Participants',
-      partner: 'Partners',
-      both: 'Both',
-    }
-    return map[type] || type
-  }
 
   const columns: ColumnDef<ImageTemplate>[] = [
     createSelectColumn<ImageTemplate>(),
@@ -58,15 +51,25 @@ export function ImageTemplatesList({ templates }: ImageTemplatesListProps) {
       },
     },
     {
-      accessorKey: 'usageType',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Usage Type" />,
+      accessorKey: 'isPublic',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Public" />,
       cell: ({ row }) => {
-        const type = row.getValue('usageType') as string | undefined
-        return (
-          <span className="text-sm text-muted-foreground">
-            {type ? formatUsageType(type) : 'Participant'}
-          </span>
+        const isPublic = row.getValue('isPublic') as boolean | undefined
+        return isPublic ? (
+          <Badge variant="outline">Public</Badge>
+        ) : (
+          <Badge variant="secondary">Private</Badge>
         )
+      },
+    },
+    {
+      accessorKey: 'isPremium',
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Premium" />,
+      cell: ({ row }) => {
+        const isPremium = row.getValue('isPremium') as boolean | undefined
+        return isPremium ? (
+          <Badge variant="default">Premium</Badge>
+        ) : null
       },
     },
     {

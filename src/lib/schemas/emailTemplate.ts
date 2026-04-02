@@ -6,6 +6,8 @@ const emailTemplateSchemaBase = z.object({
   subject: z.string().min(1, 'Email subject is required'),
   htmlBody: z.string().min(1, 'Email body is required'),
   isActive: z.boolean(),
+  isPublic: z.boolean(),
+  isPremium: z.boolean(),
   triggerEvent: z.enum([
     'none',
     'participant.created',
@@ -23,6 +25,8 @@ const emailTemplateSchemaBase = z.object({
 
 export const emailTemplateSchema = emailTemplateSchemaBase.extend({
   isActive: z.boolean().default(true),
+  isPublic: z.boolean().default(false),
+  isPremium: z.boolean().default(false),
   triggerEvent: z.enum([
     'none',
     'participant.created',

@@ -6,7 +6,8 @@ import type { CanvasElement } from '@/components/canvas/types/canvas-element'
 
 interface UpdateTemplateRequest {
   name?: string
-  usageType?: 'participant' | 'partner' | 'both'
+  isPublic?: boolean
+  isPremium?: boolean
   width?: number
   height?: number
   backgroundImage?: string
@@ -76,7 +77,8 @@ export async function PATCH(
 
     const {
       name,
-      usageType,
+      isPublic,
+      isPremium,
       width,
       height,
       backgroundImage,
@@ -183,7 +185,8 @@ export async function PATCH(
     // Build update data
     const updateData: any = {}
     if (name !== undefined) updateData.name = name
-    if (usageType !== undefined) updateData.usageType = usageType
+    if (isPublic !== undefined) updateData.isPublic = isPublic
+    if (isPremium !== undefined) updateData.isPremium = isPremium
     if (width !== undefined) updateData.width = width
     if (height !== undefined) updateData.height = height
     if (finalBackgroundColor !== undefined) updateData.backgroundColor = finalBackgroundColor

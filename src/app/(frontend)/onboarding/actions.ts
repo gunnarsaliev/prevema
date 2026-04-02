@@ -1020,7 +1020,8 @@ export async function saveOnboardingImageTemplateAction(
       data: {
         name: templateName,
         organization: organizationId,
-        usageType: 'both', // Can be used for both participants and partners
+        isPublic: false, // Private to organization by default
+        isPremium: false, // Free template
         width,
         height,
         backgroundImage: mediaId,

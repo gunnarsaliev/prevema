@@ -282,6 +282,50 @@ export function EmailTemplateForm(props: Props) {
                 </div>
               )}
             />
+
+            <Controller
+              name="isPublic"
+              control={control}
+              render={({ field }) => (
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="isPublic" className="text-base">
+                      Public Template
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Make this template available to all users across all organizations
+                    </p>
+                  </div>
+                  <Switch
+                    id="isPublic"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </div>
+              )}
+            />
+
+            <Controller
+              name="isPremium"
+              control={control}
+              render={({ field }) => (
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="isPremium" className="text-base">
+                      Premium Template
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Require premium subscription to use this template
+                    </p>
+                  </div>
+                  <Switch
+                    id="isPremium"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </div>
+              )}
+            />
           </FieldGroup>
         </FieldSet>
       )}
