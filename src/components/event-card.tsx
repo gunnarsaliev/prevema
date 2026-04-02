@@ -26,7 +26,7 @@ export function EventCard({
   return (
     <div className="w-full h-[500px] md:rounded-3xl md:px-0 overflow-hidden bg-white dark:bg-zinc-800 flex flex-col">
       {/* Image Container */}
-      <div className="relative w-full h-48 md:rounded-3xl overflow-hidden flex-shrink-0 bg-muted">
+      <div className="relative w-full h-48 md:rounded-t-3xl overflow-hidden flex-shrink-0 bg-muted">
         {image ? (
           <Image
             src={image}
