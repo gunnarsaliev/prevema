@@ -1055,21 +1055,6 @@ export default function ImageTemplateGenerator() {
     deleteElement,
   ])
 
-  // Top slot content for sidebar (template selector)
-  const topSlot = (
-    <select
-      value={selectedTemplate.id}
-      onChange={(e) => handleTemplateChange(e.target.value)}
-      className="w-full px-3 py-2 text-sm border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-    >
-      {templates.map((template) => (
-        <option key={template.id} value={template.id}>
-          {template.name}
-        </option>
-      ))}
-    </select>
-  )
-
   return (
     <>
       {/* Hidden file inputs */}
@@ -1098,7 +1083,6 @@ export default function ImageTemplateGenerator() {
         config={imageGeneratorSidebarConfig}
         activeModuleId={activeModuleId}
         onModuleChange={setActiveModuleId}
-        topSlot={topSlot}
         customPanelContent={customPanelContent}
       >
         {/* Canvas Area */}
@@ -1121,6 +1105,9 @@ export default function ImageTemplateGenerator() {
             canRedo={canRedo}
             isSaving={isSaving}
             isEditMode={editMode.mode === 'edit'}
+            templates={templates}
+            selectedTemplateId={selectedTemplate.id}
+            onTemplateChange={handleTemplateChange}
           />
 
           {/* Formatting Toolbar */}

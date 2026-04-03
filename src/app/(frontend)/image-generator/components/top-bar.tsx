@@ -1,8 +1,14 @@
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Download, Save, Undo, Redo } from 'lucide-react'
+
+interface Template {
+  id: string
+  name: string
+}
 
 interface TopBarProps {
   templateName: string
@@ -15,6 +21,9 @@ interface TopBarProps {
   canRedo?: boolean
   isSaving?: boolean
   isEditMode?: boolean
+  templates?: Template[]
+  selectedTemplateId?: string
+  onTemplateChange?: (templateId: string) => void
 }
 
 export default function TopBar({
@@ -28,20 +37,73 @@ export default function TopBar({
   canRedo = false,
   isSaving = false,
   isEditMode = false,
+  templates = [],
+  selectedTemplateId,
+  onTemplateChange,
 }: TopBarProps) {
+  const [isEditing, setIsEditing] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [isEditing])
+
+  const handleBlur = () => {
+    setIsEditing(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === 'Escape') {
+      setIsEditing(false)
+    }
+  }
+
   return (
     <div className="border-b border-border bg-background px-4 py-2.5">
       <div className="flex items-center justify-between gap-4">
-        {/* Left: Template Name - Always editable */}
+        {/* Left: Template Name - Click to edit */}
         <div className="flex items-center gap-3 flex-1">
-          <Input
-            type="text"
-            value={templateName}
-            onChange={(e) => onTemplateNameChange?.(e.target.value)}
-            className="max-w-sm h-9 text-sm"
-            placeholder="Enter template name..."
-          />
+          {isEditing ? (
+            <Input
+              ref={inputRef}
+              type="text"
+              value={templateName}
+              onChange={(e) => onTemplateNameChange?.(e.target.value)}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              className="h-9 text-sm w-auto min-w-[200px]"
+              placeholder="Enter template name..."
+            />
+          ) : (
+            <h1
+              onClick={() => setIsEditing(true)}
+              className="text-lg font-semibold cursor-pointer hover:text-primary transition-colors"
+              title="Click to edit"
+            >
+              {templateName || 'Untitled Template'}
+            </h1>
+          )}
         </div>
+
+        {/* Center: Template Size Selector */}
+        {templates.length > 0 && selectedTemplateId && onTemplateChange && (
+          <div className="flex items-center">
+            <select
+              value={selectedTemplateId}
+              onChange={(e) => onTemplateChange(e.target.value)}
+              className="h-9 px-3 text-sm border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              {templates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Right: Action Buttons */}
         <div className="flex items-center gap-2">
