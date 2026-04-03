@@ -62,7 +62,7 @@ export function DubSidebarPanel({
         {/* Custom Content (for specialized panels like Image Generator) */}
         {customContent ? (
           <ScrollArea className="min-h-0 flex-1">
-            <div className="px-3 pb-3">{customContent}</div>
+            <div className="pl-1 pr-6 pb-3">{customContent}</div>
           </ScrollArea>
         ) : (
           <>

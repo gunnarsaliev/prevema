@@ -14,14 +14,30 @@ interface BackgroundColorsPanelProps {
 // Color palettes
 const colorPalettes = {
   gradients: [
-    { name: 'Sunset', colors: ['#FF6B6B', '#FFE66D', '#4ECDC4'] },
-    { name: 'Ocean', colors: ['#2E3192', '#1BFFFF', '#00D4FF'] },
-    { name: 'Forest', colors: ['#0F2027', '#203A43', '#2C5364'] },
-    { name: 'Purple Haze', colors: ['#6A0572', '#AB83A1', '#FFE5E5'] },
-    { name: 'Mint', colors: ['#11998E', '#38EF7D', '#D4FC79'] },
-    { name: 'Warm', colors: ['#F2994A', '#F2C94C', '#EB5757'] },
+    { name: 'White', colors: ['#FFFFFF', '#FFFFFF'] },
+    { name: 'Dark to Light', colors: ['#2C3E50', '#BDC3C7'] },
+    { name: 'Gray Scale', colors: ['#7F8C8D', '#ECF0F1'] },
+    { name: 'Light Green', colors: ['#A8E6CF', '#A8E6CF'] },
+    { name: 'Olive', colors: ['#9B8B3C', '#9B8B3C'] },
+    { name: 'Orange Gradient', colors: ['#F4A261', '#E76F51'] },
+    { name: 'Dark Blue', colors: ['#264653', '#264653'] },
+    { name: 'Cyan Blue', colors: ['#06D6A0', '#06D6A0'] },
+    { name: 'Coral', colors: ['#FF6B6B', '#FF6B6B'] },
+    { name: 'Purple Mix', colors: ['#A855F7', '#EC4899'] },
+    { name: 'Blue Purple', colors: ['#6366F1', '#A855F7'] },
+    { name: 'Purple Gradient', colors: ['#8B5CF6', '#8B5CF6'] },
+    { name: 'Blue Gradient', colors: ['#3B82F6', '#3B82F6'] },
+    { name: 'Cyan', colors: ['#06B6D4', '#06B6D4'] },
+    { name: 'Teal Blue', colors: ['#0D9488', '#06B6D4'] },
+    { name: 'Green Teal', colors: ['#10B981', '#0D9488'] },
+    { name: 'Yellow Green', colors: ['#84CC16', '#10B981'] },
+    { name: 'Yellow Orange', colors: ['#F59E0B', '#F97316'] },
+    { name: 'Orange Red', colors: ['#F97316', '#EF4444'] },
+    { name: 'Pink Purple', colors: ['#EC4899', '#A855F7'] },
+    { name: 'Purple Blue', colors: ['#8B5CF6', '#6366F1'] },
   ],
   solid: [
+    '#FFFFFF',
     '#FF6B6B',
     '#4ECDC4',
     '#45B7D1',
@@ -39,7 +55,6 @@ const colorPalettes = {
     '#B2BEC3',
     '#2D3436',
     '#636E72',
-    '#FFFFFF',
     '#F8F9FA',
     '#E9ECEF',
   ],
@@ -67,7 +82,9 @@ export default function BackgroundColorsPanel({
     : '#ffffff'
 
   const handleGradientClick = (colors: string[]) => {
-    onTemplateUpdate({ backgroundImage: colors[0] })
+    // Create linear gradient string
+    const gradientString = `linear-gradient(135deg, ${colors.join(', ')})`
+    onTemplateUpdate({ backgroundImage: gradientString })
   }
 
   return (
@@ -95,12 +112,12 @@ export default function BackgroundColorsPanel({
 
       {/* Gradients */}
       <div>
-        <p className="text-xs text-muted-foreground mb-2 font-medium">Gradients</p>
-        <div className="grid grid-cols-2 gap-2">
+        <p className="text-xs text-muted-foreground mb-3 font-medium">Default gradient colours</p>
+        <div className="grid grid-cols-7 gap-2">
           {colorPalettes.gradients.map((gradient, idx) => (
-            <div
+            <button
               key={idx}
-              className="h-12 rounded-lg cursor-pointer border-2 border-transparent hover:border-primary transition-all shadow-sm hover:shadow-md"
+              className="w-full aspect-square rounded-full cursor-pointer border-2 border-border hover:border-primary transition-all hover:scale-110"
               style={{
                 background: `linear-gradient(135deg, ${gradient.colors.join(', ')})`,
               }}
