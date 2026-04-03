@@ -9,7 +9,10 @@ import { imageGeneratorSidebarConfig } from '@/config/image-generator-sidebar-co
 import CanvasEditor from './components/canvas-editor'
 import FormattingToolbar from './components/formatting-toolbar'
 import BackgroundToolbar from './components/background-toolbar'
-import ImageGeneratorPanelContent from './components/image-generator-panel-content'
+import DesignToolsPanel from './components/panels/design-tools-panel'
+import CanvasSettingsPanel from './components/panels/canvas-settings-panel'
+import BackgroundColorsPanel from './components/panels/background-colors-panel'
+import LayersPanel from './components/panels/layers-panel'
 import type { CanvasElement, Template } from '@/components/canvas/types/canvas-element'
 import { IMAGE_VARIABLES, TEXT_VARIABLES } from '@/components/canvas/types/canvas-element'
 import { restoreTemplateElements, type LoadedTemplate } from './utils/template-restoration'
@@ -60,6 +63,9 @@ const templates: Template[] = [
 export default function ImageTemplateGenerator() {
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  // Active sidebar module state
+  const [activeModuleId, setActiveModuleId] = useState('design-tools')
 
   // Edit mode: Check if we're editing an existing template
   const templateId = searchParams.get('templateId')
@@ -974,34 +980,79 @@ export default function ImageTemplateGenerator() {
     }
   }
 
-  // Custom panel content for sidebar
-  const customPanelContent = (
-    <ImageGeneratorPanelContent
-      onAddText={addTextElement}
-      onAddImage={() => imageInputRef.current?.click()}
-      onAddShape={addShape}
-      onAddTextVariable={addTextVariable}
-      onAddImageVariable={addImageVariable}
-      textVariables={TEXT_VARIABLES}
-      imageVariables={IMAGE_VARIABLES}
-      selectedTemplate={selectedTemplate}
-      onTemplateUpdate={(updates) =>
-        setSelectedTemplate((prev) => ({
-          ...prev,
-          ...updates,
-        }))
-      }
-      elements={currentElements}
-      selectedElementId={currentSelectedElementId}
-      onElementSelect={handleElementSelect}
-      onMoveToFront={moveToFront}
-      onMoveToBack={moveToBack}
-      onMoveForward={moveForward}
-      onMoveBackward={moveBackward}
-      onToggleVisibility={toggleVisibility}
-      onDeleteElement={deleteElement}
-    />
-  )
+  // Custom panel content for sidebar - switches based on active module
+  const customPanelContent = useMemo(() => {
+    switch (activeModuleId) {
+      case 'design-tools':
+        return (
+          <DesignToolsPanel
+            onAddText={addTextElement}
+            onAddImage={() => imageInputRef.current?.click()}
+            onAddShape={addShape}
+            onAddTextVariable={addTextVariable}
+            onAddImageVariable={addImageVariable}
+            textVariables={TEXT_VARIABLES}
+            imageVariables={IMAGE_VARIABLES}
+          />
+        )
+      case 'canvas-settings':
+        return (
+          <CanvasSettingsPanel
+            selectedTemplate={selectedTemplate}
+            onTemplateUpdate={(updates) =>
+              setSelectedTemplate((prev) => ({
+                ...prev,
+                ...updates,
+              }))
+            }
+          />
+        )
+      case 'background-colors':
+        return (
+          <BackgroundColorsPanel
+            selectedTemplate={selectedTemplate}
+            onTemplateUpdate={(updates) =>
+              setSelectedTemplate((prev) => ({
+                ...prev,
+                ...updates,
+              }))
+            }
+          />
+        )
+      case 'layers':
+        return (
+          <LayersPanel
+            elements={currentElements}
+            selectedElementId={currentSelectedElementId}
+            onElementSelect={handleElementSelect}
+            onMoveToFront={moveToFront}
+            onMoveToBack={moveToBack}
+            onMoveForward={moveForward}
+            onMoveBackward={moveBackward}
+            onToggleVisibility={toggleVisibility}
+            onDeleteElement={deleteElement}
+          />
+        )
+      default:
+        return null
+    }
+  }, [
+    activeModuleId,
+    addTextElement,
+    addShape,
+    addTextVariable,
+    addImageVariable,
+    selectedTemplate,
+    currentElements,
+    currentSelectedElementId,
+    handleElementSelect,
+    moveToFront,
+    moveToBack,
+    moveForward,
+    moveBackward,
+    toggleVisibility,
+    deleteElement,
+  ])
 
   // Top slot content for sidebar (template selector and actions)
   const topSlot = (
@@ -1084,8 +1135,8 @@ export default function ImageTemplateGenerator() {
 
       <DubSidebarLayout
         config={imageGeneratorSidebarConfig}
-        activeModuleId="design"
-        onModuleChange={() => {}}
+        activeModuleId={activeModuleId}
+        onModuleChange={setActiveModuleId}
         topSlot={topSlot}
         customPanelContent={customPanelContent}
       >
