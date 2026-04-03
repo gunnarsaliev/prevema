@@ -22,14 +22,38 @@ const colorPalettes = {
     { name: 'Warm', colors: ['#F2994A', '#F2C94C', '#EB5757'] },
   ],
   solid: [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-    '#DFE6E9', '#74B9FF', '#A29BFE', '#FD79A8', '#FDCB6E',
-    '#6C5CE7', '#00B894', '#00CEC9', '#0984E3', '#B2BEC3',
-    '#2D3436', '#636E72', '#FFFFFF', '#F8F9FA', '#E9ECEF',
+    '#FF6B6B',
+    '#4ECDC4',
+    '#45B7D1',
+    '#96CEB4',
+    '#FFEAA7',
+    '#DFE6E9',
+    '#74B9FF',
+    '#A29BFE',
+    '#FD79A8',
+    '#FDCB6E',
+    '#6C5CE7',
+    '#00B894',
+    '#00CEC9',
+    '#0984E3',
+    '#B2BEC3',
+    '#2D3436',
+    '#636E72',
+    '#FFFFFF',
+    '#F8F9FA',
+    '#E9ECEF',
   ],
   pastels: [
-    '#FFE5E5', '#FFF0F0', '#E5F4FF', '#F0E5FF', '#E5FFE5',
-    '#FFF5E5', '#FFE5F5', '#E5FFFF', '#F5FFE5', '#FFE5EB',
+    '#FFE5E5',
+    '#FFF0F0',
+    '#E5F4FF',
+    '#F0E5FF',
+    '#E5FFE5',
+    '#FFF5E5',
+    '#FFE5F5',
+    '#E5FFFF',
+    '#F5FFE5',
+    '#FFE5EB',
   ],
 }
 
@@ -47,7 +71,13 @@ export default function BackgroundColorsPanel({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4 mt-2">
+      {/* Section Header */}
+      <div className="space-y-1">
+        <h3 className="text-sm font-semibold text-foreground">Background</h3>
+        <p className="text-xs text-muted-foreground">Choose colors or upload an image</p>
+      </div>
+
       {/* Upload Image Button */}
       {onBackgroundImageUpload && (
         <>

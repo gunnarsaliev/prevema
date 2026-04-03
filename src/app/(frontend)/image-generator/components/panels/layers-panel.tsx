@@ -70,7 +70,13 @@ export default function LayersPanel({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4 mt-2">
+      {/* Section Header */}
+      <div className="space-y-1">
+        <h3 className="text-sm font-semibold text-foreground">Layers</h3>
+        <p className="text-xs text-muted-foreground">Manage element order and visibility</p>
+      </div>
+
       {elements.length === 0 ? (
         <div className="text-center py-6 px-4">
           <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-muted/50 flex items-center justify-center">
