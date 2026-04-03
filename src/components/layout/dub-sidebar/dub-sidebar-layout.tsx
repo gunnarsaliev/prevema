@@ -61,7 +61,11 @@ function DubSidebarContent({
         {/* Sidebar */}
         <TooltipProvider delayDuration={0}>
           <aside
-            className={cn('sticky top-0 z-40 h-screen transition-[width] duration-300')}
+            id="dub-sidebar"
+            className={cn(
+              'sticky top-0 z-40 h-screen transition-[width,filter,opacity] duration-300',
+              '[&.modal-blur]:blur-sm [&.modal-blur]:opacity-50',
+            )}
             style={
               {
                 width: showPanel ? SIDEBAR_WIDTH : SIDEBAR_RAIL_WIDTH,

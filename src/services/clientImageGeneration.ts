@@ -559,10 +559,12 @@ export class ClientImageGenerationService {
   private parseElements(
     elements: string | number | boolean | null | { [k: string]: unknown } | unknown[],
   ): CanvasElement[] {
+    // Handle array (already parsed)
     if (Array.isArray(elements)) {
       return elements as CanvasElement[]
     }
 
+    // Handle string (needs JSON parsing)
     if (typeof elements === 'string') {
       try {
         const parsed = JSON.parse(elements)
@@ -571,6 +573,24 @@ export class ClientImageGenerationService {
         }
       } catch (error) {
         console.error('Error parsing elements JSON:', error)
+      }
+    }
+
+    // Handle object with numeric keys (Payload JSON field can return this format)
+    // Example: { "0": {...}, "1": {...} } should become [{...}, {...}]
+    if (elements && typeof elements === 'object' && !Array.isArray(elements)) {
+      const keys = Object.keys(elements)
+
+      // Check if all keys are numeric (0, 1, 2, etc.)
+      const allNumeric = keys.every(key => /^\d+$/.test(key))
+
+      if (allNumeric && keys.length > 0) {
+        // Convert object with numeric keys to array
+        const sorted = keys
+          .map(key => parseInt(key, 10))
+          .sort((a, b) => a - b)
+
+        return sorted.map(index => (elements as any)[String(index)]) as CanvasElement[]
       }
     }
 

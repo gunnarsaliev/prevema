@@ -182,17 +182,32 @@ export async function PATCH(
         })
       : undefined
 
-    // Build update data
+    // Build update data (allow null values to clear fields)
     const updateData: any = {}
     if (name !== undefined) updateData.name = name
     if (isPublic !== undefined) updateData.isPublic = isPublic
     if (isPremium !== undefined) updateData.isPremium = isPremium
     if (width !== undefined) updateData.width = width
     if (height !== undefined) updateData.height = height
-    if (finalBackgroundColor !== undefined) updateData.backgroundColor = finalBackgroundColor
+
+    // Handle backgroundColor - use finalBackgroundColor if available, otherwise use backgroundColor param
+    if (finalBackgroundColor !== undefined) {
+      updateData.backgroundColor = finalBackgroundColor
+    } else if (backgroundColor !== undefined) {
+      updateData.backgroundColor = backgroundColor
+    }
+
     if (cleanedElements !== undefined) updateData.elements = cleanedElements
     if (isActive !== undefined) updateData.isActive = isActive
-    if (backgroundImageId !== undefined) updateData.backgroundImage = backgroundImageId
+
+    // Handle backgroundImage - allow null to clear the field
+    if (backgroundImageId !== undefined) {
+      updateData.backgroundImage = backgroundImageId
+    } else if (backgroundImage !== undefined && backgroundImage === null) {
+      // Explicitly clear backgroundImage field
+      updateData.backgroundImage = null
+    }
+
     if (previewImageId !== undefined) updateData.previewImage = previewImageId
 
     console.log('Updating template:', {

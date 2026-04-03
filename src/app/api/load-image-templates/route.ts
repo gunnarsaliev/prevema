@@ -28,12 +28,13 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Fetch templates
+    // Fetch templates with populated relationships
     const templates = await payload.find({
       collection: 'image-templates',
       where,
       sort: '-createdAt',
       limit: 100,
+      depth: 2, // Populate backgroundImage and previewImage relationships
     })
 
     // Format response

@@ -708,24 +708,51 @@ export default function ImageTemplateGenerator() {
         isPremium: false,
         width: selectedTemplate.width,
         height: selectedTemplate.height,
-        backgroundColor: '#ffffff',
         elements: currentElements,
       }
 
-      // Handle backgroundImage based on mode
-      if (editMode.mode === 'edit') {
-        // In edit mode, only send backgroundImage if it's been changed (is base64)
-        // Otherwise, keep the original ID
-        if (selectedTemplate.backgroundImage.startsWith('data:')) {
-          templateData.backgroundImage = selectedTemplate.backgroundImage
-        } else if (editMode.originalBackgroundImageId) {
-          templateData.backgroundImage = editMode.originalBackgroundImageId
-        }
-      } else {
-        // In create mode, always send the backgroundImage
+      console.log('💾 Save - Background debug:', {
+        mode: editMode.mode,
+        backgroundImage: selectedTemplate.backgroundImage,
+        backgroundImageType: typeof selectedTemplate.backgroundImage,
+        originalBackgroundImageId: editMode.originalBackgroundImageId,
+      })
+
+      // Determine if backgroundImage is a color (hex code) or image (data URL/URL)
+      const isBackgroundColor = selectedTemplate.backgroundImage &&
+        typeof selectedTemplate.backgroundImage === 'string' &&
+        selectedTemplate.backgroundImage.startsWith('#')
+
+      const isBackgroundImageData = selectedTemplate.backgroundImage &&
+        typeof selectedTemplate.backgroundImage === 'string' &&
+        selectedTemplate.backgroundImage.startsWith('data:')
+
+      console.log('💾 Save - Background type check:', { isBackgroundColor, isBackgroundImageData })
+
+      // Set backgroundColor or backgroundImage
+      if (isBackgroundColor) {
+        // It's a color, save to backgroundColor field
+        console.log('💾 Save - Setting backgroundColor:', selectedTemplate.backgroundImage)
+        templateData.backgroundColor = selectedTemplate.backgroundImage
+        // Clear backgroundImage field to avoid confusion
+        templateData.backgroundImage = null
+      } else if (isBackgroundImageData) {
+        // It's a new image (base64), upload it
+        console.log('💾 Save - Setting backgroundImage (base64)')
+        templateData.backgroundImage = selectedTemplate.backgroundImage
+        // Clear backgroundColor since we're using an image
+        templateData.backgroundColor = null
+      } else if (editMode.mode === 'edit' && editMode.originalBackgroundImageId) {
+        // In edit mode, keep the original background image ID if not changed
+        console.log('💾 Save - Keeping original backgroundImage ID:', editMode.originalBackgroundImageId)
+        templateData.backgroundImage = editMode.originalBackgroundImageId
+      } else if (editMode.mode === 'create' && selectedTemplate.backgroundImage) {
+        // In create mode, set the backgroundImage
+        console.log('💾 Save - Creating with backgroundImage:', selectedTemplate.backgroundImage)
         templateData.organization = '' // Will be auto-populated from user session in API
         templateData.backgroundImage = selectedTemplate.backgroundImage
-        templateData.previewImageBase64 = previewBase64
+      } else {
+        console.log('💾 Save - No background set (will use default white)')
       }
 
       // Only add preview in edit mode if we have a new one

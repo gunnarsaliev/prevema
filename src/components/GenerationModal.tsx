@@ -116,6 +116,21 @@ export const GenerationModal: React.FC<GenerationModalProps> = ({
   } | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
 
+  // Apply blur effect to sidebar when modal is open
+  useEffect(() => {
+    const sidebar = document.getElementById('dub-sidebar')
+    if (sidebar) {
+      sidebar.classList.add('modal-blur')
+    }
+
+    // Cleanup: remove blur when modal unmounts
+    return () => {
+      if (sidebar) {
+        sidebar.classList.remove('modal-blur')
+      }
+    }
+  }, [])
+
   // Fetch templates and participants on mount
   useEffect(() => {
     const fetchData = async () => {
@@ -367,7 +382,7 @@ export const GenerationModal: React.FC<GenerationModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={(e) => {
         if (e.target === e.currentTarget && !generating) {
           onClose()
