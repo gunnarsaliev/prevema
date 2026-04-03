@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Download, Save, Undo, Redo } from 'lucide-react'
+import { Download, Save, Undo, Redo, ChevronLeft } from 'lucide-react'
 
 interface Template {
   id: string
@@ -17,6 +17,7 @@ interface TopBarProps {
   onExport: () => void
   onUndo?: () => void
   onRedo?: () => void
+  onBack?: () => void
   canUndo?: boolean
   canRedo?: boolean
   isSaving?: boolean
@@ -33,6 +34,7 @@ export default function TopBar({
   onExport,
   onUndo,
   onRedo,
+  onBack,
   canUndo = false,
   canRedo = false,
   isSaving = false,
@@ -64,8 +66,19 @@ export default function TopBar({
   return (
     <div className="border-b border-border bg-background px-4 py-2.5">
       <div className="flex items-center justify-between gap-4">
-        {/* Left: Template Name - Click to edit */}
+        {/* Left: Back Arrow + Template Name */}
         <div className="flex items-center gap-3 flex-1">
+          {onBack && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onBack}
+              className="h-9 w-9 p-0"
+              title="Back to templates"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+          )}
           {isEditing ? (
             <Input
               ref={inputRef}

@@ -79,14 +79,12 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
   // Lazy-loaded alignment guide functions
   const alignmentUtilsRef = useRef<typeof import('../utils/alignment-guides') | null>(null)
 
-  // Debounced history update - configurable delay (default 1000ms as requested)
-  const [debouncedHistoryUpdate, cancelHistoryUpdate] = useDebounce(
-    (elementId: string, updates: Partial<CanvasElement>) => {
-      console.log('Debounced history update triggered for element:', elementId)
-      onElementDragEnd(elementId, { ...elements.find((el) => el.id === elementId), ...updates })
-    },
-    1000, // 1 second as requested
-  )
+  // Note: We no longer use debounced history updates during drag/resize
+  // Instead, we only push to history on mouse up (handleMouseUp)
+  // This prevents intermediate stale states from being pushed to history
+  const cancelHistoryUpdate = () => {
+    // No-op function for compatibility
+  }
 
   // Debounced canvas redraw for performance optimization
   const [debouncedRedraw, cancelRedraw] = useDebounce(
@@ -954,6 +952,13 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
 
       // Check for element selection
       if (clickedElement) {
+        console.log('🖱️ Starting drag on element:', {
+          id: clickedElement.id,
+          type: clickedElement.type,
+          initialPosition: { x: clickedElement.x, y: clickedElement.y },
+          dimensions: { width: clickedElement.width, height: clickedElement.height },
+        })
+        setInitialElementState({ ...clickedElement })
         onElementSelect(clickedElement.id)
         setIsDragging(true)
         setDragOffset({
@@ -1061,14 +1066,11 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
           // Update immediately for visual feedback
           onElementUpdate(selectedElementId, updates)
 
-          // Store pending update for debounced history
+          // Store pending update for mouse up
           pendingUpdatesRef.current.set(selectedElementId, {
             ...pendingUpdatesRef.current.get(selectedElementId),
             ...updates,
           })
-
-          // Trigger debounced history update
-          debouncedHistoryUpdate(selectedElementId, updates)
         }
       } else if (isResizing && selectedElementId && initialElementState && resizeHandle) {
         // Calculate resize updates inline to avoid dependency issues
@@ -1078,6 +1080,12 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
         const updates: Partial<CanvasElement> = {}
         const isTextElement = element.type === 'text' || element.type === 'text-variable'
 
+        // Define size constraints
+        const MIN_WIDTH = 30
+        const MIN_HEIGHT = 30
+        const MAX_WIDTH = 2000
+        const MAX_HEIGHT = 2000
+
         // Store original font size if text element (for scaling)
         const originalFontSize = element.fontSize || 24
         const originalWidth = element.width || 200
@@ -1085,83 +1093,83 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
 
         switch (resizeHandle) {
           case 'se':
-            updates.width = Math.max(20, (element.width || 0) + deltaX)
+            updates.width = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, (element.width || 0) + deltaX))
             if (element.aspectRatio && !isTextElement) {
-              updates.height = updates.width / element.aspectRatio
+              updates.height = Math.min(MAX_HEIGHT, updates.width / element.aspectRatio)
             } else {
-              updates.height = Math.max(20, (element.height || 0) + deltaY)
+              updates.height = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, (element.height || 0) + deltaY))
             }
             break
           case 'sw':
-            const newWidthSW = Math.max(20, (element.width || 0) - deltaX)
+            const newWidthSW = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, (element.width || 0) - deltaX))
             updates.width = newWidthSW
             // Only update x if width actually changed (prevents disappearing)
-            if (newWidthSW > 20) {
+            if (newWidthSW > MIN_WIDTH) {
               updates.x = element.x + ((element.width || 0) - newWidthSW)
             }
             if (element.aspectRatio && !isTextElement) {
-              updates.height = updates.width / element.aspectRatio
+              updates.height = Math.min(MAX_HEIGHT, updates.width / element.aspectRatio)
             } else {
-              updates.height = Math.max(20, (element.height || 0) + deltaY)
+              updates.height = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, (element.height || 0) + deltaY))
             }
             break
           case 'ne':
-            updates.width = Math.max(20, (element.width || 0) + deltaX)
-            const newHeightNE = Math.max(20, (element.height || 0) - deltaY)
+            updates.width = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, (element.width || 0) + deltaX))
+            const newHeightNE = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, (element.height || 0) - deltaY))
             updates.height = newHeightNE
             // Only update y if height actually changed (prevents disappearing)
-            if (newHeightNE > 20) {
+            if (newHeightNE > MIN_HEIGHT) {
               updates.y = element.y + ((element.height || 0) - newHeightNE)
             }
             if (element.aspectRatio && !isTextElement) {
-              updates.height = updates.width / element.aspectRatio
+              updates.height = Math.min(MAX_HEIGHT, updates.width / element.aspectRatio)
               updates.y = element.y + (element.height || 0) - updates.height
             }
             break
           case 'nw':
-            const newWidthNW = Math.max(20, (element.width || 0) - deltaX)
-            const newHeightNW = Math.max(20, (element.height || 0) - deltaY)
+            const newWidthNW = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, (element.width || 0) - deltaX))
+            const newHeightNW = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, (element.height || 0) - deltaY))
             updates.width = newWidthNW
             updates.height = newHeightNW
             // Only update position if size actually changed (prevents disappearing)
-            if (newWidthNW > 20) {
+            if (newWidthNW > MIN_WIDTH) {
               updates.x = element.x + ((element.width || 0) - newWidthNW)
             }
-            if (newHeightNW > 20) {
+            if (newHeightNW > MIN_HEIGHT) {
               updates.y = element.y + ((element.height || 0) - newHeightNW)
             }
             if (element.aspectRatio && !isTextElement) {
-              updates.height = updates.width / element.aspectRatio
+              updates.height = Math.min(MAX_HEIGHT, updates.width / element.aspectRatio)
               updates.y = element.y + (element.height || 0) - updates.height
             }
             break
           case 'e':
-            updates.width = Math.max(20, (element.width || 0) + deltaX)
+            updates.width = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, (element.width || 0) + deltaX))
             if (element.aspectRatio && !isTextElement) {
-              updates.height = updates.width / element.aspectRatio
+              updates.height = Math.min(MAX_HEIGHT, updates.width / element.aspectRatio)
             }
             break
           case 'w':
-            const newWidthW = Math.max(20, (element.width || 0) - deltaX)
+            const newWidthW = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, (element.width || 0) - deltaX))
             updates.width = newWidthW
             // Only update x if width actually changed (prevents disappearing)
-            if (newWidthW > 20) {
+            if (newWidthW > MIN_WIDTH) {
               updates.x = element.x + ((element.width || 0) - newWidthW)
             }
             if (element.aspectRatio && !isTextElement) {
-              updates.height = updates.width / element.aspectRatio
+              updates.height = Math.min(MAX_HEIGHT, updates.width / element.aspectRatio)
             }
             break
           case 'n':
-            const newHeightN = Math.max(20, (element.height || 0) - deltaY)
+            const newHeightN = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, (element.height || 0) - deltaY))
             updates.height = newHeightN
             // Only update y if height actually changed (prevents disappearing)
-            if (newHeightN > 20) {
+            if (newHeightN > MIN_HEIGHT) {
               updates.y = element.y + ((element.height || 0) - newHeightN)
             }
             break
           case 's':
-            updates.height = Math.max(20, (element.height || 0) + deltaY)
+            updates.height = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, (element.height || 0) + deltaY))
             break
         }
 
@@ -1174,6 +1182,40 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
           updates.fontSize = Math.max(8, Math.min(72, Math.round(originalFontSize * scale)))
         }
 
+        // Validate updates before applying - crucial to prevent disappearing elements
+        const hasValidUpdates =
+          (updates.width === undefined || (updates.width >= MIN_WIDTH && updates.width <= MAX_WIDTH)) &&
+          (updates.height === undefined || (updates.height >= MIN_HEIGHT && updates.height <= MAX_HEIGHT)) &&
+          (updates.x === undefined || (!isNaN(updates.x) && isFinite(updates.x))) &&
+          (updates.y === undefined || (!isNaN(updates.y) && isFinite(updates.y)))
+
+        if (!hasValidUpdates) {
+          console.error('❌ Invalid resize updates detected - blocking update:', {
+            updates,
+            validations: {
+              width: updates.width === undefined || (updates.width >= MIN_WIDTH && updates.width <= MAX_WIDTH),
+              height: updates.height === undefined || (updates.height >= MIN_HEIGHT && updates.height <= MAX_HEIGHT),
+              x: updates.x === undefined || (!isNaN(updates.x) && isFinite(updates.x)),
+              y: updates.y === undefined || (!isNaN(updates.y) && isFinite(updates.y)),
+            }
+          })
+          return
+        }
+
+        // Ensure we have all required properties for a valid element state
+        if (updates.width !== undefined && updates.width < MIN_WIDTH) {
+          updates.width = MIN_WIDTH
+        }
+        if (updates.height !== undefined && updates.height < MIN_HEIGHT) {
+          updates.height = MIN_HEIGHT
+        }
+
+        console.log('✅ Valid resize updates:', {
+          elementId: selectedElementId,
+          handle: resizeHandle,
+          updates,
+        })
+
         // Update immediately for visual feedback
         onElementUpdate(selectedElementId, updates)
 
@@ -1181,22 +1223,34 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
         const updatedElement = { ...element, ...updates }
         updateAlignmentGuides(updatedElement)
 
-        // Store pending update for debounced history
+        // Store pending update for mouse up
         pendingUpdatesRef.current.set(selectedElementId, {
           ...pendingUpdatesRef.current.get(selectedElementId),
           ...updates,
         })
-
-        // Trigger debounced history update
-        debouncedHistoryUpdate(selectedElementId, updates)
       } else if (isDragging && selectedElementId) {
         const element = elements.find((el) => el.id === selectedElementId)
-        if (!element) return
+        if (!element) {
+          console.error('❌ Drag error: Element not found in elements array:', {
+            selectedElementId,
+            elementsCount: elements.length,
+            elementIds: elements.map((el) => el.id),
+          })
+          return
+        }
 
         const updates = {
           x: x - dragOffset.x,
           y: y - dragOffset.y,
         }
+
+        console.log('🔄 Dragging element:', {
+          id: selectedElementId,
+          oldPosition: { x: element.x, y: element.y },
+          newPosition: updates,
+          mousePos: { x, y },
+          dragOffset,
+        })
 
         // Update immediately for visual feedback
         onElementUpdate(selectedElementId, updates)
@@ -1205,14 +1259,11 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
         const updatedElement = { ...element, ...updates }
         updateAlignmentGuides(updatedElement)
 
-        // Store pending update for debounced history
+        // Store pending update for mouse up
         pendingUpdatesRef.current.set(selectedElementId, {
           ...pendingUpdatesRef.current.get(selectedElementId),
           ...updates,
         })
-
-        // Trigger debounced history update
-        debouncedHistoryUpdate(selectedElementId, updates)
       }
 
       // Update cursor efficiently
@@ -1253,7 +1304,6 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
       onElementUpdate,
       elements,
       getResizeHandleAtPosition,
-      debouncedHistoryUpdate,
       updateAlignmentGuides,
     ],
   )
@@ -1264,11 +1314,36 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
       cancelHistoryUpdate()
       const pendingUpdates = pendingUpdatesRef.current.get(selectedElementId)
       if (pendingUpdates && initialElementState) {
-        console.log('Immediate history update on mouse up for element:', selectedElementId)
-        onElementDragEnd(selectedElementId, {
-          ...elements.find((el) => el.id === selectedElementId),
-          ...pendingUpdates,
-        })
+        console.log('=== Mouse Up - Saving Element to History ===')
+        console.log('Element ID:', selectedElementId)
+        console.log('Pending updates:', pendingUpdates)
+
+        // Find the current element in the elements array
+        const element = elements.find((el) => el.id === selectedElementId)
+
+        console.log('Current element from array:', element)
+        console.log('Initial element state:', initialElementState)
+
+        if (element) {
+          // Element found - merge with pending updates
+          const finalElement = {
+            ...element,
+            ...pendingUpdates,
+          }
+          console.log('Final element to save:', finalElement)
+          onElementDragEnd(selectedElementId, finalElement)
+        } else if (initialElementState) {
+          // Element not found - use initial state as fallback to prevent disappearance
+          console.warn('⚠️ Element not found in current elements array, using initial state as fallback')
+          const finalElement = {
+            ...initialElementState,
+            ...pendingUpdates,
+          }
+          console.log('Fallback element to save:', finalElement)
+          onElementDragEnd(selectedElementId, finalElement)
+        } else {
+          console.error('❌ Cannot save element - both current and initial state are missing!')
+        }
       }
       pendingUpdatesRef.current.delete(selectedElementId)
     }

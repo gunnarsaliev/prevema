@@ -489,15 +489,42 @@ export default function ImageTemplateGenerator() {
     // Always update current elements for real-time feedback
     setCurrentElements(newElements)
 
-    // Only push to history for non-dragging operations
-    if (updates.x === undefined && updates.y === undefined) {
-      pushState(newElements, currentSelectedElementId)
-    }
+    // DON'T push to history here - history is only pushed on mouse up via handleElementDragEnd
+    // This prevents intermediate states from polluting the history during drag/resize operations
   }
 
   // Save state after drag/resize operations complete
   const handleElementDragEnd = (id: string, updates: Partial<CanvasElement>) => {
+    console.log('✅ handleElementDragEnd called:', {
+      id,
+      updates,
+      currentElementsCount: currentElements.length,
+      elementExists: currentElements.some((el) => el.id === id),
+    })
+
+    // Find the element before mapping
+    const elementExists = currentElements.find((el) => el.id === id)
+    if (!elementExists) {
+      console.error('❌ Element not found in handleElementDragEnd:', {
+        id,
+        availableIds: currentElements.map((el) => el.id),
+      })
+      // If element doesn't exist, we can't update it - don't push empty state!
+      return
+    }
+
     const newElements = currentElements.map((el) => (el.id === id ? { ...el, ...updates } : el))
+
+    // CRITICAL: Validate that we're not about to push an empty state
+    if (newElements.length === 0) {
+      console.error('❌ BLOCKED: Attempted to push empty state to history!')
+      return
+    }
+
+    console.log('✅ New elements after drag end:', {
+      count: newElements.length,
+      updatedElement: newElements.find((el) => el.id === id),
+    })
     setCurrentElements(newElements)
     pushState(newElements, currentSelectedElementId)
   }
@@ -571,8 +598,13 @@ export default function ImageTemplateGenerator() {
   }
 
   const handleElementSelect = (id: string | null) => {
+    console.log('📌 handleElementSelect called:', {
+      id,
+      currentElementsCount: currentElements.length,
+    })
     setCurrentSelectedElementId(id)
-    pushState(currentElements, id)
+    // Don't push state on selection changes - only push on actual element modifications
+    // This was causing empty states to be pushed to history after drag operations
   }
 
   // Add performance monitoring for development
@@ -643,17 +675,14 @@ export default function ImageTemplateGenerator() {
       return
     }
 
-    // In create mode, show dialog first
-    if (!saveTemplateName.trim()) {
-      toast({
-        title: 'Missing Information',
-        description: 'Please enter a template name',
-        variant: 'destructive',
-      })
-      return
+    // In create mode, check if there's a title provided
+    if (saveTemplateName.trim()) {
+      // Title exists, save directly without showing modal
+      await saveTemplateToServer()
+    } else {
+      // No title provided, show the save dialog modal
+      setShowSaveDialog(true)
     }
-
-    await saveTemplateToServer()
   }
 
   // Actual save logic extracted to a separate function
@@ -724,20 +753,28 @@ export default function ImageTemplateGenerator() {
         originalBackgroundImageId: editMode.originalBackgroundImageId,
       })
 
-      // Determine if backgroundImage is a color (hex code) or image (data URL/URL)
+      // Determine if backgroundImage is a color (hex code), gradient, or image (data URL/URL)
       const isBackgroundColor = selectedTemplate.backgroundImage &&
         typeof selectedTemplate.backgroundImage === 'string' &&
         selectedTemplate.backgroundImage.startsWith('#')
+
+      const isBackgroundGradient = selectedTemplate.backgroundImage &&
+        typeof selectedTemplate.backgroundImage === 'string' &&
+        selectedTemplate.backgroundImage.startsWith('linear-gradient')
 
       const isBackgroundImageData = selectedTemplate.backgroundImage &&
         typeof selectedTemplate.backgroundImage === 'string' &&
         selectedTemplate.backgroundImage.startsWith('data:')
 
-      console.log('💾 Save - Background type check:', { isBackgroundColor, isBackgroundImageData })
+      console.log('💾 Save - Background type check:', {
+        isBackgroundColor,
+        isBackgroundGradient,
+        isBackgroundImageData
+      })
 
       // Set backgroundColor or backgroundImage
-      if (isBackgroundColor) {
-        // It's a color, save to backgroundColor field
+      if (isBackgroundColor || isBackgroundGradient) {
+        // It's a color or gradient, save to backgroundColor field
         console.log('💾 Save - Setting backgroundColor:', selectedTemplate.backgroundImage)
         templateData.backgroundColor = selectedTemplate.backgroundImage
         // Clear backgroundImage field to avoid confusion
@@ -937,6 +974,11 @@ export default function ImageTemplateGenerator() {
     })
   }
 
+  // Handle back navigation
+  const handleBack = () => {
+    router.push('/dash/assets/image-templates')
+  }
+
   // Export image handler - composites all canvas layers
   const handleExportImage = () => {
     // Get all three canvas layers
@@ -1097,8 +1139,9 @@ export default function ImageTemplateGenerator() {
                 setSaveTemplateName(name)
               }
             }}
-            onSave={() => editMode.mode === 'edit' ? handleSaveTemplate() : setShowSaveDialog(true)}
+            onSave={handleSaveTemplate}
             onExport={handleExportImage}
+            onBack={handleBack}
             onUndo={handleUndo}
             onRedo={handleRedo}
             canUndo={canUndo}
