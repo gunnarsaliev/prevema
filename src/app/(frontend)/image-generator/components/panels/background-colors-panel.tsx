@@ -1,11 +1,14 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Image as ImageIcon } from 'lucide-react'
 import type { Template } from '@/components/canvas/types/canvas-element'
 
 interface BackgroundColorsPanelProps {
   selectedTemplate: Template
   onTemplateUpdate: (updates: Partial<Template>) => void
+  onBackgroundImageUpload?: () => void
 }
 
 // Color palettes
@@ -33,6 +36,7 @@ const colorPalettes = {
 export default function BackgroundColorsPanel({
   selectedTemplate,
   onTemplateUpdate,
+  onBackgroundImageUpload,
 }: BackgroundColorsPanelProps) {
   const selectedColor = selectedTemplate.backgroundImage.startsWith('#')
     ? selectedTemplate.backgroundImage
@@ -44,6 +48,21 @@ export default function BackgroundColorsPanel({
 
   return (
     <div className="space-y-3">
+      {/* Upload Image Button */}
+      {onBackgroundImageUpload && (
+        <>
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-2 h-10"
+            onClick={onBackgroundImageUpload}
+          >
+            <ImageIcon className="w-4 h-4" />
+            <span>Upload Background Image</span>
+          </Button>
+          <Separator />
+        </>
+      )}
+
       {/* Gradients */}
       <div>
         <p className="text-xs text-muted-foreground mb-2 font-medium">Gradients</p>

@@ -8,7 +8,7 @@ import { DubSidebarLayout } from '@/components/layout/dub-sidebar'
 import { imageGeneratorSidebarConfig } from '@/config/image-generator-sidebar-config'
 import CanvasEditor from './components/canvas-editor'
 import FormattingToolbar from './components/formatting-toolbar'
-import BackgroundToolbar from './components/background-toolbar'
+import TopBar from './components/top-bar'
 import DesignToolsPanel from './components/panels/design-tools-panel'
 import CanvasSettingsPanel from './components/panels/canvas-settings-panel'
 import BackgroundColorsPanel from './components/panels/background-colors-panel'
@@ -1017,6 +1017,7 @@ export default function ImageTemplateGenerator() {
                 ...updates,
               }))
             }
+            onBackgroundImageUpload={() => backgroundInputRef.current?.click()}
           />
         )
       case 'layers':
@@ -1054,59 +1055,19 @@ export default function ImageTemplateGenerator() {
     deleteElement,
   ])
 
-  // Top slot content for sidebar (template selector and actions)
+  // Top slot content for sidebar (template selector)
   const topSlot = (
-    <div className="space-y-2">
-      <select
-        value={selectedTemplate.id}
-        onChange={(e) => handleTemplateChange(e.target.value)}
-        className="w-full px-3 py-2 text-sm border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-      >
-        {templates.map((template) => (
-          <option key={template.id} value={template.id}>
-            {template.name}
-          </option>
-        ))}
-      </select>
-
-      <div className="flex gap-2">
-        <Button
-          onClick={() => editMode.mode === 'edit' ? handleSaveTemplate() : setShowSaveDialog(true)}
-          className="flex-1 h-9 text-xs"
-          variant="default"
-        >
-          {editMode.mode === 'edit' ? 'Update' : 'Save'}
-        </Button>
-        <Button
-          onClick={handleExportImage}
-          className="flex-1 h-9 text-xs"
-          variant="outline"
-        >
-          Export
-        </Button>
-      </div>
-
-      <div className="flex gap-1 mt-2">
-        <Button
-          onClick={handleUndo}
-          disabled={!canUndo}
-          className="flex-1 h-8 text-xs"
-          variant="ghost"
-          size="sm"
-        >
-          Undo
-        </Button>
-        <Button
-          onClick={handleRedo}
-          disabled={!canRedo}
-          className="flex-1 h-8 text-xs"
-          variant="ghost"
-          size="sm"
-        >
-          Redo
-        </Button>
-      </div>
-    </div>
+    <select
+      value={selectedTemplate.id}
+      onChange={(e) => handleTemplateChange(e.target.value)}
+      className="w-full px-3 py-2 text-sm border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+    >
+      {templates.map((template) => (
+        <option key={template.id} value={template.id}>
+          {template.name}
+        </option>
+      ))}
+    </select>
   )
 
   return (
@@ -1142,16 +1103,24 @@ export default function ImageTemplateGenerator() {
       >
         {/* Canvas Area */}
         <div className="flex flex-1 flex-col overflow-hidden h-full">
-          {/* Background Toolbar */}
-          <BackgroundToolbar
-            selectedTemplate={selectedTemplate}
-            onTemplateUpdate={(updates) =>
-              setSelectedTemplate((prev) => ({
-                ...prev,
-                ...updates,
-              }))
-            }
-            onBackgroundImageUpload={() => backgroundInputRef.current?.click()}
+          {/* Top Bar */}
+          <TopBar
+            templateName={editMode.mode === 'edit' ? editMode.templateName || '' : saveTemplateName}
+            onTemplateNameChange={(name) => {
+              if (editMode.mode === 'edit') {
+                editMode.templateName = name
+              } else {
+                setSaveTemplateName(name)
+              }
+            }}
+            onSave={() => editMode.mode === 'edit' ? handleSaveTemplate() : setShowSaveDialog(true)}
+            onExport={handleExportImage}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            isSaving={isSaving}
+            isEditMode={editMode.mode === 'edit'}
           />
 
           {/* Formatting Toolbar */}
