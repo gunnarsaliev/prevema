@@ -17,6 +17,7 @@ interface DubSidebarLayoutProps {
   onModuleChange: (moduleId: string) => void
   children: React.ReactNode
   topSlot?: React.ReactNode
+  notificationBellSlot?: React.ReactNode
   userMenuSlot?: React.ReactNode
   logoSrc?: string
   logoAlt?: string
@@ -30,6 +31,7 @@ function DubSidebarContent({
   onModuleChange,
   children,
   topSlot,
+  notificationBellSlot,
   userMenuSlot,
   logoSrc,
   logoAlt,
@@ -84,6 +86,7 @@ function DubSidebarContent({
                 onModuleChange={onModuleChange}
                 logoSrc={logoSrc}
                 logoAlt={logoAlt}
+                notificationBellSlot={notificationBellSlot}
                 userMenuSlot={userMenuSlot}
               />
 

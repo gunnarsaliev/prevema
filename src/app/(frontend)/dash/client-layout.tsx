@@ -68,20 +68,23 @@ export function DashClientLayout({
     ? { name: user.name ?? user.email, email: user.email, avatar: profileImageUrl || '' }
     : null
 
+  // Notification bell slot (for sidebar rail)
+  const notificationBellSlot = (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="size-11 text-muted-foreground hover:bg-accent active:bg-accent/80"
+      aria-label="Notifications"
+    >
+      <Bell className="size-4" />
+    </Button>
+  )
+
   // Top slot content (Event Switcher + New Button)
   const topSlot = (
     <>
-      <div className="mb-2 flex items-center gap-2">
-        <div className="flex-1 min-w-0">
-          <EventSwitcher />
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8 text-muted-foreground hover:bg-accent"
-        >
-          <Bell className="size-4" />
-        </Button>
+      <div className="mb-2">
+        <EventSwitcher />
       </div>
 
       <DropdownMenu>
@@ -114,6 +117,7 @@ export function DashClientLayout({
             activeModuleId={activeModuleId}
             onModuleChange={setActiveModuleId}
             topSlot={topSlot}
+            notificationBellSlot={notificationBellSlot}
             userMenuSlot={userData ? <DubSidebarUserMenu user={userData} /> : undefined}
           >
             {children}

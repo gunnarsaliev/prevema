@@ -16,6 +16,7 @@ interface SidebarRailProps {
   onModuleChange: (moduleId: string) => void
   logoSrc?: string
   logoAlt?: string
+  notificationBellSlot?: React.ReactNode
   userMenuSlot?: React.ReactNode
 }
 
@@ -25,6 +26,7 @@ export function DubSidebarRail({
   onModuleChange,
   logoSrc = '/logo.png',
   logoAlt = 'Logo',
+  notificationBellSlot,
   userMenuSlot,
 }: SidebarRailProps) {
   const { isPanelOpen, togglePanel } = useDubSidebar()
@@ -84,6 +86,18 @@ export function DubSidebarRail({
 
       {/* Bottom Section */}
       <div className="flex flex-col items-center gap-3 py-3">
+        {/* Notification Bell Slot */}
+        {notificationBellSlot && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex size-11 items-center justify-center">{notificationBellSlot}</div>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8}>
+              Notifications
+            </TooltipContent>
+          </Tooltip>
+        )}
+
         {/* Toggle Panel Button */}
         <Tooltip>
           <TooltipTrigger asChild>
