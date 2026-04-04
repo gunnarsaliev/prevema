@@ -49,7 +49,7 @@ export function DubSidebarPanel({
 
   return (
     <div
-      className="relative flex h-screen flex-col overflow-hidden rounded-l-xl bg-slate-200"
+      className="relative flex h-screen flex-col overflow-hidden rounded-l-xl bg-sidebar dark:bg-sidebar"
       style={{ width: `${SIDEBAR_PANEL_WIDTH}px` }}
     >
       <div

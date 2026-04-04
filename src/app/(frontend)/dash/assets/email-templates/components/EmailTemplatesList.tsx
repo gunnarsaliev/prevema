@@ -178,16 +178,13 @@ export function EmailTemplatesList({ templates }: EmailTemplatesListProps) {
   ]
 
   const config: EntityListConfig<EmailTemplate> = {
-    title: 'Email Templates',
-    description: 'Manage email templates for automated communications',
-    createButtonLabel: 'Create template',
-    createHref: '/dash/assets/email-templates/create',
     columns,
     data: templates,
     searchKey: 'name',
     searchPlaceholder: 'Search email templates...',
     emptyTitle: 'No email templates yet',
     emptyDescription: 'Create your first email template to get started',
+    emptyActionHref: '/dash/assets/email-templates/create',
     emptyActionLabel: 'Create template',
   }
 

@@ -54,6 +54,8 @@ export default async function EditEmailTemplatePage({
     subject: template.subject,
     htmlBody: extractTextFromLexical(template.htmlBody),
     isActive: template.isActive ?? true,
+    isPublic: template.isPublic ?? false,
+    isPremium: template.isPremium ?? false,
     triggerEvent:
       (template.automationTriggers?.triggerEvent as EmailTemplateFormValues['triggerEvent']) ??
       'none',

@@ -58,7 +58,7 @@ export async function sendTestEmail({
 
     // Verify organization matches
     const templateOrganizationId =
-      typeof template.organization === 'object' ? template.organization.id : template.organization
+      typeof template.organization === 'object' && template.organization ? template.organization.id : template.organization
     if (String(templateOrganizationId) !== String(tenantId)) {
       return { success: false, error: 'Template does not belong to this organization' }
     }

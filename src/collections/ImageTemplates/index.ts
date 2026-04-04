@@ -38,21 +38,21 @@ export const ImageTemplates: CollectionConfig = {
       return {
         or: [
           // Public templates (accessible to all authenticated users)
-          { isPublic: { equals: true } },
+          { isPublic: { equals: true } } as any,
           // Private templates from user's organizations
           {
             and: [
               {
                 or: [
-                  { isPublic: { equals: false } },
-                  { isPublic: { exists: false } },
+                  { isPublic: { equals: false } } as any,
+                  { isPublic: { exists: false } } as any,
                 ],
-              },
-              { organization: { in: organizationIds } },
+              } as any,
+              { organization: { in: organizationIds } } as any,
             ],
-          },
+          } as any,
         ],
-      }
+      } as any
     },
     update: async ({ req: { user, payload } }) => {
       // Super-admins and admins can update any template
