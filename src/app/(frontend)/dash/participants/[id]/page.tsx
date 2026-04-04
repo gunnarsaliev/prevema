@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import Image from 'next/image'
 import Link from 'next/link'
 import config from '@/payload.config'
+import { TopBar } from '@/components/shared/TopBar'
 import { Button } from '@/components/ui/button'
 import { ParticipantImageUpload } from './ParticipantImageUpload'
 
@@ -43,17 +44,21 @@ export default async function ParticipantDetailPage({
       : null
 
   return (
-    <div className="px-6 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Participant Details</h1>
-          <p className="text-sm text-muted-foreground mt-1">{participant.name}</p>
-        </div>
-        <Link href={`/dash/participants/${id}/edit`}>
-          <Button>Edit Participant</Button>
-        </Link>
-      </div>
-      <div className="bg-card rounded-lg border p-6">
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <TopBar
+        title={participant.name}
+        description="Participant details"
+        backHref="/dash/participants"
+        backTitle="Back to participants"
+        actions={
+          <Button asChild size="sm">
+            <Link href={`/dash/participants/${id}/edit`}>Edit</Link>
+          </Button>
+        }
+      />
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="px-6 py-8">
+          <div className="bg-card rounded-lg border p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Profile Image Section */}
           <div className="md:col-span-1">
@@ -232,6 +237,8 @@ export default async function ParticipantDetailPage({
                 </div>
               </div>
             )}
+          </div>
+        </div>
           </div>
         </div>
       </div>

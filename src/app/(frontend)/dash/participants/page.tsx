@@ -72,9 +72,11 @@ export default async function ParticipantsPage({
     return <EmptyParticipantRoleState />
   }
 
+  const createHref = eventId
+    ? `/dash/participants/create?eventId=${eventId}`
+    : '/dash/participants/create'
+
   return (
-    <div className="px-6 py-8">
-      <ParticipantsList participants={participants} events={events} organizations={organizations} eventId={eventId} />
-    </div>
+    <ParticipantsList participants={participants} events={events} organizations={organizations} eventId={eventId} createHref={createHref} />
   )
 }

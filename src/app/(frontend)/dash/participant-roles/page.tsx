@@ -38,9 +38,5 @@ export default async function ParticipantRolesPage() {
     return <EmptyEventState />
   }
 
-  return (
-    <div className="px-6 py-8">
-      <ParticipantRolesList participantRoles={participantRoles} />
-    </div>
-  )
+  return <ParticipantRolesList participantRoles={participantRoles} />
 }

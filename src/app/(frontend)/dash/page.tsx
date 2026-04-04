@@ -4,6 +4,7 @@ import { Calendar, Users, Building2, ImageIcon, PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 import { getDashboardCounts, getUpcomingEvent } from './actions'
 import { DashboardEventCard } from './components/DashboardEventCard'
+import { TopBar } from '@/components/shared/TopBar'
 import {
   getEventLocation,
   getEventDescription,
@@ -17,15 +18,13 @@ export default async function DashboardPage() {
   ])
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome to your event management dashboard
-          </p>
-        </div>
-      </div>
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <TopBar
+        title="Dashboard"
+        description="Welcome to your event management dashboard"
+      />
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="p-4 md:p-6">{/* Content starts here */}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Link href="/dash/events/create">
@@ -226,6 +225,8 @@ export default async function DashboardPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+        </div>
       </div>
     </div>
   )

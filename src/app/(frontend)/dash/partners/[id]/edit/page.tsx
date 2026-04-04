@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
+import { TopBar } from '@/components/shared/TopBar'
 
 import { PartnerForm } from '../../components/PartnerForm'
 import type { PartnerFormValues } from '@/lib/schemas/partner'
@@ -110,22 +111,28 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
   const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
-    <div className="px-6 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Edit partner</h1>
-        <p className="text-sm text-muted-foreground mt-1">{partner.companyName}</p>
-      </div>
-      <PartnerForm
-        mode="edit"
-        partnerId={String(partner.id)}
-        defaultValues={defaultValues}
-        existingCompanyLogoUrl={existingCompanyLogoUrl}
-        existingCompanyBannerUrl={existingCompanyBannerUrl}
-        events={events}
-        partnerTypes={partnerTypes}
-        tiers={tiers}
-        organizations={organizations}
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <TopBar
+        title="Edit Partner"
+        description={partner.companyName}
+        backHref="/dash/partners"
+        backTitle="Back to partners"
       />
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="px-6 py-8">
+          <PartnerForm
+            mode="edit"
+            partnerId={String(partner.id)}
+            defaultValues={defaultValues}
+            existingCompanyLogoUrl={existingCompanyLogoUrl}
+            existingCompanyBannerUrl={existingCompanyBannerUrl}
+            events={events}
+            partnerTypes={partnerTypes}
+            tiers={tiers}
+            organizations={organizations}
+          />
+        </div>
+      </div>
     </div>
   )
 }

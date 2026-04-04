@@ -7,6 +7,7 @@ import { ColumnDef, Row } from '@tanstack/react-table'
 import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image, Plus, Eye } from 'lucide-react'
 
 import type { Participant } from '@/payload-types'
+import { TopBar } from '@/components/shared/TopBar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -68,9 +69,10 @@ interface Props {
   events: EventOption[]
   organizations: OrgOption[]
   eventId?: string
+  createHref: string
 }
 
-export function ParticipantsList({ participants, events, organizations, eventId }: Props) {
+export function ParticipantsList({ participants, events, organizations, eventId, createHref }: Props) {
   const router = useRouter()
   const [roleDrawerOpen, setRoleDrawerOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
@@ -317,20 +319,7 @@ export function ParticipantsList({ participants, events, organizations, eventId 
     },
   ]
 
-  const createHref = eventId
-    ? `/dash/participants/create?eventId=${eventId}`
-    : '/dash/participants/create'
-
   const config: EntityListConfig<Participant> = {
-    title: 'Participants',
-    createButtonLabel: 'New participant',
-    createHref,
-    headerActions: (
-      <Button variant="outline" onClick={() => setRoleDrawerOpen(true)}>
-        <Plus className="mr-2 h-4 w-4" />
-        New role
-      </Button>
-    ),
     columns,
     data: participants,
     searchKey: 'name',
@@ -339,6 +328,7 @@ export function ParticipantsList({ participants, events, organizations, eventId 
     emptyDescription: eventId
       ? 'No participants found for this event.'
       : 'Add your first participant to get started.',
+    emptyActionHref: createHref,
     emptyActionLabel: 'Add participant',
     bulkActions,
     filter: {
@@ -353,8 +343,30 @@ export function ParticipantsList({ participants, events, organizations, eventId 
   }
 
   return (
-    <>
-      <EntityList config={config} />
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <TopBar
+        title="Participants"
+        description="Manage event attendees and roles"
+        actions={
+          <>
+            <Button variant="outline" onClick={() => setRoleDrawerOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              New role
+            </Button>
+            <Button asChild>
+              <Link href={createHref}>
+                <Plus className="mr-2 h-4 w-4" />
+                New participant
+              </Link>
+            </Button>
+          </>
+        }
+      />
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="px-6 py-8">
+          <EntityList config={config} />
+        </div>
+      </div>
 
       <Drawer open={roleDrawerOpen} onOpenChange={setRoleDrawerOpen} direction="right">
         <DrawerContent className="w-[500px] max-w-full flex flex-col">
@@ -401,6 +413,6 @@ export function ParticipantsList({ participants, events, organizations, eventId 
           onDelete={handleDelete}
         />
       </Suspense>
-    </>
+    </div>
   )
 }

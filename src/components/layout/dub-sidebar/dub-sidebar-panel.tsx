@@ -72,7 +72,12 @@ export function DubSidebarPanel({
                 {primarySections.map((section) => (
                   <div key={section.id}>
                     {section.label && (
-                      <div className="mb-2 pl-3 text-sm text-muted-foreground">{section.label}</div>
+                      <div className="mb-2 pl-3">
+                        <div className="text-sm font-medium text-foreground">{section.label}</div>
+                        {section.description && (
+                          <div className="text-xs text-muted-foreground mt-0.5">{section.description}</div>
+                        )}
+                      </div>
                     )}
                     <nav className="flex flex-col gap-0.5">
                       {section.items.map((item) => (

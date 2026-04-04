@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
+import { TopBar } from '@/components/shared/TopBar'
 
 import { PartnerTypeForm } from '../components/PartnerTypeForm'
 
@@ -43,14 +44,18 @@ export default async function CreatePartnerTypePage() {
   const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
-    <div className="px-6 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Create partner type</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Define a new partner type and its registration form fields.
-        </p>
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <TopBar
+        title="Create Partner Type"
+        description="Define a new partner type and its registration form fields"
+        backHref="/dash/partner-types"
+        backTitle="Back to partner types"
+      />
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="px-6 py-8">
+          <PartnerTypeForm mode="create" organizations={organizations} events={events} />
+        </div>
       </div>
-      <PartnerTypeForm mode="create" organizations={organizations} events={events} />
     </div>
   )
 }

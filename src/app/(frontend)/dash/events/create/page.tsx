@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
+import { TopBar } from '@/components/shared/TopBar'
 
 import { EventForm } from '../components/EventForm'
 
@@ -32,14 +33,18 @@ export default async function CreateEventPage() {
   const organizations = orgs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
-    <div className="px-6 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Create event</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Fill in the details to create a new event.
-        </p>
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <TopBar
+        title="Create Event"
+        description="Fill in the details to create a new event"
+        backHref="/dash/events"
+        backTitle="Back to events"
+      />
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="px-6 py-8">
+          <EventForm mode="create" organizations={organizations} />
+        </div>
       </div>
-      <EventForm mode="create" organizations={organizations} />
     </div>
   )
 }

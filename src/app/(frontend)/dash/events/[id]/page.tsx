@@ -5,6 +5,7 @@ import { format } from 'date-fns'
 import Link from 'next/link'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
+import { TopBar } from '@/components/shared/TopBar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -126,21 +127,25 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   }))
 
   return (
-    <div className="px-6 py-8 space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">{event.name}</h1>
-          {event.theme && <p className="text-sm text-muted-foreground mt-1">{event.theme}</p>}
-        </div>
-        <div className="flex gap-2 shrink-0">
-          <Badge variant={STATUS_VARIANT[event.status ?? 'planning']}>
-            {event.status ?? 'planning'}
-          </Badge>
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/dash/events/${event.id}/edit`}>Edit</Link>
-          </Button>
-        </div>
-      </div>
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <TopBar
+        title={event.name}
+        description={event.theme || 'Event details'}
+        backHref="/dash/events"
+        backTitle="Back to events"
+        actions={
+          <>
+            <Badge variant={STATUS_VARIANT[event.status ?? 'planning']}>
+              {event.status ?? 'planning'}
+            </Badge>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/dash/events/${event.id}/edit`}>Edit</Link>
+            </Button>
+          </>
+        }
+      />
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="px-6 py-8 space-y-6">
 
       <Separator />
 
@@ -202,10 +207,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         events={eventOption}
       />
 
-      <Separator />
-      <Button variant="outline" asChild>
-        <Link href="/dash/events">Back to events</Link>
-      </Button>
+        </div>
+      </div>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
 
-import { PartnersList } from './components/PartnersList'
+import { PartnersListClient } from './components/PartnersListClient'
 import { EmptyEventState } from '@/components/EmptyEventState'
 import { EmptyPartnerTypeState } from '@/components/EmptyPartnerTypeState'
 
@@ -72,9 +72,17 @@ export default async function PartnersPage({
     return <EmptyPartnerTypeState />
   }
 
+  const createHref = eventId
+    ? `/dash/partners/create?eventId=${eventId}`
+    : '/dash/partners/create'
+
   return (
-    <div className="px-6 py-8">
-      <PartnersList partners={partners} events={events} organizations={organizations} eventId={eventId} />
-    </div>
+    <PartnersListClient
+      partners={partners}
+      events={events}
+      organizations={organizations}
+      eventId={eventId}
+      createHref={createHref}
+    />
   )
 }

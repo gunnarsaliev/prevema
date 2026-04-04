@@ -10,6 +10,7 @@ export interface NavItemConfig {
 export interface NavSectionConfig {
   id: string
   label?: string
+  description?: string
   items: NavItemConfig[]
 }
 

@@ -8,7 +8,8 @@ import { DubSidebarLayout } from '@/components/layout/dub-sidebar'
 import { imageGeneratorSidebarConfig } from '@/config/image-generator-sidebar-config'
 import CanvasEditor from './components/canvas-editor'
 import FormattingToolbar from './components/formatting-toolbar'
-import TopBar from './components/top-bar'
+import { TopBar } from '@/components/shared/TopBar'
+import { Download, Save, Undo, Redo } from 'lucide-react'
 import DesignToolsPanel from './components/panels/design-tools-panel'
 import CanvasSettingsPanel from './components/panels/canvas-settings-panel'
 import BackgroundColorsPanel from './components/panels/background-colors-panel'
@@ -1131,26 +1132,80 @@ export default function ImageTemplateGenerator() {
         <div className="flex flex-1 flex-col overflow-hidden h-full">
           {/* Top Bar */}
           <TopBar
-            templateName={editMode.mode === 'edit' ? editMode.templateName || '' : saveTemplateName}
-            onTemplateNameChange={(name) => {
+            title={editMode.mode === 'edit' ? editMode.templateName || '' : saveTemplateName}
+            titleEditable={true}
+            onTitleChange={(name) => {
               if (editMode.mode === 'edit') {
                 editMode.templateName = name
               } else {
                 setSaveTemplateName(name)
               }
             }}
-            onSave={handleSaveTemplate}
-            onExport={handleExportImage}
+            titlePlaceholder="Enter template name..."
             onBack={handleBack}
-            onUndo={handleUndo}
-            onRedo={handleRedo}
-            canUndo={canUndo}
-            canRedo={canRedo}
-            isSaving={isSaving}
-            isEditMode={editMode.mode === 'edit'}
-            templates={templates}
-            selectedTemplateId={selectedTemplate.id}
-            onTemplateChange={handleTemplateChange}
+            backTitle="Back to templates"
+            centerContent={
+              <select
+                value={selectedTemplate.id}
+                onChange={(e) => handleTemplateChange(e.target.value)}
+                className="h-9 px-3 text-sm border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {templates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))}
+              </select>
+            }
+            actions={
+              <>
+                {/* Undo/Redo */}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleUndo}
+                  disabled={!canUndo}
+                  className="h-9 w-9 p-0"
+                  title="Undo"
+                >
+                  <Undo className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleRedo}
+                  disabled={!canRedo}
+                  className="h-9 w-9 p-0"
+                  title="Redo"
+                >
+                  <Redo className="w-4 h-4" />
+                </Button>
+
+                {/* Divider */}
+                <div className="w-px h-6 bg-border" />
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleExportImage}
+                  className="h-9 gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Export</span>
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={handleSaveTemplate}
+                  disabled={isSaving}
+                  className="h-9 gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{isSaving ? 'Saving...' : editMode.mode === 'edit' ? 'Update' : 'Save'}</span>
+                </Button>
+              </>
+            }
           />
 
           {/* Formatting Toolbar */}

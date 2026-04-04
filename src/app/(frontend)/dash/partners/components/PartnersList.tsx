@@ -61,11 +61,15 @@ interface Props {
   events: EventOption[]
   organizations: OrgOption[]
   eventId?: string
+  onOpenTypeDrawer?: () => void
 }
 
 export function PartnersList({ partners, events, organizations, eventId }: Props) {
   const router = useRouter()
   const [typeDrawerOpen, setTypeDrawerOpen] = useState(false)
+
+  // Expose function to parent via callback
+  const openTypeDrawer = () => setTypeDrawerOpen(true)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
@@ -321,15 +325,6 @@ export function PartnersList({ partners, events, organizations, eventId }: Props
     : '/dash/partners/create'
 
   const config: EntityListConfig<Partner> = {
-    title: 'Partners',
-    createButtonLabel: 'New partner',
-    createHref,
-    headerActions: (
-      <Button variant="outline" onClick={() => setTypeDrawerOpen(true)}>
-        <Plus className="mr-2 h-4 w-4" />
-        New type
-      </Button>
-    ),
     columns,
     data: partners,
     searchKey: 'companyName',
@@ -338,6 +333,7 @@ export function PartnersList({ partners, events, organizations, eventId }: Props
     emptyDescription: eventId
       ? 'No partners found for this event.'
       : 'Add your first partner to get started.',
+    emptyActionHref: createHref,
     emptyActionLabel: 'Add partner',
     bulkActions,
     filter: {

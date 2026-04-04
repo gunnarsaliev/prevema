@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 
-import { EventsList } from './components/EventsList'
+import { EventsListClient } from './components/EventsListClient'
 
 export default async function EventsPage() {
   const headers = await getHeaders()
@@ -22,8 +22,8 @@ export default async function EventsPage() {
   })
 
   return (
-    <div className="px-6 py-8">
-      <EventsList events={docs} />
+    <div className="flex flex-1 flex-col">
+      <EventsListClient events={docs} />
     </div>
   )
 }

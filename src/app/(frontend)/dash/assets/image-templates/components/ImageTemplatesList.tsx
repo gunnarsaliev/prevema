@@ -152,16 +152,13 @@ export function ImageTemplatesList({ templates }: ImageTemplatesListProps) {
   ]
 
   const config: EntityListConfig<ImageTemplate> = {
-    title: 'Image Templates',
-    description: 'Manage saved canvas templates for bulk image generation',
-    createButtonLabel: 'Create template',
-    createHref: '/image-generator',
     columns,
     data: templates,
     searchKey: 'name',
     searchPlaceholder: 'Search image templates...',
     emptyTitle: 'No image templates yet',
     emptyDescription: 'Create your first image template to get started',
+    emptyActionHref: '/image-generator',
     emptyActionLabel: 'Create template',
     emptyIcon: <ImageIcon className="h-12 w-12 text-muted-foreground" />,
   }

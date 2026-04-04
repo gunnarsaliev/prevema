@@ -38,9 +38,5 @@ export default async function PartnerTypesPage() {
     return <EmptyEventState />
   }
 
-  return (
-    <div className="px-6 py-8">
-      <PartnerTypesList partnerTypes={partnerTypes} />
-    </div>
-  )
+  return <PartnerTypesList partnerTypes={partnerTypes} />
 }

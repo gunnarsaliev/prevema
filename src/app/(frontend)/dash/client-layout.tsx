@@ -116,9 +116,7 @@ export function DashClientLayout({
             topSlot={topSlot}
             userMenuSlot={userData ? <DubSidebarUserMenu user={userData} /> : undefined}
           >
-            <div className="flex flex-1 flex-col gap-4 p-4 md:p-6 bg-slate-100 shadow-lg">
-              {children}
-            </div>
+            {children}
           </DubSidebarLayout>
         </EventProvider>
       </PermissionsProvider>

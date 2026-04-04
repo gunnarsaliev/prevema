@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
+import { TopBar } from '@/components/shared/TopBar'
 
 import { ParticipantRoleForm } from '../components/ParticipantRoleForm'
 
@@ -43,14 +44,18 @@ export default async function CreateParticipantRolePage() {
   const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
-    <div className="px-6 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Create participant role</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Define a new participant role and its registration form fields.
-        </p>
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <TopBar
+        title="Create Participant Role"
+        description="Define a new participant role and its registration form fields"
+        backHref="/dash/participant-roles"
+        backTitle="Back to participant roles"
+      />
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="px-6 py-8">
+          <ParticipantRoleForm mode="create" organizations={organizations} events={events} />
+        </div>
       </div>
-      <ParticipantRoleForm mode="create" organizations={organizations} events={events} />
     </div>
   )
 }

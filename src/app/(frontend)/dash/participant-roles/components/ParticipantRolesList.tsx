@@ -13,9 +13,11 @@ import {
   Copy,
   Check,
   MoreHorizontal,
+  Plus,
 } from 'lucide-react'
 
 import type { ParticipantRole } from '@/payload-types'
+import { TopBar } from '@/components/shared/TopBar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -218,18 +220,36 @@ export function ParticipantRolesList({ participantRoles }: Props) {
   ]
 
   const config: EntityListConfig<ParticipantRole> = {
-    title: 'Participant roles',
-    createButtonLabel: 'New participant role',
-    createHref: '/dash/participant-roles/create',
     columns,
     data: participantRoles,
     searchKey: 'name',
     searchPlaceholder: 'Search participant roles...',
     emptyTitle: 'No participant roles yet',
     emptyDescription: 'Create your first participant role to get started.',
+    emptyActionHref: '/dash/participant-roles/create',
     emptyActionLabel: 'Create participant role',
     bulkActions,
   }
 
-  return <EntityList config={config} />
+  return (
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <TopBar
+        title="Participant Roles"
+        description="Manage attendee categories and registration forms"
+        actions={
+          <Button asChild>
+            <Link href="/dash/participant-roles/create">
+              <Plus className="mr-2 h-4 w-4" />
+              New participant role
+            </Link>
+          </Button>
+        }
+      />
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="px-6 py-8">
+          <EntityList config={config} />
+        </div>
+      </div>
+    </div>
+  )
 }

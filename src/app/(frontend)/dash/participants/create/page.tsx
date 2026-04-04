@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
+import { TopBar } from '@/components/shared/TopBar'
 
 import { ParticipantForm } from '../components/ParticipantForm'
 
@@ -53,20 +54,24 @@ export default async function CreateParticipantPage({
   const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
-    <div className="px-6 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Add participant</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Fill in the details to add a new participant.
-        </p>
-      </div>
-      <ParticipantForm
-        mode="create"
-        events={events}
-        participantRoles={participantRoles}
-        organizations={organizations}
-        defaultEventId={eventId ? Number(eventId) : undefined}
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <TopBar
+        title="Add Participant"
+        description="Fill in the details to add a new participant"
+        backHref="/dash/participants"
+        backTitle="Back to participants"
       />
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="px-6 py-8">
+          <ParticipantForm
+            mode="create"
+            events={events}
+            participantRoles={participantRoles}
+            organizations={organizations}
+            defaultEventId={eventId ? Number(eventId) : undefined}
+          />
+        </div>
+      </div>
     </div>
   )
 }

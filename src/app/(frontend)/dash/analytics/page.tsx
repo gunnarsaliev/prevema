@@ -1,17 +1,18 @@
-import { SidebarInset } from '@/components/ui/sidebar'
+import { TopBar } from '@/components/shared/TopBar'
 import { ChartGroup12 } from '@/components//chart-group12'
 
 export default function Analytics() {
   return (
-    <SidebarInset>
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-          <div className="p-6">
-            <h1 className="text-2xl font-bold">Analytics</h1>
-            <ChartGroup12 />
-          </div>
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <TopBar
+        title="Analytics"
+        description="View insights and performance metrics"
+      />
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="p-6">
+          <ChartGroup12 />
         </div>
       </div>
-    </SidebarInset>
+    </div>
   )
 }

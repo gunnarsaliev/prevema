@@ -3,7 +3,6 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
 import { ColumnDef } from '@tanstack/react-table'
-import { Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { DataTable, BulkAction } from '@/components/ui/data-table'
@@ -16,13 +15,6 @@ import {
 } from '@/components/ui/select'
 
 export interface EntityListConfig<TData> {
-  // Header configuration
-  title: string
-  description?: string
-  createButtonLabel?: string
-  createHref: string
-  headerActions?: ReactNode
-
   // Table configuration
   columns: ColumnDef<TData>[]
   data: TData[]
@@ -32,6 +24,7 @@ export interface EntityListConfig<TData> {
   // Empty state configuration
   emptyTitle?: string
   emptyDescription?: string
+  emptyActionHref?: string
   emptyActionLabel?: string
   emptyIcon?: ReactNode
 
@@ -53,18 +46,14 @@ interface EntityListProps<TData> {
 
 export function EntityList<TData>({ config }: EntityListProps<TData>) {
   const {
-    title,
-    description,
-    createButtonLabel = `New ${title.toLowerCase().slice(0, -1)}`,
-    createHref,
-    headerActions,
     columns,
     data,
     searchKey,
     searchPlaceholder,
-    emptyTitle = `No ${title.toLowerCase()} yet`,
+    emptyTitle,
     emptyDescription,
-    emptyActionLabel = createButtonLabel,
+    emptyActionHref,
+    emptyActionLabel,
     emptyIcon,
     bulkActions,
     filter,
@@ -72,27 +61,6 @@ export function EntityList<TData>({ config }: EntityListProps<TData>) {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        {description ? (
-          <div>
-            <h1 className="text-2xl font-semibold">{title}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
-          </div>
-        ) : (
-          <h1 className="text-2xl font-semibold">{title}</h1>
-        )}
-        <div className="flex items-center gap-2">
-          {headerActions}
-          <Button asChild>
-            <Link href={createHref}>
-              <Plus className="mr-2 h-4 w-4" />
-              {createButtonLabel}
-            </Link>
-          </Button>
-        </div>
-      </div>
-
       {/* Optional Filter */}
       {filter && (
         <div className="flex items-center gap-3">
@@ -116,15 +84,17 @@ export function EntityList<TData>({ config }: EntityListProps<TData>) {
       {data.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
           {emptyIcon && <div className="mb-4">{emptyIcon}</div>}
-          <p className="text-lg font-medium">{emptyTitle}</p>
+          {emptyTitle && <p className="text-lg font-medium">{emptyTitle}</p>}
           {emptyDescription && (
             <p className="text-sm text-muted-foreground mt-1 mb-4">
               {emptyDescription}
             </p>
           )}
-          <Button asChild className="mt-4">
-            <Link href={createHref}>{emptyActionLabel}</Link>
-          </Button>
+          {emptyActionHref && emptyActionLabel && (
+            <Button asChild className="mt-4">
+              <Link href={emptyActionHref}>{emptyActionLabel}</Link>
+            </Button>
+          )}
         </div>
       ) : (
         <DataTable

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
+import { TopBar } from '@/components/shared/TopBar'
 
 import { PartnerForm } from '../components/PartnerForm'
 
@@ -65,21 +66,25 @@ export default async function CreatePartnerPage({
   const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
-    <div className="px-6 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Add partner</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Fill in the details to add a new partner.
-        </p>
-      </div>
-      <PartnerForm
-        mode="create"
-        events={events}
-        partnerTypes={partnerTypes}
-        tiers={tiers}
-        organizations={organizations}
-        defaultEventId={eventId ? Number(eventId) : undefined}
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <TopBar
+        title="Add Partner"
+        description="Fill in the details to add a new partner"
+        backHref="/dash/partners"
+        backTitle="Back to partners"
       />
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="px-6 py-8">
+          <PartnerForm
+            mode="create"
+            events={events}
+            partnerTypes={partnerTypes}
+            tiers={tiers}
+            organizations={organizations}
+            defaultEventId={eventId ? Number(eventId) : undefined}
+          />
+        </div>
+      </div>
     </div>
   )
 }

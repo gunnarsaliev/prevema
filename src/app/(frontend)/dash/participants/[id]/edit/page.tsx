@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
+import { TopBar } from '@/components/shared/TopBar'
 
 import { ParticipantForm } from '../../components/ParticipantForm'
 import type { ParticipantFormValues } from '@/lib/schemas/participant'
@@ -105,21 +106,27 @@ export default async function EditParticipantPage({
   const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
-    <div className="px-6 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Edit participant</h1>
-        <p className="text-sm text-muted-foreground mt-1">{participant.name}</p>
-      </div>
-      <ParticipantForm
-        mode="edit"
-        participantId={String(participant.id)}
-        defaultValues={defaultValues}
-        existingProfileImageUrl={existingProfileImageUrl}
-        existingCompanyLogoUrl={existingCompanyLogoUrl}
-        events={events}
-        participantRoles={participantRoles}
-        organizations={organizations}
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <TopBar
+        title="Edit Participant"
+        description={participant.name}
+        backHref={`/dash/participants/${participant.id}`}
+        backTitle="Back to participant details"
       />
+      <div className="flex-1 overflow-auto bg-muted/20">
+        <div className="px-6 py-8">
+          <ParticipantForm
+            mode="edit"
+            participantId={String(participant.id)}
+            defaultValues={defaultValues}
+            existingProfileImageUrl={existingProfileImageUrl}
+            existingCompanyLogoUrl={existingCompanyLogoUrl}
+            events={events}
+            participantRoles={participantRoles}
+            organizations={organizations}
+          />
+        </div>
+      </div>
     </div>
   )
 }

@@ -38,33 +38,6 @@ export function EventsList({ events }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Events</h1>
-          <p className="text-muted-foreground">Manage and view your events</p>
-        </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>
-                <Button asChild disabled={!canEdit}>
-                  <Link href={canEdit ? '/dash/events/create' : '#'} className={!canEdit ? 'pointer-events-none' : ''}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New event
-                  </Link>
-                </Button>
-              </div>
-            </TooltipTrigger>
-            {!canEdit && (
-              <TooltipContent>
-                <p>You don't have permission to create events ({role} role)</p>
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-
       {/* Search Bar */}
       {events.length > 0 && (
         <div className="flex items-center gap-4">
