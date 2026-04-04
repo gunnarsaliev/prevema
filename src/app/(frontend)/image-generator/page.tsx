@@ -1216,8 +1216,8 @@ export default function ImageTemplateGenerator() {
           />
 
           {/* Canvas Container - Scrollable independently with ScrollArea */}
-          <ScrollArea className="flex-1 h-full bg-muted/20">
-            <div className="flex items-center justify-center h-full py-8 px-8">
+          <ScrollArea className="flex-1 h-full bg-muted/20 dark:bg-background">
+            <div className="flex items-center justify-center h-full py-10 px-10">
               <CanvasEditor
                 selectedTemplate={selectedTemplate}
                 elements={currentElements}

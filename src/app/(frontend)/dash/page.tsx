@@ -23,12 +23,12 @@ export default async function DashboardPage() {
         title="Dashboard"
         description="Welcome to your event management dashboard"
       />
-      <div className="flex-1 overflow-auto bg-muted/20">
-        <div className="p-4 md:p-6">{/* Content starts here */}
+      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
+        <div className="p-6 md:p-8 space-y-8">{/* Content starts here */}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Link href="/dash/events/create">
-          <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+          <Card className="cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Events</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -41,7 +41,7 @@ export default async function DashboardPage() {
         </Link>
 
         <Link href="/dash/participants">
-          <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+          <Card className="cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Participants</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -54,7 +54,7 @@ export default async function DashboardPage() {
         </Link>
 
         <Link href="/dash/partners">
-          <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+          <Card className="cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Partners</CardTitle>
               <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -67,7 +67,7 @@ export default async function DashboardPage() {
         </Link>
 
         <Link href="/dash/assets">
-          <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+          <Card className="cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Creatives</CardTitle>
               <ImageIcon className="h-4 w-4 text-muted-foreground" />
@@ -82,10 +82,10 @@ export default async function DashboardPage() {
 
       {/* Upcoming Event Section */}
       {upcomingEvent && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight">Upcoming Event</h2>
+              <h2 className="text-2xl font-bold tracking-tight dark:text-foreground">Upcoming Event</h2>
               <p className="text-muted-foreground">Your next scheduled event</p>
             </div>
           </div>
@@ -109,14 +109,14 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         <Card className="md:col-span-2 lg:col-span-4">
           <CardHeader>
             <CardTitle>Quick Start</CardTitle>
             <CardDescription>Get started with managing your events</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4">
+          <CardContent className="space-y-6">
+            <div className="grid gap-6">
               {counts.events === 0 ? (
                 <div className="flex items-center gap-4 rounded-lg border p-4 cursor-not-allowed">
                   <Calendar className="h-8 w-8 text-muted-foreground/50" />

@@ -61,8 +61,8 @@ export default async function CreateParticipantPage({
         backHref="/dash/participants"
         backTitle="Back to participants"
       />
-      <div className="flex-1 overflow-auto bg-muted/20">
-        <div className="px-6 py-8">
+      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
+        <div className="px-8 py-8">
           <ParticipantForm
             mode="create"
             events={events}

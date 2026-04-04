@@ -10,11 +10,11 @@ export default function Assets() {
         title="Assets"
         description="Manage your email and image templates"
       />
-      <div className="flex-1 overflow-auto bg-muted/20">
-        <div className="p-6 space-y-6">
-          <div className="grid gap-4 md:grid-cols-2">
+      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
+        <div className="p-8 space-y-8">
+          <div className="grid gap-6 md:grid-cols-2">
             <Link href="/dash/assets/email-templates">
-              <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+              <Card className="cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
                 <CardHeader>
                   <div className="flex items-center gap-2">
                     <Mail className="size-5" />
@@ -28,7 +28,7 @@ export default function Assets() {
             </Link>
 
             <Link href="/dash/assets/image-templates">
-              <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+              <Card className="cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
                 <CardHeader>
                   <div className="flex items-center gap-2">
                     <Image className="size-5" />

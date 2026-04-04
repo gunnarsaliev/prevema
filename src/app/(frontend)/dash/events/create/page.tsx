@@ -40,8 +40,8 @@ export default async function CreateEventPage() {
         backHref="/dash/events"
         backTitle="Back to events"
       />
-      <div className="flex-1 overflow-auto bg-muted/20">
-        <div className="px-6 py-8">
+      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
+        <div className="px-8 py-8">
           <EventForm mode="create" organizations={organizations} />
         </div>
       </div>

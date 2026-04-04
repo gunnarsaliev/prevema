@@ -61,8 +61,8 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
         backHref={`/dash/events/${event.id}`}
         backTitle="Back to event details"
       />
-      <div className="flex-1 overflow-auto bg-muted/20">
-        <div className="px-6 py-8">
+      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
+        <div className="px-8 py-8">
           {/* organizations not passed on edit — org is locked to the event's existing value */}
           <EventForm
             mode="edit"

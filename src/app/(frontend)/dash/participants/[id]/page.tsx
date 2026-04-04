@@ -56,10 +56,10 @@ export default async function ParticipantDetailPage({
           </Button>
         }
       />
-      <div className="flex-1 overflow-auto bg-muted/20">
-        <div className="px-6 py-8">
-          <div className="bg-card rounded-lg border p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
+        <div className="px-8 py-8">
+          <div className="bg-card rounded-lg border p-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Profile Image Section */}
           <div className="md:col-span-1">
             {imageUrl ? (

@@ -144,8 +144,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           </>
         }
       />
-      <div className="flex-1 overflow-auto bg-muted/20">
-        <div className="px-6 py-8 space-y-6">
+      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
+        <div className="px-6 py-8 space-y-8">
 
       <Separator />
 

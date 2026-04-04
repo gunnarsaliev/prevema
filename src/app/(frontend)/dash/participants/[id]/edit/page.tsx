@@ -113,8 +113,8 @@ export default async function EditParticipantPage({
         backHref={`/dash/participants/${participant.id}`}
         backTitle="Back to participant details"
       />
-      <div className="flex-1 overflow-auto bg-muted/20">
-        <div className="px-6 py-8">
+      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
+        <div className="px-8 py-8">
           <ParticipantForm
             mode="edit"
             participantId={String(participant.id)}

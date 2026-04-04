@@ -51,8 +51,8 @@ export default async function CreatePartnerTypePage() {
         backHref="/dash/partner-types"
         backTitle="Back to partner types"
       />
-      <div className="flex-1 overflow-auto bg-muted/20">
-        <div className="px-6 py-8">
+      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
+        <div className="px-8 py-8">
           <PartnerTypeForm mode="create" organizations={organizations} events={events} />
         </div>
       </div>

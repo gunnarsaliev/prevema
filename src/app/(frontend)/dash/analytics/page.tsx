@@ -8,8 +8,8 @@ export default function Analytics() {
         title="Analytics"
         description="View insights and performance metrics"
       />
-      <div className="flex-1 overflow-auto bg-muted/20">
-        <div className="p-6">
+      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
+        <div className="p-8">
           <ChartGroup12 />
         </div>
       </div>

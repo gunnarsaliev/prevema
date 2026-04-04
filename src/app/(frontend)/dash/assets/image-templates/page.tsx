@@ -39,7 +39,7 @@ export default async function ImageTemplatesPage() {
           </Button>
         }
       />
-      <div className="px-6 py-8">
+      <div className="px-8 py-8">
         <ImageTemplatesList templates={templates as any} />
       </div>
     </div>

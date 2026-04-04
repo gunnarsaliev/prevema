@@ -73,8 +73,8 @@ export default async function CreatePartnerPage({
         backHref="/dash/partners"
         backTitle="Back to partners"
       />
-      <div className="flex-1 overflow-auto bg-muted/20">
-        <div className="px-6 py-8">
+      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
+        <div className="px-8 py-8">
           <PartnerForm
             mode="create"
             events={events}
