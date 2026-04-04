@@ -89,7 +89,7 @@ export default function FormattingToolbar({
   // Text element or text variable toolbar
   if (selectedElement.type === 'text' || selectedElement.type === 'text-variable') {
     return (
-      <div className="border-b border-border bg-gradient-to-r from-card via-card to-muted/20 px-2 sm:px-4 py-2.5 overflow-x-auto shadow-sm">
+      <div className="border-b border-border bg-gradient-to-r from-card via-card to-muted/20 px-2 sm:px-4 py-3 sm:py-4 overflow-x-auto shadow-sm">
         <div className="flex items-center gap-1 sm:gap-2 min-w-max">
           {/* Element Type Indicator */}
           <div className="text-xs text-foreground font-semibold px-3 py-1.5 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg border border-primary/30 whitespace-nowrap shadow-sm">
@@ -203,7 +203,7 @@ export default function FormattingToolbar({
               onChange={(e) =>
                 onElementUpdate(selectedElement.id, { width: Number.parseInt(e.target.value) || 0 })
               }
-              className="w-12 xl:w-16 h-8 text-xs"
+              className="w-16 xl:w-20 h-8 text-xs px-2"
               min="1"
             />
             <span className="text-xs text-muted-foreground">H:</span>
@@ -215,7 +215,7 @@ export default function FormattingToolbar({
                   height: Number.parseInt(e.target.value) || 0,
                 })
               }
-              className="w-12 xl:w-16 h-8 text-xs"
+              className="w-16 xl:w-20 h-8 text-xs px-2"
               min="1"
             />
           </div>
@@ -254,7 +254,7 @@ export default function FormattingToolbar({
   // Image element or image variable toolbar
   if (selectedElement.type === 'image' || selectedElement.type === 'image-variable') {
     return (
-      <div className="border-b border-border bg-gradient-to-r from-card via-card to-muted/20 px-2 sm:px-4 py-2.5 overflow-x-auto shadow-sm">
+      <div className="border-b border-border bg-gradient-to-r from-card via-card to-muted/20 px-2 sm:px-4 py-3 sm:py-4 overflow-x-auto shadow-sm">
         <div className="flex items-center gap-1 sm:gap-2 min-w-max">
           {/* Element Type Indicator */}
           <div className="text-xs text-foreground font-semibold px-3 py-1.5 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg border border-primary/30 whitespace-nowrap shadow-sm">
