@@ -1622,7 +1622,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
             onKeyDown={handleTextInputKeyDown}
             onBlur={handleTextEditComplete}
             autoFocus
-            className="w-full h-full px-2 py-1 border-2 border-primary rounded bg-background/95"
+            className="w-full h-full px-2 py-1 border-2 border-primary rounded bg-white dark:bg-gray-900"
             style={{
               fontSize: (() => {
                 const element = elements.find((el) => el.id === editingElementId)
@@ -1640,10 +1640,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
                 const element = elements.find((el) => el.id === editingElementId)
                 return element?.fontStyle || 'normal'
               })(),
-              color: (() => {
-                const element = elements.find((el) => el.id === editingElementId)
-                return element?.fill || '#000000'
-              })(),
+              color: 'inherit',
               outline: 'none',
               boxSizing: 'border-box',
             }}
