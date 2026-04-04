@@ -133,8 +133,11 @@ export async function PATCH(
       // If it's already a number, use it as the ID
       if (typeof backgroundImage === 'number') {
         backgroundImageId = backgroundImage
-      } else if (typeof backgroundImage === 'string' && backgroundImage.startsWith('#')) {
+      } else if (typeof backgroundImage === 'string' && (backgroundImage.startsWith('#') || backgroundImage.startsWith('linear-gradient'))) {
+        // It's a color code or gradient, store in backgroundColor field
         finalBackgroundColor = backgroundImage
+        // Clear backgroundImage field when using a color/gradient
+        backgroundImageId = undefined
       } else if (typeof backgroundImage === 'string' && backgroundImage.startsWith('data:')) {
         try {
           const mimeMatch = backgroundImage.match(/^data:(image\/\w+);base64,/)
@@ -203,8 +206,8 @@ export async function PATCH(
     // Handle backgroundImage - allow null to clear the field
     if (backgroundImageId !== undefined) {
       updateData.backgroundImage = backgroundImageId
-    } else if (backgroundImage !== undefined && backgroundImage === null) {
-      // Explicitly clear backgroundImage field
+    } else if (backgroundImage !== undefined && (backgroundImage === null || backgroundImage.startsWith('#') || backgroundImage.startsWith('linear-gradient'))) {
+      // Explicitly clear backgroundImage field when using colors/gradients
       updateData.backgroundImage = null
     }
 

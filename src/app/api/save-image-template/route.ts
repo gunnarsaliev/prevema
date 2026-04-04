@@ -162,9 +162,9 @@ export async function POST(req: NextRequest) {
     let finalBackgroundColor: string | undefined = backgroundColor
 
     if (backgroundImage) {
-      // Check if it's a hex color code
-      if (backgroundImage.startsWith('#')) {
-        // It's a color code, store in backgroundColor field
+      // Check if it's a hex color code or gradient
+      if (backgroundImage.startsWith('#') || backgroundImage.startsWith('linear-gradient')) {
+        // It's a color code or gradient, store in backgroundColor field
         finalBackgroundColor = backgroundImage
         // Don't set backgroundImageId - leave it undefined
       } else if (backgroundImage.startsWith('http') || backgroundImage.startsWith('data:')) {

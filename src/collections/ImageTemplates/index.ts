@@ -174,7 +174,7 @@ export const ImageTemplates: CollectionConfig = {
       name: 'backgroundColor',
       type: 'text',
       admin: {
-        description: 'Background color (hex code) if no background image is set',
+        description: 'Background color (hex code or CSS gradient) if no background image is set',
       },
     },
     {

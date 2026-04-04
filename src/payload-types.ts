@@ -616,7 +616,7 @@ export interface ImageTemplate {
    */
   backgroundImage?: (number | null) | Media;
   /**
-   * Background color (hex code) if no background image is set
+   * Background color (hex code or CSS gradient) if no background image is set
    */
   backgroundColor?: string | null;
   /**
