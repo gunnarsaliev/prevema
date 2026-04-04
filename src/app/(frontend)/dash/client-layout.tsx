@@ -4,9 +4,8 @@ import { Suspense, useState, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import { DubSidebarLayout } from '@/components/layout/dub-sidebar'
 import { DubSidebarUserMenu } from '@/components/layout/dub-sidebar-user-menu'
-import { EventSwitcher } from '@/components/event-switcher'
 import { Button } from '@/components/ui/button'
-import { Plus, Bell, ChevronDown } from 'lucide-react'
+import { Plus, Bell } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,27 +79,21 @@ export function DashClientLayout({
     </Button>
   )
 
-  // Top slot content (Event Switcher + New Button)
+  // Top slot content (New Button)
   const topSlot = (
-    <>
-      <div className="mb-2">
-        <EventSwitcher />
-      </div>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button className="w-full justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-            <Plus className="size-4" />
-            New
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-48">
-          <DropdownMenuItem>New Event</DropdownMenuItem>
-          <DropdownMenuItem>New Participant</DropdownMenuItem>
-          <DropdownMenuItem>New Partner</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button className="w-full justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+          <Plus className="size-4" />
+          New
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-48">
+        <DropdownMenuItem>New Event</DropdownMenuItem>
+        <DropdownMenuItem>New Participant</DropdownMenuItem>
+        <DropdownMenuItem>New Partner</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 
   return (

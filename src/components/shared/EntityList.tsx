@@ -61,25 +61,6 @@ export function EntityList<TData>({ config }: EntityListProps<TData>) {
 
   return (
     <div className="space-y-4">
-      {/* Optional Filter */}
-      {filter && (
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">{filter.label}</span>
-          <Select value={filter.value} onValueChange={filter.onChange}>
-            <SelectTrigger className="w-64">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {filter.options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
       {/* Empty State or Data Table */}
       {data.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">

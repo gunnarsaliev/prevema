@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TopBar } from '@/components/shared/TopBar'
+import { FilterBar } from '@/components/shared/FilterBar'
+import { EventSwitcher } from '@/components/event-switcher'
 import { PartnersList } from './PartnersList'
 import type { Partner } from '@/payload-types'
 
@@ -41,6 +43,9 @@ export function PartnersListClient({ partners, events, organizations, eventId, c
             </Button>
           </>
         }
+      />
+      <FilterBar
+        primaryFilter={<EventSwitcher />}
       />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">

@@ -81,14 +81,6 @@ export function PartnersList({ partners, events, organizations, eventId }: Props
   const [quickViewPartnerId, setQuickViewPartnerId] = useState<number | null>(null)
   const [quickViewOpen, setQuickViewOpen] = useState(false)
 
-  const handleEventChange = (value: string) => {
-    if (value === 'all') {
-      router.push('/dash/partners')
-    } else {
-      router.push(`/dash/partners?eventId=${value}`)
-    }
-  }
-
   const handleQuickView = (id: number) => {
     setQuickViewPartnerId(id)
     setQuickViewOpen(true)
@@ -336,15 +328,6 @@ export function PartnersList({ partners, events, organizations, eventId }: Props
     emptyActionHref: createHref,
     emptyActionLabel: 'Add partner',
     bulkActions,
-    filter: {
-      label: 'Filter by event',
-      value: eventId ?? 'all',
-      options: [
-        { value: 'all', label: 'All events' },
-        ...events.map((e) => ({ value: String(e.id), label: e.name })),
-      ],
-      onChange: handleEventChange,
-    },
   }
 
   return (

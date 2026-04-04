@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { getDashboardCounts, getUpcomingEvent } from './actions'
 import { DashboardEventCard } from './components/DashboardEventCard'
 import { TopBar } from '@/components/shared/TopBar'
+import { FilterBar } from '@/components/shared/FilterBar'
+import { EventSwitcher } from '@/components/event-switcher'
 import {
   getEventLocation,
   getEventDescription,
@@ -23,6 +25,7 @@ export default async function DashboardPage() {
         title="Dashboard"
         description="Welcome to your event management dashboard"
       />
+      <FilterBar primaryFilter={<EventSwitcher />} />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="p-6 md:p-8 space-y-8">{/* Content starts here */}
 

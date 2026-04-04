@@ -8,8 +8,9 @@ import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image, Plus, Eye } from 
 
 import type { Participant } from '@/payload-types'
 import { TopBar } from '@/components/shared/TopBar'
+import { FilterBar } from '@/components/shared/FilterBar'
+import { EventSwitcher } from '@/components/event-switcher'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,19 +41,6 @@ const ParticipantQuickView = lazy(() =>
   import('./ParticipantQuickView').then((module) => ({ default: module.ParticipantQuickView }))
 )
 
-const STATUS_LABEL: Record<string, string> = {
-  'not-approved': 'Not Approved',
-  approved: 'Approved',
-  'need-info': 'Need Info',
-  cancelled: 'Cancelled',
-}
-
-const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  'not-approved': 'secondary',
-  approved: 'default',
-  'need-info': 'outline',
-  cancelled: 'destructive',
-}
 
 interface EventOption {
   id: number
@@ -85,14 +73,6 @@ export function ParticipantsList({ participants, events, organizations, eventId,
   const [imageParticipantIds, setImageParticipantIds] = useState<string[]>([])
   const [quickViewParticipantId, setQuickViewParticipantId] = useState<number | null>(null)
   const [quickViewOpen, setQuickViewOpen] = useState(false)
-
-  const handleEventChange = (value: string) => {
-    if (value === 'all') {
-      router.push('/dash/participants')
-    } else {
-      router.push(`/dash/participants?eventId=${value}`)
-    }
-  }
 
   const handleQuickView = (id: number) => {
     setQuickViewParticipantId(id)
@@ -331,15 +311,6 @@ export function ParticipantsList({ participants, events, organizations, eventId,
     emptyActionHref: createHref,
     emptyActionLabel: 'Add participant',
     bulkActions,
-    filter: {
-      label: 'Filter by event',
-      value: eventId ?? 'all',
-      options: [
-        { value: 'all', label: 'All events' },
-        ...events.map((e) => ({ value: String(e.id), label: e.name })),
-      ],
-      onChange: handleEventChange,
-    },
   }
 
   return (
@@ -361,6 +332,9 @@ export function ParticipantsList({ participants, events, organizations, eventId,
             </Button>
           </>
         }
+      />
+      <FilterBar
+        primaryFilter={<EventSwitcher />}
       />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
