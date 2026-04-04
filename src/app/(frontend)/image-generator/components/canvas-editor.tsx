@@ -516,6 +516,23 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
     [],
   )
 
+  // Calculate required height for text with wrapping
+  const calculateTextHeight = useCallback(
+    (text: string, width: number, fontSize: number, fontFamily: string, fontWeight: string, fontStyle: string): number => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return fontSize * 1.2
+
+      ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`
+      const maxWidth = width - 4 // Account for padding
+      const lines = wrapText(ctx, text, maxWidth)
+      const lineHeight = fontSize * 1.2
+
+      return lines.length * lineHeight + 4 // Add padding
+    },
+    [wrapText],
+  )
+
   // Optimized text drawing function
   const drawTextElement = useCallback(
     (ctx: CanvasRenderingContext2D, element: CanvasElement) => {
@@ -1173,13 +1190,37 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
             break
         }
 
-        // Scale font size for text elements based on resize
-        if (isTextElement && updates.width && updates.height) {
+        // For text elements, scale font size and auto-calculate height based on text wrapping
+        if (isTextElement && updates.width) {
+          // Calculate font size scaling based on width change
           const widthScale = updates.width / originalWidth
-          const heightScale = updates.height / originalHeight
-          // Use average of both scales for more natural resizing
-          const scale = (widthScale + heightScale) / 2
-          updates.fontSize = Math.max(8, Math.min(72, Math.round(originalFontSize * scale)))
+          const newFontSize = Math.max(8, Math.min(72, Math.round(originalFontSize * widthScale)))
+          updates.fontSize = newFontSize
+
+          const text = element.text || element.variableName || ''
+          const fontFamily = element.fontFamily || 'Arial'
+          const fontWeight = element.fontWeight || 'normal'
+          const fontStyle = element.fontStyle || 'normal'
+
+          // Calculate the required height for the wrapped text with new font size
+          const requiredHeight = calculateTextHeight(
+            text,
+            updates.width,
+            newFontSize,
+            fontFamily,
+            fontWeight,
+            fontStyle
+          )
+
+          // Auto-adjust height to fit wrapped text
+          updates.height = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, requiredHeight))
+
+          // If position needs adjustment (for handles that move the top edge)
+          if (resizeHandle === 'ne' || resizeHandle === 'nw' || resizeHandle === 'n') {
+            // Adjust y position to keep bottom edge fixed
+            const heightDiff = (element.height || 40) - updates.height
+            updates.y = element.y + heightDiff
+          }
         }
 
         // Validate updates before applying - crucial to prevent disappearing elements
@@ -1305,6 +1346,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
       elements,
       getResizeHandleAtPosition,
       updateAlignmentGuides,
+      calculateTextHeight,
     ],
   )
 
