@@ -1,12 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { TopBar } from '@/components/shared/TopBar'
-import { FilterBar } from '@/components/shared/FilterBar'
 import { EventSwitcher } from '@/components/event-switcher'
+import { NewButtonDropdown } from '@/components/shared/NewButtonDropdown'
 import { PartnersList } from './PartnersList'
 import type { Partner } from '@/payload-types'
 
@@ -29,23 +26,27 @@ interface Props {
 }
 
 export function PartnersListClient({ partners, events, organizations, eventId, createHref }: Props) {
+  const [typeDrawerOpen, setTypeDrawerOpen] = useState(false)
+
+  const newButtonItems = [
+    {
+      label: 'New partner',
+      href: createHref,
+    },
+    {
+      label: 'New partner type',
+      onClick: () => setTypeDrawerOpen(true),
+    },
+  ]
+
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
       <TopBar
         title="Partners"
+        centerContent={<EventSwitcher />}
         actions={
-          <>
-            <Button asChild>
-              <Link href={createHref}>
-                <Plus className="mr-2 h-4 w-4" />
-                New partner
-              </Link>
-            </Button>
-          </>
+          <NewButtonDropdown items={newButtonItems} />
         }
-      />
-      <FilterBar
-        primaryFilter={<EventSwitcher />}
       />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
@@ -54,6 +55,8 @@ export function PartnersListClient({ partners, events, organizations, eventId, c
             events={events}
             organizations={organizations}
             eventId={eventId}
+            typeDrawerOpen={typeDrawerOpen}
+            onTypeDrawerChange={setTypeDrawerOpen}
           />
         </div>
       </div>

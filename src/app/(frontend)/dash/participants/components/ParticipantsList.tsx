@@ -4,12 +4,12 @@ import { useState, lazy, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ColumnDef, Row } from '@tanstack/react-table'
-import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image, Plus, Eye } from 'lucide-react'
+import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image, Eye } from 'lucide-react'
 
 import type { Participant } from '@/payload-types'
 import { TopBar } from '@/components/shared/TopBar'
-import { FilterBar } from '@/components/shared/FilterBar'
 import { EventSwitcher } from '@/components/event-switcher'
+import { NewButtonDropdown } from '@/components/shared/NewButtonDropdown'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -63,6 +63,17 @@ interface Props {
 export function ParticipantsList({ participants, events, organizations, eventId, createHref }: Props) {
   const router = useRouter()
   const [roleDrawerOpen, setRoleDrawerOpen] = useState(false)
+
+  const newButtonItems = [
+    {
+      label: 'New participant',
+      href: createHref,
+    },
+    {
+      label: 'New participant role',
+      onClick: () => setRoleDrawerOpen(true),
+    },
+  ]
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
@@ -318,23 +329,10 @@ export function ParticipantsList({ participants, events, organizations, eventId,
       <TopBar
         title="Participants"
         description="Manage event attendees and roles"
+        centerContent={<EventSwitcher />}
         actions={
-          <>
-            <Button variant="outline" onClick={() => setRoleDrawerOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              New role
-            </Button>
-            <Button asChild>
-              <Link href={createHref}>
-                <Plus className="mr-2 h-4 w-4" />
-                New participant
-              </Link>
-            </Button>
-          </>
+          <NewButtonDropdown items={newButtonItems} />
         }
-      />
-      <FilterBar
-        primaryFilter={<EventSwitcher />}
       />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">

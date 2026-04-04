@@ -5,15 +5,7 @@ import { usePathname } from 'next/navigation'
 import { DubSidebarLayout } from '@/components/layout/dub-sidebar'
 import { DubSidebarUserMenu } from '@/components/layout/dub-sidebar-user-menu'
 import { Button } from '@/components/ui/button'
-import { Plus, Bell } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { Bell } from 'lucide-react'
 import { dashSidebarConfig } from '@/config/dash-sidebar-config'
 import { EventProvider, type Event } from '@/providers/Event'
 import { PermissionsProvider } from '@/providers/Permissions'
@@ -79,23 +71,6 @@ export function DashClientLayout({
     </Button>
   )
 
-  // Top slot content (New Button)
-  const topSlot = (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button className="w-full justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="size-4" />
-          New
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-48">
-        <DropdownMenuItem>New Event</DropdownMenuItem>
-        <DropdownMenuItem>New Participant</DropdownMenuItem>
-        <DropdownMenuItem>New Partner</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-
   return (
     <Suspense>
       <PermissionsProvider
@@ -109,7 +84,6 @@ export function DashClientLayout({
             config={dashSidebarConfig}
             activeModuleId={activeModuleId}
             onModuleChange={setActiveModuleId}
-            topSlot={topSlot}
             notificationBellSlot={notificationBellSlot}
             userMenuSlot={userData ? <DubSidebarUserMenu user={userData} /> : undefined}
           >

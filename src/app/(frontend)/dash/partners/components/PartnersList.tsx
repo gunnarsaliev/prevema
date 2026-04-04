@@ -61,15 +61,19 @@ interface Props {
   events: EventOption[]
   organizations: OrgOption[]
   eventId?: string
-  onOpenTypeDrawer?: () => void
+  typeDrawerOpen?: boolean
+  onTypeDrawerChange?: (open: boolean) => void
 }
 
-export function PartnersList({ partners, events, organizations, eventId }: Props) {
+export function PartnersList({
+  partners,
+  events,
+  organizations,
+  eventId,
+  typeDrawerOpen = false,
+  onTypeDrawerChange
+}: Props) {
   const router = useRouter()
-  const [typeDrawerOpen, setTypeDrawerOpen] = useState(false)
-
-  // Expose function to parent via callback
-  const openTypeDrawer = () => setTypeDrawerOpen(true)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
@@ -334,7 +338,7 @@ export function PartnersList({ partners, events, organizations, eventId }: Props
     <>
       <EntityList config={config} />
 
-      <Drawer open={typeDrawerOpen} onOpenChange={setTypeDrawerOpen} direction="right">
+      <Drawer open={typeDrawerOpen} onOpenChange={onTypeDrawerChange} direction="right">
         <DrawerContent className="w-[500px] max-w-full flex flex-col">
           <DrawerHeader>
             <DrawerTitle>Create partner type</DrawerTitle>
@@ -345,10 +349,10 @@ export function PartnersList({ partners, events, organizations, eventId }: Props
               organizations={organizations}
               events={events}
               onSuccess={() => {
-                setTypeDrawerOpen(false)
+                onTypeDrawerChange?.(false)
                 router.refresh()
               }}
-              onCancel={() => setTypeDrawerOpen(false)}
+              onCancel={() => onTypeDrawerChange?.(false)}
             />
           </div>
         </DrawerContent>
