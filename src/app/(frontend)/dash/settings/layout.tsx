@@ -2,7 +2,6 @@ import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import { SettingsNav } from './SettingsNav'
 
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
   // Authenticate user once at layout level to avoid redundant auth calls
@@ -15,16 +14,8 @@ export default async function SettingsLayout({ children }: { children: React.Rea
   return (
     <section className="px-6 py-16">
       <div className="container">
-        <div className="flex flex-col gap-8 lg:flex-row">
-          {/* Sidebar Navigation */}
-          <aside className="lg:w-56 lg:shrink-0">
-            <SettingsNav />
-          </aside>
-
-          {/* Main Content */}
-          <main className="min-w-0 flex-1">
-            <div className="rounded-xl border bg-card shadow-sm">{children}</div>
-          </main>
+        <div className="min-w-0">
+          <div className="rounded-xl border bg-card shadow-sm">{children}</div>
         </div>
       </div>
     </section>
