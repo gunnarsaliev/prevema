@@ -59,7 +59,7 @@ export function TopBar({
   }
 
   return (
-    <div className="border-b border-border bg-white dark:bg-background px-6 py-3">
+    <div className="border-b border-border px-6 py-3">
       <div className="flex items-center justify-between gap-6">
         {/* Left: Back Button + Title + Description */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -97,9 +97,7 @@ export function TopBar({
               <h1
                 onClick={titleEditable ? () => setIsEditing(true) : undefined}
                 className={`text-base font-medium truncate ${
-                  titleEditable
-                    ? 'cursor-pointer hover:text-primary transition-colors'
-                    : ''
+                  titleEditable ? 'cursor-pointer hover:text-primary transition-colors' : ''
                 } ${!title && titleEditable ? 'text-muted-foreground' : 'text-foreground'}`}
                 title={titleEditable ? 'Click to edit' : undefined}
               >

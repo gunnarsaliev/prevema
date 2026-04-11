@@ -32,7 +32,7 @@ export function DubSidebarRail({
   const { isPanelOpen, togglePanel } = useDubSidebar()
 
   return (
-    <div className="flex h-full w-16 flex-col items-center justify-between bg-sidebar-accent dark:bg-sidebar">
+    <div className="flex h-full w-16 flex-col items-center justify-between bg-sidebar-accent dark:bg-black">
       <div className="flex flex-col items-center gap-3 p-2">
         {/* Logo */}
         <div className="pt-2 pb-1">

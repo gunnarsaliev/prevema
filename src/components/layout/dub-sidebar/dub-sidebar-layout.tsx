@@ -50,7 +50,7 @@ function DubSidebarContent({
 
   return (
     <div
-      className="flex h-screen flex-col overflow-hidden bg-sidebar dark:bg-sidebar"
+      className="flex h-screen flex-col overflow-hidden bg-sidebar dark:bg-black"
       style={
         {
           '--shell-panel': 'color-mix(in oklch, var(--background) 94%, var(--foreground))',
@@ -122,7 +122,7 @@ function DubSidebarContent({
         </TooltipProvider>
 
         {/* Content Area */}
-        <div className="flex min-h-0 flex-1 flex-col bg-background md:bg-sidebar dark:md:bg-sidebar md:py-2 md:pr-2">
+        <div className="flex min-h-0 flex-1 flex-col md:py-2 md:pr-2">
           <div className="relative flex min-h-0 flex-1 flex-col">
             {/* Corner fills for visual effect */}
             {/* <div
@@ -139,7 +139,7 @@ function DubSidebarContent({
             />
 
             {/* Main Content */}
-            <main className="z-10 flex min-h-0 flex-1 flex-col overflow-auto bg-background md:rounded-xl">
+            <main className="z-10 flex min-h-0 flex-1 flex-col overflow-auto bg-sidebar">
               {children}
             </main>
           </div>

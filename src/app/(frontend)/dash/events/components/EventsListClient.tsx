@@ -7,12 +7,7 @@ import { TopBar } from '@/components/shared/TopBar'
 import { EventsList } from './EventsList'
 import type { Event } from '@/payload-types'
 import { usePermissions } from '@/providers/Permissions'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface Props {
   events: Event[]
@@ -32,7 +27,10 @@ export function EventsListClient({ events }: Props) {
               <TooltipTrigger asChild>
                 <div>
                   <Button asChild disabled={!canEdit}>
-                    <Link href={canEdit ? '/dash/events/create' : '#'} className={!canEdit ? 'pointer-events-none' : ''}>
+                    <Link
+                      href={canEdit ? '/dash/events/create' : '#'}
+                      className={!canEdit ? 'pointer-events-none' : ''}
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       New event
                     </Link>
@@ -48,7 +46,7 @@ export function EventsListClient({ events }: Props) {
           </TooltipProvider>
         }
       />
-      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
+      <div className="flex-1 overflow-auto">
         <div className="px-8 py-8">
           <EventsList events={events} />
         </div>
