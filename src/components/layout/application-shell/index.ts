@@ -1,0 +1,8 @@
+export { ApplicationShell } from './application-shell'
+export { AppSidebar } from './app-sidebar'
+export { MailSidebar } from './mail-sidebar'
+export { FolderTabs } from './folder-tabs'
+export { EmailDetailDrawer } from './email-detail-drawer'
+export type { SidebarModule, ApplicationShellProps } from './types'
+export type { MailItem } from './mail-sidebar'
+export type { Folder } from './folder-tabs'

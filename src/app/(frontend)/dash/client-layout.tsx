@@ -1,12 +1,9 @@
 'use client'
 
 import { Suspense, useState, useMemo } from 'react'
-import { usePathname } from 'next/navigation'
-import { DubSidebarLayout } from '@/components/layout/dub-sidebar'
-import { DubSidebarUserMenu } from '@/components/layout/dub-sidebar-user-menu'
-import { Button } from '@/components/ui/button'
-import { Bell } from 'lucide-react'
-import { dashSidebarConfig } from '@/config/dash-sidebar-config'
+import { usePathname, useRouter } from 'next/navigation'
+import { ApplicationShell } from '@/components/layout/application-shell'
+import { appShellModules } from '@/config/app-shell-config'
 import { EventProvider, type Event } from '@/providers/Event'
 import { PermissionsProvider } from '@/providers/Permissions'
 import { useAuth } from '@/providers/Auth'
@@ -26,6 +23,7 @@ export function DashClientLayout({
   }
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const { user } = useAuth()
   const [activeModuleId, setActiveModuleId] = useState('dashboard')
 
@@ -57,19 +55,16 @@ export function DashClientLayout({
 
   const userData = user
     ? { name: user.name ?? user.email, email: user.email, avatar: profileImageUrl || '' }
-    : null
+    : undefined
 
-  // Notification bell slot (for sidebar rail)
-  const notificationBellSlot = (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="size-11 text-muted-foreground hover:bg-accent active:bg-accent/80"
-      aria-label="Notifications"
-    >
-      <Bell className="size-4" />
-    </Button>
-  )
+  // Handle module change with navigation
+  const handleModuleChange = (moduleId: string) => {
+    setActiveModuleId(moduleId)
+    const module = appShellModules.find((m) => m.id === moduleId)
+    if (module?.path) {
+      router.push(module.path)
+    }
+  }
 
   return (
     <Suspense>
@@ -80,15 +75,14 @@ export function DashClientLayout({
         isOwner={permissions.isOwner}
       >
         <EventProvider initialEvents={initialEvents}>
-          <DubSidebarLayout
-            config={dashSidebarConfig}
+          <ApplicationShell
+            modules={appShellModules}
             activeModuleId={activeModuleId}
-            onModuleChange={setActiveModuleId}
-            notificationBellSlot={notificationBellSlot}
-            userMenuSlot={userData ? <DubSidebarUserMenu user={userData} /> : undefined}
+            onModuleChange={handleModuleChange}
+            user={userData}
           >
             {children}
-          </DubSidebarLayout>
+          </ApplicationShell>
         </EventProvider>
       </PermissionsProvider>
     </Suspense>
