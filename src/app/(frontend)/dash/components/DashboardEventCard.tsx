@@ -37,10 +37,10 @@ export function DashboardEventCard({
   }
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+    <Card className="bg-zinc-800 overflow-hidden hover:shadow-lg transition-shadow p-0">
       <div className="grid md:grid-cols-[400px_1fr] gap-0">
         {/* Image Section */}
-        <div className="relative h-[250px] md:h-full min-h-[250px] bg-muted">
+        <div className="relative h-[250px] md:h-full bg-muted">
           {image ? (
             <Image
               src={image}
@@ -52,7 +52,10 @@ export function DashboardEventCard({
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
-              <Icon icon="solar:calendar-bold-duotone" className="text-muted-foreground/30 size-24" />
+              <Icon
+                icon="solar:calendar-bold-duotone"
+                className="text-muted-foreground/30 size-24"
+              />
             </div>
           )}
           {eventType && (
@@ -67,7 +70,7 @@ export function DashboardEventCard({
         </div>
 
         {/* Content Section */}
-        <CardContent className="p-6 md:p-8 flex flex-col justify-center">
+        <CardContent className="flex flex-col justify-center p-6">
           <div className="space-y-4">
             {/* Title */}
             <div>
@@ -85,13 +88,9 @@ export function DashboardEventCard({
               <div className="flex items-start gap-3">
                 <CalendarIcon className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                 <div className="flex flex-col">
-                  <span className="font-semibold text-foreground">
-                    {formatDate(start)}
-                  </span>
+                  <span className="font-semibold text-foreground">{formatDate(start)}</span>
                   {end && (
-                    <span className="text-sm text-muted-foreground">
-                      to {formatDate(end)}
-                    </span>
+                    <span className="text-sm text-muted-foreground">to {formatDate(end)}</span>
                   )}
                 </div>
               </div>

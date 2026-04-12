@@ -20,7 +20,7 @@ export async function DashboardStats({ organizationIds }: Props) {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <Link href="/dash/events/create">
-        <Card className="cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
+        <Card className="bg-zinc-800 cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Events</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -33,7 +33,7 @@ export async function DashboardStats({ organizationIds }: Props) {
       </Link>
 
       <Link href="/dash/participants">
-        <Card className="cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
+        <Card className="bg-zinc-800 cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Participants</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -46,7 +46,7 @@ export async function DashboardStats({ organizationIds }: Props) {
       </Link>
 
       <Link href="/dash/partners">
-        <Card className="cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
+        <Card className="bg-zinc-800 cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Partners</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -59,7 +59,7 @@ export async function DashboardStats({ organizationIds }: Props) {
       </Link>
 
       <Link href="/dash/assets">
-        <Card className="cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
+        <Card className="bg-zinc-800 cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Creatives</CardTitle>
             <ImageIcon className="h-4 w-4 text-muted-foreground" />
@@ -83,9 +83,7 @@ export async function UpcomingEventSection({ organizationIds }: Props) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight dark:text-foreground">
-            Upcoming Event
-          </h2>
+          <h2 className="text-2xl font-bold tracking-tight dark:text-foreground">Upcoming Event</h2>
           <p className="text-muted-foreground">Your next scheduled event</p>
         </div>
       </div>
@@ -115,7 +113,7 @@ export async function QuickStartSection({ organizationIds }: Props) {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-      <Card className="md:col-span-2 lg:col-span-4">
+      <Card className="bg-zinc-800 md:col-span-2 lg:col-span-4">
         <CardHeader>
           <CardTitle>Quick Start</CardTitle>
           <CardDescription>Get started with managing your events</CardDescription>
@@ -149,9 +147,7 @@ export async function QuickStartSection({ organizationIds }: Props) {
                 <Calendar className="h-8 w-8 text-primary" />
                 <div className="flex-1">
                   <h3 className="font-semibold">Manage Events</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Create and organize your events
-                  </p>
+                  <p className="text-sm text-muted-foreground">Create and organize your events</p>
                 </div>
               </Link>
             )}
@@ -217,9 +213,7 @@ export async function QuickStartSection({ organizationIds }: Props) {
                 <Building2 className="h-8 w-8 text-primary" />
                 <div>
                   <h3 className="font-semibold">Manage Partners</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Work with sponsors and exhibitors
-                  </p>
+                  <p className="text-sm text-muted-foreground">Work with sponsors and exhibitors</p>
                 </div>
               </Link>
             )}
@@ -231,16 +225,14 @@ export async function QuickStartSection({ organizationIds }: Props) {
               <ImageIcon className="h-8 w-8 text-primary" />
               <div>
                 <h3 className="font-semibold">Manage Creatives</h3>
-                <p className="text-sm text-muted-foreground">
-                  Create email and image templates
-                </p>
+                <p className="text-sm text-muted-foreground">Create email and image templates</p>
               </div>
             </Link>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="md:col-span-2 lg:col-span-3">
+      <Card className="bg-zinc-800 md:col-span-2 lg:col-span-3">
         <CardHeader>
           <CardTitle>Recent Activity</CardTitle>
           <CardDescription>Latest updates from your events</CardDescription>
