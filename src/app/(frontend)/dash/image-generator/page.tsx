@@ -4,8 +4,15 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { DubSidebarLayout } from '@/components/layout/dub-sidebar'
-import { imageGeneratorSidebarConfig } from '@/config/image-generator-sidebar-config'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+} from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
+import { Palette, Settings, Paintbrush, Layers } from 'lucide-react'
 import CanvasEditor from './components/canvas-editor'
 import FormattingToolbar from './components/formatting-toolbar'
 import { TopBar } from '@/components/shared/TopBar'
@@ -22,6 +29,13 @@ import { useImageCache } from './hooks/use-image-cache'
 import { useKeyboardShortcuts } from './hooks/use-keyboard-shortcuts'
 import { useToast } from './hooks/use-toast'
 import { Toaster } from './components/ui/toaster'
+
+const toolModules = [
+  { id: 'design-tools', label: 'Design Tools', icon: Palette },
+  { id: 'canvas-settings', label: 'Canvas Settings', icon: Settings },
+  { id: 'background-colors', label: 'Background', icon: Paintbrush },
+  { id: 'layers', label: 'Layers', icon: Layers },
+]
 
 const templates: Template[] = [
   {
@@ -71,14 +85,12 @@ export default function ImageTemplateGenerator() {
   // Edit mode: Check if we're editing an existing template
   const templateId = searchParams.get('templateId')
   const [editMode] = useState<{
-    mode: 'create' | 'edit';
-    templateId?: string;
-    templateName?: string;
-    originalBackgroundImageId?: number;
-    originalPreviewImageId?: number;
-  }>(
-    templateId ? { mode: 'edit', templateId } : { mode: 'create' }
-  )
+    mode: 'create' | 'edit'
+    templateId?: string
+    templateName?: string
+    originalBackgroundImageId?: number
+    originalPreviewImageId?: number
+  }>(templateId ? { mode: 'edit', templateId } : { mode: 'create' })
 
   const [selectedTemplate, setSelectedTemplate] = useState<Template>(templates[0])
   const imageInputRef = useRef<HTMLInputElement>(null)
@@ -755,22 +767,25 @@ export default function ImageTemplateGenerator() {
       })
 
       // Determine if backgroundImage is a color (hex code), gradient, or image (data URL/URL)
-      const isBackgroundColor = selectedTemplate.backgroundImage &&
+      const isBackgroundColor =
+        selectedTemplate.backgroundImage &&
         typeof selectedTemplate.backgroundImage === 'string' &&
         selectedTemplate.backgroundImage.startsWith('#')
 
-      const isBackgroundGradient = selectedTemplate.backgroundImage &&
+      const isBackgroundGradient =
+        selectedTemplate.backgroundImage &&
         typeof selectedTemplate.backgroundImage === 'string' &&
         selectedTemplate.backgroundImage.startsWith('linear-gradient')
 
-      const isBackgroundImageData = selectedTemplate.backgroundImage &&
+      const isBackgroundImageData =
+        selectedTemplate.backgroundImage &&
         typeof selectedTemplate.backgroundImage === 'string' &&
         selectedTemplate.backgroundImage.startsWith('data:')
 
       console.log('💾 Save - Background type check:', {
         isBackgroundColor,
         isBackgroundGradient,
-        isBackgroundImageData
+        isBackgroundImageData,
       })
 
       // Set backgroundColor or backgroundImage
@@ -788,7 +803,10 @@ export default function ImageTemplateGenerator() {
         templateData.backgroundColor = null
       } else if (editMode.mode === 'edit' && editMode.originalBackgroundImageId) {
         // In edit mode, keep the original background image ID if not changed
-        console.log('💾 Save - Keeping original backgroundImage ID:', editMode.originalBackgroundImageId)
+        console.log(
+          '💾 Save - Keeping original backgroundImage ID:',
+          editMode.originalBackgroundImageId,
+        )
         templateData.backgroundImage = editMode.originalBackgroundImageId
       } else if (editMode.mode === 'create' && selectedTemplate.backgroundImage) {
         // In create mode, set the backgroundImage
@@ -822,9 +840,10 @@ export default function ImageTemplateGenerator() {
       })
 
       // Call appropriate API based on mode
-      const apiUrl = editMode.mode === 'edit'
-        ? `/api/image-templates/${editMode.templateId}`
-        : '/api/save-image-template'
+      const apiUrl =
+        editMode.mode === 'edit'
+          ? `/api/image-templates/${editMode.templateId}`
+          : '/api/save-image-template'
       const method = editMode.mode === 'edit' ? 'PATCH' : 'POST'
 
       console.log(`${editMode.mode === 'edit' ? 'Updating' : 'Saving'} template:`, {
@@ -835,9 +854,10 @@ export default function ImageTemplateGenerator() {
         isPremium: templateData.isPremium,
         width: templateData.width,
         height: templateData.height,
-        backgroundImage: typeof templateData.backgroundImage === 'string'
-          ? templateData.backgroundImage.substring(0, 50) + '...'
-          : templateData.backgroundImage,
+        backgroundImage:
+          typeof templateData.backgroundImage === 'string'
+            ? templateData.backgroundImage.substring(0, 50) + '...'
+            : templateData.backgroundImage,
         elementsCount: templateData.elements.length,
         elementTypes: templateData.elements.map((el: CanvasElement) => ({
           type: el.type,
@@ -858,7 +878,9 @@ export default function ImageTemplateGenerator() {
 
       if (!response.ok) {
         const error = (await response.json()) as { error?: string }
-        throw new Error(error.error || `Failed to ${editMode.mode === 'edit' ? 'update' : 'save'} template`)
+        throw new Error(
+          error.error || `Failed to ${editMode.mode === 'edit' ? 'update' : 'save'} template`,
+        )
       }
 
       const result = (await response.json()) as { template: { name: string } }
@@ -1134,12 +1156,40 @@ export default function ImageTemplateGenerator() {
         }}
       />
 
-      <DubSidebarLayout
-        config={imageGeneratorSidebarConfig}
-        activeModuleId={activeModuleId}
-        onModuleChange={setActiveModuleId}
-        customPanelContent={customPanelContent}
-      >
+      <div className="flex h-full min-h-0 flex-1 overflow-hidden">
+        {/* Tool Sidebar - ApplicationShell8 style helper sidebar */}
+        <Sidebar collapsible="none" className="w-full shrink-0 border-r md:flex md:w-[320px]">
+          <SidebarHeader className="border-b p-2">
+            <div className="flex items-center gap-1">
+              {toolModules.map((module) => {
+                const Icon = module.icon
+                const isActive = activeModuleId === module.id
+                return (
+                  <button
+                    key={module.id}
+                    type="button"
+                    onClick={() => setActiveModuleId(module.id)}
+                    className={cn(
+                      'flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+                      isActive && 'bg-accent text-accent-foreground',
+                    )}
+                    title={module.label}
+                  >
+                    <Icon className="size-5" />
+                  </button>
+                )
+              })}
+            </div>
+          </SidebarHeader>
+          <SidebarContent className="overflow-hidden">
+            <ScrollArea className="h-full">
+              <SidebarGroup className="p-0">
+                <SidebarGroupContent className="p-4">{customPanelContent}</SidebarGroupContent>
+              </SidebarGroup>
+            </ScrollArea>
+          </SidebarContent>
+        </Sidebar>
+
         {/* Canvas Area */}
         <div className="flex flex-1 flex-col overflow-hidden h-full">
           {/* Top Bar */}
@@ -1214,7 +1264,9 @@ export default function ImageTemplateGenerator() {
                   className="h-9 gap-2"
                 >
                   <Save className="w-4 h-4" />
-                  <span>{isSaving ? 'Saving...' : editMode.mode === 'edit' ? 'Update' : 'Save'}</span>
+                  <span>
+                    {isSaving ? 'Saving...' : editMode.mode === 'edit' ? 'Update' : 'Save'}
+                  </span>
                 </Button>
               </>
             }
@@ -1248,7 +1300,7 @@ export default function ImageTemplateGenerator() {
             </div>
           </ScrollArea>
         </div>
-      </DubSidebarLayout>
+      </div>
 
       {/* Save Template Dialog */}
       {showSaveDialog && (

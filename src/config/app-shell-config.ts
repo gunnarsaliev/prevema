@@ -1,4 +1,4 @@
-import { Home, Calendar, Users, Palette, Settings, Mail } from 'lucide-react'
+import { Home, Calendar, Users, Palette, Settings, Mail, Image } from 'lucide-react'
 import type { SidebarModule } from '@/components/layout/application-shell'
 
 export const appShellModules: SidebarModule[] = [
@@ -7,5 +7,6 @@ export const appShellModules: SidebarModule[] = [
   { id: 'emails', label: 'Emails', icon: Mail, path: '/demo/emails' },
   { id: 'guests', label: 'Guests', icon: Users, path: '/dash/participants' },
   { id: 'assets', label: 'Assets', icon: Palette, path: '/dash/assets' },
+  { id: 'image-generator', label: 'Image Generator', icon: Image, path: '/dash/image-generator' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/dash/settings' },
 ]

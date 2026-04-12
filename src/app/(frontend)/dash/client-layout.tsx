@@ -38,6 +38,8 @@ export function DashClientLayout({
       pathname.startsWith('/dash/partner-types')
     ) {
       setActiveModuleId('guests')
+    } else if (pathname.startsWith('/dash/image-generator')) {
+      setActiveModuleId('image-generator')
     } else if (pathname.startsWith('/dash/assets')) {
       setActiveModuleId('assets')
     } else if (pathname.startsWith('/dash/settings')) {
