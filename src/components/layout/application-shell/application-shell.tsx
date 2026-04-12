@@ -157,7 +157,8 @@ export function ApplicationShell({
       className="h-svh overflow-hidden"
       style={
         {
-          '--sidebar-width': 'var(--sidebar-width-icon)',
+          '--sidebar-width': '80px',
+          '--sidebar-width-icon': '80px',
         } as React.CSSProperties
       }
     >

@@ -2,7 +2,6 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Settings } from 'lucide-react'
 import {
   Sidebar,
@@ -11,10 +10,8 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 import type { SidebarModule } from './types'
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
@@ -36,82 +33,44 @@ export function AppSidebar({
 }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
-              <Link href="/dash">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-sm">
-                  <Image
-                    src={logo.src}
-                    alt={logo.alt}
-                    width={32}
-                    height={32}
-                    className="object-contain"
-                    priority
-                  />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Prevema</span>
-                  <span className="truncate text-xs">Event Platform</span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarHeader className="p-3">
+        <Link href="/dash">
+          <img src={logo.src} alt={logo.alt} className="size-14 object-contain" />
+        </Link>
       </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent className="px-1.5 md:px-0">
-            <SidebarMenu>
-              {modules.map((module) => (
-                <SidebarMenuItem key={module.id}>
-                  <SidebarMenuButton
-                    tooltip={{
-                      children: module.label,
-                      hidden: false,
-                    }}
-                    onClick={() => onModuleChange(module.id)}
-                    isActive={activeModuleId === module.id}
-                    className="px-2.5 md:px-2"
-                    asChild={!!module.path}
-                  >
-                    {module.path ? (
-                      <Link href={module.path}>
-                        <module.icon />
-                        <span>{module.label}</span>
-                      </Link>
-                    ) : (
-                      <>
-                        <module.icon />
-                        <span>{module.label}</span>
-                      </>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+      <SidebarContent className="p-3 pt-0">
+        <SidebarGroup className="p-0">
+          <SidebarGroupContent className="flex flex-col gap-2">
+            {modules.map((module) => {
+              const isActive = activeModuleId === module.id
+              return (
+                <button
+                  key={module.id}
+                  type="button"
+                  onClick={() => onModuleChange(module.id)}
+                  className={cn(
+                    'flex aspect-square w-full items-center justify-center rounded-2xl bg-muted/50 text-muted-foreground transition-all hover:rounded-xl hover:bg-primary hover:text-primary-foreground',
+                    isActive && 'rounded-xl bg-primary text-primary-foreground',
+                  )}
+                  aria-label={module.label}
+                  title={module.label}
+                >
+                  <module.icon className="size-6" />
+                </button>
+              )
+            })}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip={{
-                children: 'Settings',
-                hidden: false,
-              }}
-              className="px-2.5 md:px-2"
-              asChild
-            >
-              <Link href="/dash/settings">
-                <Settings />
-                <span>Settings</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarFooter className="p-3">
+        <Link
+          href="/dash/settings"
+          className="flex aspect-square w-full items-center justify-center rounded-2xl bg-muted/50 text-muted-foreground transition-all hover:rounded-xl hover:bg-primary hover:text-primary-foreground"
+          aria-label="Settings"
+          title="Settings"
+        >
+          <Settings className="size-6" />
+        </Link>
       </SidebarFooter>
     </Sidebar>
   )
