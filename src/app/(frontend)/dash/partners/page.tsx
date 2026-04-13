@@ -43,7 +43,8 @@ async function PartnersData({ eventId }: { eventId?: string }) {
         overrideAccess: false,
         user,
         depth: 0,
-        limit: 1,
+        limit: 100,
+        sort: 'name',
       }),
       payload.find({
         collection: 'organizations',
@@ -56,6 +57,7 @@ async function PartnersData({ eventId }: { eventId?: string }) {
 
   const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
   const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
+  const types = partnerTypes.map((t) => ({ id: t.id, name: t.name }))
 
   if (events.length === 0) return <EmptyEventState />
   if (partnerTypes.length === 0) return <EmptyPartnerTypeState />
@@ -67,6 +69,7 @@ async function PartnersData({ eventId }: { eventId?: string }) {
       partners={partners}
       events={events}
       organizations={organizations}
+      types={types}
       eventId={eventId}
       createHref={createHref}
     />

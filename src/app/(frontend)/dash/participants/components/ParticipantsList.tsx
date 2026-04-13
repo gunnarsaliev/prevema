@@ -42,10 +42,16 @@ interface OrgOption {
   name: string
 }
 
+interface RoleOption {
+  id: number
+  name: string
+}
+
 interface Props {
   participants: Participant[]
   events: EventOption[]
   organizations: OrgOption[]
+  roles: RoleOption[]
   eventId?: string
   createHref: string
 }
@@ -54,11 +60,16 @@ export function ParticipantsList({
   participants,
   events,
   organizations,
+  roles,
   eventId,
   createHref,
 }: Props) {
   const router = useRouter()
   const [roleDrawerOpen, setRoleDrawerOpen] = useState(false)
+  const [selectedEventId, setSelectedEventId] = useState<string>(eventId || 'all')
+  const [selectedRoleId, setSelectedRoleId] = useState<string>('all')
+  const [sortField, setSortField] = useState<string>('name')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   const newButtonItems = [
     {
@@ -361,9 +372,55 @@ export function ParticipantsList({
     }
   }
 
+  // Filter and sort participants
+  const filteredAndSortedParticipants = participants
+    .filter((participant) => {
+      // Filter by event
+      if (selectedEventId !== 'all') {
+        const participantEventId =
+          typeof participant.event === 'object' ? participant.event?.id : participant.event
+        if (String(participantEventId) !== selectedEventId) return false
+      }
+
+      // Filter by role
+      if (selectedRoleId !== 'all') {
+        const participantRoleId =
+          typeof participant.participantRole === 'object'
+            ? participant.participantRole?.id
+            : participant.participantRole
+        if (String(participantRoleId) !== selectedRoleId) return false
+      }
+
+      return true
+    })
+    .sort((a, b) => {
+      const multiplier = sortDirection === 'asc' ? 1 : -1
+
+      switch (sortField) {
+        case 'name':
+          return multiplier * (a.name || '').localeCompare(b.name || '')
+        case 'email':
+          return multiplier * (a.email || '').localeCompare(b.email || '')
+        case 'status':
+          return multiplier * (a.status || '').localeCompare(b.status || '')
+        case 'role': {
+          const roleA = getRelationName(a.participantRole)
+          const roleB = getRelationName(b.participantRole)
+          return multiplier * roleA.localeCompare(roleB)
+        }
+        case 'event': {
+          const eventA = getRelationName(a.event)
+          const eventB = getRelationName(b.event)
+          return multiplier * eventA.localeCompare(eventB)
+        }
+        default:
+          return 0
+      }
+    })
+
   const config: EntityListConfig<Participant> = {
     columns,
-    data: participants,
+    data: filteredAndSortedParticipants,
     searchKey: 'name',
     searchPlaceholder: 'Search participants...',
     emptyTitle: 'No participants yet',
@@ -376,6 +433,40 @@ export function ParticipantsList({
     toStackedListItem,
     enableViewToggle: true,
     defaultViewMode: 'stacked',
+    filters: [
+      {
+        label: 'Event',
+        value: selectedEventId,
+        options: [
+          { value: 'all', label: 'All Events' },
+          ...events.map((e) => ({ value: String(e.id), label: e.name })),
+        ],
+        onChange: setSelectedEventId,
+      },
+      {
+        label: 'Role',
+        value: selectedRoleId,
+        options: [
+          { value: 'all', label: 'All Roles' },
+          ...roles.map((r) => ({ value: String(r.id), label: r.name })),
+        ],
+        onChange: setSelectedRoleId,
+      },
+    ],
+    sort: {
+      label: 'Sort by',
+      value: sortField,
+      options: [
+        { value: 'name', label: 'Name' },
+        { value: 'email', label: 'Email' },
+        { value: 'status', label: 'Status' },
+        { value: 'role', label: 'Role' },
+        { value: 'event', label: 'Event' },
+      ],
+      onChange: setSortField,
+      sortDirection,
+      onDirectionChange: () => setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc')),
+    },
   }
 
   return (

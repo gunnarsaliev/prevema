@@ -47,10 +47,16 @@ interface OrgOption {
   name: string
 }
 
+interface TypeOption {
+  id: number
+  name: string
+}
+
 interface Props {
   partners: Partner[]
   events: EventOption[]
   organizations: OrgOption[]
+  types: TypeOption[]
   eventId?: string
   typeDrawerOpen?: boolean
   onTypeDrawerChange?: (open: boolean) => void
@@ -60,12 +66,17 @@ export function PartnersList({
   partners,
   events,
   organizations,
+  types,
   eventId,
   typeDrawerOpen = false,
   onTypeDrawerChange,
 }: Props) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [selectedEventId, setSelectedEventId] = useState<string>(eventId || 'all')
+  const [selectedTypeId, setSelectedTypeId] = useState<string>('all')
+  const [sortField, setSortField] = useState<string>('companyName')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
   const [selectedPartnerIds, setSelectedPartnerIds] = useState<string[]>([])
@@ -350,9 +361,57 @@ export function PartnersList({
 
   const createHref = eventId ? `/dash/partners/create?eventId=${eventId}` : '/dash/partners/create'
 
+  // Filter partners based on selected filters
+  const filteredPartners = partners
+    .filter((partner) => {
+      // Filter by event
+      if (selectedEventId !== 'all') {
+        const partnerEventId = typeof partner.event === 'object' ? partner.event?.id : partner.event
+        if (String(partnerEventId) !== selectedEventId) return false
+      }
+
+      // Filter by type
+      if (selectedTypeId !== 'all') {
+        const partnerTypeId =
+          typeof partner.partnerType === 'object' ? partner.partnerType?.id : partner.partnerType
+        if (String(partnerTypeId) !== selectedTypeId) return false
+      }
+
+      return true
+    })
+    .sort((a, b) => {
+      const multiplier = sortDirection === 'asc' ? 1 : -1
+
+      switch (sortField) {
+        case 'companyName':
+          return multiplier * (a.companyName || '').localeCompare(b.companyName || '')
+        case 'contactPerson':
+          return multiplier * (a.contactPerson || '').localeCompare(b.contactPerson || '')
+        case 'status':
+          return multiplier * (a.status || '').localeCompare(b.status || '')
+        case 'type': {
+          const typeA = getRelationName(a.partnerType)
+          const typeB = getRelationName(b.partnerType)
+          return multiplier * typeA.localeCompare(typeB)
+        }
+        case 'tier': {
+          const tierA = getRelationName(a.tier)
+          const tierB = getRelationName(b.tier)
+          return multiplier * tierA.localeCompare(tierB)
+        }
+        case 'event': {
+          const eventA = getRelationName(a.event)
+          const eventB = getRelationName(b.event)
+          return multiplier * eventA.localeCompare(eventB)
+        }
+        default:
+          return 0
+      }
+    })
+
   const config: EntityListConfig<Partner> = {
     columns,
-    data: partners,
+    data: filteredPartners,
     searchKey: 'companyName',
     searchPlaceholder: 'Search partners...',
     emptyTitle: 'No partners yet',
@@ -365,6 +424,41 @@ export function PartnersList({
     toStackedListItem,
     enableViewToggle: true,
     defaultViewMode: 'stacked',
+    filters: [
+      {
+        label: 'Event',
+        value: selectedEventId,
+        options: [
+          { value: 'all', label: 'All Events' },
+          ...events.map((e) => ({ value: String(e.id), label: e.name })),
+        ],
+        onChange: setSelectedEventId,
+      },
+      {
+        label: 'Type',
+        value: selectedTypeId,
+        options: [
+          { value: 'all', label: 'All Types' },
+          ...types.map((t) => ({ value: String(t.id), label: t.name })),
+        ],
+        onChange: setSelectedTypeId,
+      },
+    ],
+    sort: {
+      label: 'Sort by',
+      value: sortField,
+      options: [
+        { value: 'companyName', label: 'Company' },
+        { value: 'contactPerson', label: 'Contact' },
+        { value: 'status', label: 'Status' },
+        { value: 'type', label: 'Type' },
+        { value: 'tier', label: 'Tier' },
+        { value: 'event', label: 'Event' },
+      ],
+      onChange: setSortField,
+      sortDirection,
+      onDirectionChange: () => setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc')),
+    },
   }
 
   return (

@@ -47,7 +47,8 @@ async function ParticipantsData({ eventId }: { eventId?: string }) {
       overrideAccess: false,
       user,
       depth: 0,
-      limit: 1,
+      limit: 100,
+      sort: 'name',
     }),
     payload.find({
       collection: 'organizations',
@@ -60,6 +61,7 @@ async function ParticipantsData({ eventId }: { eventId?: string }) {
 
   const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
   const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
+  const roles = participantRoles.map((r) => ({ id: r.id, name: r.name }))
 
   if (events.length === 0) return <EmptyEventState />
   if (participantRoles.length === 0) return <EmptyParticipantRoleState />
@@ -73,6 +75,7 @@ async function ParticipantsData({ eventId }: { eventId?: string }) {
       participants={participants}
       events={events}
       organizations={organizations}
+      roles={roles}
       eventId={eventId}
       createHref={createHref}
     />

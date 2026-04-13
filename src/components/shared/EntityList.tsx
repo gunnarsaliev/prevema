@@ -3,7 +3,7 @@
 import { ReactNode, useState } from 'react'
 import Link from 'next/link'
 import { ColumnDef } from '@tanstack/react-table'
-import { LayoutGrid, Table as TableIcon } from 'lucide-react'
+import { LayoutGrid, Table as TableIcon, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { DataTable, BulkAction } from '@/components/ui/data-table'
@@ -35,18 +35,34 @@ export interface EntityListConfig<TData> {
   // Bulk actions
   bulkActions?: BulkAction<TData>[]
 
-  // Optional filter
+  // Optional filters
   filter?: {
     label: string
     value: string
     options: Array<{ value: string; label: string }>
     onChange: (value: string) => void
   }
+  filters?: {
+    label: string
+    value: string
+    options: Array<{ value: string; label: string }>
+    onChange: (value: string) => void
+  }[]
 
   // Stacked list configuration
   toStackedListItem?: (data: TData) => StackedListItem
   enableViewToggle?: boolean
   defaultViewMode?: ViewMode
+
+  // Sort configuration
+  sort?: {
+    label: string
+    value: string
+    options: Array<{ value: string; label: string }>
+    onChange: (value: string) => void
+    sortDirection: 'asc' | 'desc'
+    onDirectionChange: () => void
+  }
 }
 
 interface EntityListProps<TData> {
@@ -66,6 +82,7 @@ export function EntityList<TData>({ config }: EntityListProps<TData>) {
     emptyIcon,
     bulkActions,
     filter,
+    filters,
     toStackedListItem,
     enableViewToggle = false,
     defaultViewMode = 'table',
@@ -74,6 +91,9 @@ export function EntityList<TData>({ config }: EntityListProps<TData>) {
   const [viewMode, setViewMode] = useState<ViewMode>(defaultViewMode)
   const [searchValue, setSearchValue] = useState('')
   const [selectedIds, setSelectedIds] = useState<(number | string)[]>([])
+
+  // Extract sort from config
+  const sort = config.sort
 
   // Convert data to stacked list items if needed
   const stackedListItems = toStackedListItem ? data.map(toStackedListItem) : []
@@ -87,29 +107,97 @@ export function EntityList<TData>({ config }: EntityListProps<TData>) {
 
   return (
     <div className="space-y-4">
-      {/* View Mode Toggle */}
-      {enableViewToggle && data.length > 0 && (
-        <div className="flex items-center justify-end gap-2">
-          <div className="flex items-center rounded-md border bg-muted p-1">
-            <Button
-              variant={viewMode === 'table' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="h-7 px-2"
-              onClick={() => setViewMode('table')}
-            >
-              <TableIcon className="h-4 w-4 mr-1" />
-              Table
-            </Button>
-            <Button
-              variant={viewMode === 'stacked' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="h-7 px-2"
-              onClick={() => setViewMode('stacked')}
-            >
-              <LayoutGrid className="h-4 w-4 mr-1" />
-              List
-            </Button>
+      {/* View Mode Toggle and Filters */}
+      {(enableViewToggle || filters || filter) && data.length > 0 && (
+        <div className="flex items-center justify-between gap-4">
+          {/* Filters */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Single filter (legacy support) */}
+            {filter && (
+              <Select value={filter.value} onValueChange={filter.onChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder={filter.label} />
+                </SelectTrigger>
+                <SelectContent>
+                  {filter.options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {/* Multiple filters */}
+            {filters?.map((f, index) => (
+              <Select key={index} value={f.value} onValueChange={f.onChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder={f.label} />
+                </SelectTrigger>
+                <SelectContent>
+                  {f.options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ))}
+            {/* Sort */}
+            {sort && (
+              <div className="flex items-center gap-2">
+                <Select value={sort.value} onValueChange={sort.onChange}>
+                  <SelectTrigger className="w-[160px]">
+                    <ArrowUpDown className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder={sort.label} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sort.options.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9"
+                  onClick={sort.onDirectionChange}
+                  title={sort.sortDirection === 'asc' ? 'Ascending' : 'Descending'}
+                >
+                  {sort.sortDirection === 'asc' ? (
+                    <ArrowUp className="h-4 w-4" />
+                  ) : (
+                    <ArrowDown className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
+
+          {/* View Mode Toggle */}
+          {enableViewToggle && (
+            <div className="flex items-center rounded-md border bg-muted p-1">
+              <Button
+                variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="h-7 px-2"
+                onClick={() => setViewMode('table')}
+              >
+                <TableIcon className="h-4 w-4 mr-1" />
+                Table
+              </Button>
+              <Button
+                variant={viewMode === 'stacked' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="h-7 px-2"
+                onClick={() => setViewMode('stacked')}
+              >
+                <LayoutGrid className="h-4 w-4 mr-1" />
+                List
+              </Button>
+            </div>
+          )}
         </div>
       )}
 

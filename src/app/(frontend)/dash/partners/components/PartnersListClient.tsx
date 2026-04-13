@@ -17,15 +17,28 @@ interface OrgOption {
   name: string
 }
 
+interface TypeOption {
+  id: number
+  name: string
+}
+
 interface Props {
   partners: Partner[]
   events: EventOption[]
   organizations: OrgOption[]
+  types: TypeOption[]
   eventId?: string
   createHref: string
 }
 
-export function PartnersListClient({ partners, events, organizations, eventId, createHref }: Props) {
+export function PartnersListClient({
+  partners,
+  events,
+  organizations,
+  types,
+  eventId,
+  createHref,
+}: Props) {
   const [typeDrawerOpen, setTypeDrawerOpen] = useState(false)
 
   const newButtonItems = [
@@ -44,9 +57,7 @@ export function PartnersListClient({ partners, events, organizations, eventId, c
       <TopBar
         title="Partners"
         centerContent={<EventSwitcher />}
-        actions={
-          <NewButtonDropdown items={newButtonItems} />
-        }
+        actions={<NewButtonDropdown items={newButtonItems} />}
       />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
@@ -54,6 +65,7 @@ export function PartnersListClient({ partners, events, organizations, eventId, c
             partners={partners}
             events={events}
             organizations={organizations}
+            types={types}
             eventId={eventId}
             typeDrawerOpen={typeDrawerOpen}
             onTypeDrawerChange={setTypeDrawerOpen}
