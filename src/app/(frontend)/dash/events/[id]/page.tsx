@@ -41,22 +41,44 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   // Get all organization IDs where user is a member (including as owner)
   const organizationIds = await getUserOrganizationIds(payload, user)
 
-  const [event, { docs: participantRoles }, { docs: partnerTypes }, { docs: orgDocs }] =
-    await Promise.all([
-      payload
-        .findByID({
-          collection: 'events',
-          id: Number(id),
-          overrideAccess: false,
-          user,
-          depth: 0,
-        })
-        .catch(() => null),
+  const event = await payload
+    .findByID({
+      collection: 'events',
+      id: Number(id),
+      overrideAccess: false,
+      user,
+      depth: 0,
+    })
+    .catch(() => null)
+
+  if (!event) notFound()
+
+  // Resolve orgId early so we can use it in the shared-roles query below
+  const resolveNum = (v: unknown): number | undefined =>
+    typeof v === 'number'
+      ? v
+      : typeof v === 'object' && v !== null && 'id' in v
+        ? (v as { id: number }).id
+        : undefined
+
+  const orgId = resolveNum(event.organization) ?? 0
+
+  // Fetch roles/types that belong to this org AND are either linked to this
+  // specific event OR have no event set (org-level shared roles/types).
+  const [{ docs: participantRoles }, { docs: partnerTypes }, { docs: orgDocs }] = await Promise.all(
+    [
       payload.find({
         collection: 'participant-roles',
         overrideAccess: false,
         user,
-        where: { event: { equals: Number(id) } },
+        where: {
+          and: [
+            { organization: { equals: orgId } },
+            {
+              or: [{ event: { equals: event.id } }, { event: { exists: false } }],
+            },
+          ],
+        },
         depth: 0,
         limit: 100,
         sort: 'name',
@@ -65,7 +87,14 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         collection: 'partner-types',
         overrideAccess: false,
         user,
-        where: { event: { equals: Number(id) } },
+        where: {
+          and: [
+            { organization: { equals: orgId } },
+            {
+              or: [{ event: { equals: event.id } }, { event: { exists: false } }],
+            },
+          ],
+        },
         depth: 0,
         limit: 100,
         sort: 'name',
@@ -83,22 +112,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         limit: 50,
         sort: 'name',
       }),
-    ])
-
-  if (!event) notFound()
+    ],
+  )
 
   const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
   const eventOption = [{ id: event.id, name: event.name }]
-
-  // Normalize items for client components (depth:0 returns numeric IDs for relations)
-  const resolveNum = (v: unknown): number | undefined =>
-    typeof v === 'number'
-      ? v
-      : typeof v === 'object' && v !== null && 'id' in v
-        ? (v as { id: number }).id
-        : undefined
-
-  const orgId = resolveNum(event.organization) ?? 0
 
   const participantRoleItems = participantRoles.map((pt) => ({
     id: pt.id,
@@ -146,67 +164,69 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-6 py-8 space-y-8">
-
-      <Separator />
-
-      <div className="justify-between flex">
-        <Field label="Event type" value={event.eventType} />
-        <Field label="Timezone" value={event.timezone} />
-        <Field
-          label="Start date"
-          value={
-            event.startDate ? format(new Date(event.startDate), 'dd MMM yyyy, HH:mm') : undefined
-          }
-        />
-        <Field
-          label="End date"
-          value={event.endDate ? format(new Date(event.endDate), 'dd MMM yyyy, HH:mm') : undefined}
-        />
-        {event.eventType === 'physical' && <Field label="Address" value={event.address} />}
-      </div>
-
-      {event.description && (
-        <>
           <Separator />
-          <Field label="Description" value={event.description} />
-        </>
-      )}
 
-      {(event.why || event.what || event.where || event.who) && (
-        <>
-          <Separator />
-          <div className="space-y-4">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-              Context
-            </h2>
-            <Field label="Why" value={event.why} />
-            <Field label="What" value={event.what} />
-            <Field label="Where" value={event.where} />
-            <Field label="Who" value={event.who} />
+          <div className="justify-between flex">
+            <Field label="Event type" value={event.eventType} />
+            <Field label="Timezone" value={event.timezone} />
+            <Field
+              label="Start date"
+              value={
+                event.startDate
+                  ? format(new Date(event.startDate), 'dd MMM yyyy, HH:mm')
+                  : undefined
+              }
+            />
+            <Field
+              label="End date"
+              value={
+                event.endDate ? format(new Date(event.endDate), 'dd MMM yyyy, HH:mm') : undefined
+              }
+            />
+            {event.eventType === 'physical' && <Field label="Address" value={event.address} />}
           </div>
-        </>
-      )}
 
-      <Separator />
+          {event.description && (
+            <>
+              <Separator />
+              <Field label="Description" value={event.description} />
+            </>
+          )}
 
-      <ParticipantRolesSection
-        items={participantRoleItems}
-        eventId={event.id}
-        orgId={orgId}
-        organizations={organizations}
-        events={eventOption}
-      />
+          {(event.why || event.what || event.where || event.who) && (
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                  Context
+                </h2>
+                <Field label="Why" value={event.why} />
+                <Field label="What" value={event.what} />
+                <Field label="Where" value={event.where} />
+                <Field label="Who" value={event.who} />
+              </div>
+            </>
+          )}
 
-      <Separator />
+          <Separator />
 
-      <PartnerTypesSection
-        items={partnerTypeItems}
-        eventId={event.id}
-        orgId={orgId}
-        organizations={organizations}
-        events={eventOption}
-      />
+          <ParticipantRolesSection
+            items={participantRoleItems}
+            eventId={event.id}
+            orgId={orgId}
+            organizations={organizations}
+            events={eventOption}
+          />
 
+          <Separator />
+
+          <PartnerTypesSection
+            items={partnerTypeItems}
+            eventId={event.id}
+            orgId={orgId}
+            organizations={organizations}
+            events={eventOption}
+          />
         </div>
       </div>
     </div>

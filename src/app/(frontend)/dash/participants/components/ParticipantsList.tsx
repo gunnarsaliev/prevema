@@ -475,7 +475,14 @@ export function ParticipantsList({
         title="Participants"
         description="Manage event attendees and roles"
         centerContent={<EventSwitcher />}
-        actions={<NewButtonDropdown items={newButtonItems} />}
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/dash/participant-roles">Manage roles</Link>
+            </Button>
+            <NewButtonDropdown items={newButtonItems} />
+          </>
+        }
       />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">

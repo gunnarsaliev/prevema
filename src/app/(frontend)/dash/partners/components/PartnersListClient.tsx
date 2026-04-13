@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { TopBar } from '@/components/shared/TopBar'
 import { EventSwitcher } from '@/components/event-switcher'
 import { NewButtonDropdown } from '@/components/shared/NewButtonDropdown'
+import { Button } from '@/components/ui/button'
 import { PartnersList } from './PartnersList'
 import type { Partner } from '@/payload-types'
 
@@ -57,7 +59,14 @@ export function PartnersListClient({
       <TopBar
         title="Partners"
         centerContent={<EventSwitcher />}
-        actions={<NewButtonDropdown items={newButtonItems} />}
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/dash/partner-types">Manage types</Link>
+            </Button>
+            <NewButtonDropdown items={newButtonItems} />
+          </>
+        }
       />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">

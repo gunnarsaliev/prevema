@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Copy, ExternalLink } from 'lucide-react'
+import { Copy, ExternalLink, Share2 } from 'lucide-react'
+import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
@@ -100,7 +101,12 @@ export function PartnerTypesSection({ items, eventId, orgId, organizations, even
               <div className="min-w-0 space-y-0.5">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">{item.name}</span>
-                  {item.isActive ? (
+                  {item.event === null ? (
+                    <Badge variant="outline" className="text-xs gap-1">
+                      <Share2 className="h-3 w-3" />
+                      Shared
+                    </Badge>
+                  ) : item.isActive ? (
                     <Badge variant="default" className="text-xs">
                       Active
                     </Badge>
@@ -149,9 +155,15 @@ export function PartnerTypesSection({ items, eventId, orgId, organizations, even
                     </Button>
                   </>
                 )}
-                <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
-                  Edit
-                </Button>
+                {item.event === null ? (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href={`/dash/partner-types/${item.id}/edit`}>Edit</Link>
+                  </Button>
+                ) : (
+                  <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
+                    Edit
+                  </Button>
+                )}
               </div>
             </div>
           ))}

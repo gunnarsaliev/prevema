@@ -505,7 +505,8 @@ export async function createEventAction(
       }
     }
 
-    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    const ownerId =
+      typeof organization.owner === 'object' ? organization.owner.id : organization.owner
     if (ownerId !== user.id) {
       return {
         success: false,
@@ -621,7 +622,8 @@ export async function createParticipantRoleAction(
       }
     }
 
-    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    const ownerId =
+      typeof organization.owner === 'object' ? organization.owner.id : organization.owner
     if (ownerId !== user.id) {
       return {
         success: false,
@@ -670,7 +672,8 @@ export async function createParticipantRoleAction(
       if (errorMessage.includes('slug') || errorMessage.includes('unique')) {
         return {
           success: false,
-          message: 'A participant role with this name already exists. Please choose a different name.',
+          message:
+            'A participant role with this name already exists. Please choose a different name.',
         }
       }
 
@@ -722,7 +725,8 @@ export async function createPartnerTypeAction(
       }
     }
 
-    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    const ownerId =
+      typeof organization.owner === 'object' ? organization.owner.id : organization.owner
     if (ownerId !== user.id) {
       return {
         success: false,
@@ -822,7 +826,8 @@ export async function createEmailTemplateAction(
       }
     }
 
-    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    const ownerId =
+      typeof organization.owner === 'object' ? organization.owner.id : organization.owner
     if (ownerId !== user.id) {
       return {
         success: false,
@@ -972,7 +977,8 @@ export async function saveOnboardingImageTemplateAction(
       }
     }
 
-    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    const ownerId =
+      typeof organization.owner === 'object' ? organization.owner.id : organization.owner
     if (ownerId !== user.id) {
       return {
         success: false,
@@ -1097,7 +1103,8 @@ export async function getParticipantRolesAction(
       }
     }
 
-    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    const ownerId =
+      typeof organization.owner === 'object' ? organization.owner.id : organization.owner
     if (ownerId !== user.id) {
       return {
         success: false,
@@ -1105,7 +1112,7 @@ export async function getParticipantRolesAction(
       }
     }
 
-    // Fetch participant roles for this event
+    // Fetch participant roles for this event (event-specific + org-level shared)
     const participantRoles = await payload.find({
       collection: 'participant-roles',
       where: {
@@ -1116,9 +1123,7 @@ export async function getParticipantRolesAction(
             },
           },
           {
-            event: {
-              equals: eventId,
-            },
+            or: [{ event: { equals: eventId } }, { event: { exists: false } }],
           },
         ],
       },
@@ -1187,7 +1192,8 @@ export async function getPartnerTypesAction(
       }
     }
 
-    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    const ownerId =
+      typeof organization.owner === 'object' ? organization.owner.id : organization.owner
     if (ownerId !== user.id) {
       return {
         success: false,
@@ -1195,7 +1201,7 @@ export async function getPartnerTypesAction(
       }
     }
 
-    // Fetch partner types for this event
+    // Fetch partner types for this event (event-specific + org-level shared)
     const partnerTypes = await payload.find({
       collection: 'partner-types',
       where: {
@@ -1206,9 +1212,7 @@ export async function getPartnerTypesAction(
             },
           },
           {
-            event: {
-              equals: eventId,
-            },
+            or: [{ event: { equals: eventId } }, { event: { exists: false } }],
           },
         ],
       },
@@ -1277,7 +1281,8 @@ export async function deleteParticipantRoleAction(
       }
     }
 
-    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    const ownerId =
+      typeof organization.owner === 'object' ? organization.owner.id : organization.owner
     if (ownerId !== user.id) {
       return {
         success: false,
@@ -1350,7 +1355,8 @@ export async function deletePartnerTypeAction(
       }
     }
 
-    const ownerId = typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    const ownerId =
+      typeof organization.owner === 'object' ? organization.owner.id : organization.owner
     if (ownerId !== user.id) {
       return {
         success: false,
