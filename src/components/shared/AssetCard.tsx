@@ -117,6 +117,7 @@ export function AssetCard(props: AssetCardProps) {
     const sizeStr = formatFileSize(asset.filesize)
     if (sizeStr) metaParts.push(sizeStr)
     if (asset.width && asset.height) metaParts.push(`${asset.width} × ${asset.height}`)
+    if (asset.organization?.name) metaParts.push(`by ${asset.organization.name}`)
   }
 
   const meta = metaParts.join('  |  ')

@@ -187,7 +187,7 @@ export function EmailTemplateForm(props: Props) {
 
       // Only redirect if not disabled
       if (!props.disableRedirect) {
-        router.push('/dash/assets/email-templates')
+        router.push('/dash/assets')
         router.refresh()
       }
     } catch (err) {
@@ -296,11 +296,7 @@ export function EmailTemplateForm(props: Props) {
                       Make this template available to all users across all organizations
                     </p>
                   </div>
-                  <Switch
-                    id="isPublic"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Switch id="isPublic" checked={field.value} onCheckedChange={field.onChange} />
                 </div>
               )}
             />
@@ -318,11 +314,7 @@ export function EmailTemplateForm(props: Props) {
                       Require premium subscription to use this template
                     </p>
                   </div>
-                  <Switch
-                    id="isPremium"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Switch id="isPremium" checked={field.value} onCheckedChange={field.onChange} />
                 </div>
               )}
             />
@@ -686,7 +678,7 @@ export function EmailTemplateForm(props: Props) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push('/dash/assets/email-templates')}
+            onClick={() => router.push('/dash/assets')}
             disabled={isSubmitting}
           >
             Cancel

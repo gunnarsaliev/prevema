@@ -135,6 +135,7 @@ export async function POST(req: NextRequest) {
             collection: 'media',
             data: {
               alt: `${name} - Preview`,
+              isTemplateAsset: true,
             },
             file: {
               data: buffer,
@@ -189,6 +190,7 @@ export async function POST(req: NextRequest) {
                 collection: 'media',
                 data: {
                   alt: `${name} - Background`,
+                  isTemplateAsset: true,
                 },
                 file: {
                   data: buffer,

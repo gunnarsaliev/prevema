@@ -27,13 +27,9 @@ type Member = {
   createdAt: string
 }
 
-type GetMembersResult =
-  | { success: true; members: Member[] }
-  | { success: false; error: string }
+type GetMembersResult = { success: true; members: Member[] } | { success: false; error: string }
 
-type CreateInvitationResult =
-  | { success: true; message: string }
-  | { success: false; error: string }
+type CreateInvitationResult = { success: true; message: string } | { success: false; error: string }
 
 function parsePayloadError(err: unknown): string {
   if (!(err instanceof Error)) return 'Failed to update organization'
@@ -53,9 +49,7 @@ function parsePayloadError(err: unknown): string {
   return msg
 }
 
-export async function updateOrganization(
-  formData: FormData,
-): Promise<UpdateOrganizationResult> {
+export async function updateOrganization(formData: FormData): Promise<UpdateOrganizationResult> {
   try {
     const headers = await getHeaders()
     const payload = await getPayload({ config: configPromise })
@@ -117,9 +111,7 @@ export async function updateOrganization(
   }
 }
 
-export async function updateUserProfile(
-  formData: FormData,
-): Promise<UpdateUserProfileResult> {
+export async function updateUserProfile(formData: FormData): Promise<UpdateUserProfileResult> {
   try {
     const headers = await getHeaders()
     const payload = await getPayload({ config: configPromise })
@@ -194,7 +186,8 @@ export async function updateUserProfile(
           mimetype: avatarFile.type,
           size: avatarFile.size,
         },
-        overrideAccess: true,
+        user,
+        overrideAccess: false,
       })
 
       if (imageResult) {

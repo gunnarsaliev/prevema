@@ -46,9 +46,9 @@ export default async function ImageTemplateDetailPage({
     <div className="px-6 py-8">
       <div className="mb-6">
         <Button variant="ghost" size="sm" asChild className="mb-4">
-          <Link href="/dash/assets/image-templates">
+          <Link href="/dash/assets">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to templates
+            Back to assets
           </Link>
         </Button>
 
@@ -71,9 +71,7 @@ export default async function ImageTemplateDetailPage({
       <div className="space-y-6 max-w-3xl">
         {/* Dimensions */}
         <div className="rounded-lg border bg-muted/30 p-4 inline-block">
-          <label className="text-xs font-medium text-muted-foreground uppercase">
-            Dimensions
-          </label>
+          <label className="text-xs font-medium text-muted-foreground uppercase">Dimensions</label>
           <p className="mt-1 text-sm font-mono">
             {template.width} × {template.height} px
           </p>

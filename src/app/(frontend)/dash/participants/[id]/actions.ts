@@ -2,6 +2,7 @@
 
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
+import { headers as getHeaders } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 
 type UploadResult = { success: true } | { success: false; error: string }
@@ -11,7 +12,13 @@ export async function uploadParticipantImage(
   formData: FormData,
 ): Promise<UploadResult> {
   try {
+    const headers = await getHeaders()
     const payload = await getPayload({ config: configPromise })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) {
+      return { success: false, error: 'Unauthorized. Please log in.' }
+    }
 
     const imageFile = formData.get('image') as File | null
     if (!imageFile || imageFile.size === 0) {
@@ -21,7 +28,10 @@ export async function uploadParticipantImage(
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']
     if (!allowedTypes.includes(imageFile.type)) {
-      return { success: false, error: 'Invalid file type. Please upload a JPEG, PNG, WebP, or SVG.' }
+      return {
+        success: false,
+        error: 'Invalid file type. Please upload a JPEG, PNG, WebP, or SVG.',
+      }
     }
 
     // Validate file size (5MB max)
@@ -35,6 +45,8 @@ export async function uploadParticipantImage(
       collection: 'participants',
       id: Number(participantId),
       depth: 0,
+      user,
+      overrideAccess: false,
     })
 
     if (!participant) {
@@ -51,7 +63,8 @@ export async function uploadParticipantImage(
         mimetype: imageFile.type,
         size: imageFile.size,
       },
-      overrideAccess: true,
+      user,
+      overrideAccess: false,
     })
 
     if (!mediaResult) {
@@ -65,6 +78,7 @@ export async function uploadParticipantImage(
       data: {
         imageUrl: mediaResult.id,
       },
+      user,
       overrideAccess: false,
     })
 

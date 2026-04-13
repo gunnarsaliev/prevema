@@ -104,7 +104,7 @@ export function ImageTemplateForm(props: Props) {
         throw new Error(message)
       }
 
-      router.push('/dash/assets/image-templates')
+      router.push('/dash/assets')
       router.refresh()
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Unexpected error')
@@ -312,7 +312,7 @@ export function ImageTemplateForm(props: Props) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push('/dash/assets/image-templates')}
+          onClick={() => router.push('/dash/assets')}
           disabled={isSubmitting}
         >
           Cancel

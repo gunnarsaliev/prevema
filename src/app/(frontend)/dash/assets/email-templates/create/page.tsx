@@ -32,13 +32,12 @@ export default async function CreateEmailTemplatePage({
     })
 
     if (!event) {
-      redirect('/dash/assets/email-templates')
+      redirect('/dash/assets')
     }
 
     // Get organization ID from event
-    organizationId = typeof event.organization === 'object'
-      ? event.organization.id
-      : event.organization
+    organizationId =
+      typeof event.organization === 'object' ? event.organization.id : event.organization
   } else {
     // Get all organization IDs where user is a member
     const organizationIds = await getUserOrganizationIds(payload, user)

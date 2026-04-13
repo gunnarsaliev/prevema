@@ -17,8 +17,8 @@ export const autoSelectOrganization: CollectionBeforeValidateHook = async ({
       // Get user's organizations
       const organizationIds = await getUserOrganizationIds(req.payload, req.user)
 
-      // If user has exactly one organization, auto-populate it
-      if (organizationIds.length === 1) {
+      // Auto-populate with the user's first (current) organization
+      if (organizationIds.length > 0) {
         data.organization = organizationIds[0]
       }
     } catch (error) {

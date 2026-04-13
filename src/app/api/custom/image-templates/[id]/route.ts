@@ -21,10 +21,7 @@ interface UpdateTemplateRequest {
  * PATCH /api/custom/image-templates/[id]
  * Updates an existing image template
  */
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const payload = await getPayload({ config })
@@ -57,19 +54,13 @@ export async function PATCH(
       .catch(() => null)
 
     if (!existingTemplate) {
-      return NextResponse.json(
-        { error: 'Template not found or access denied' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Template not found or access denied' }, { status: 404 })
     }
 
     // Parse body - only accept JSON
     const contentType = req.headers.get('content-type') || ''
     if (!contentType.includes('application/json')) {
-      return NextResponse.json(
-        { error: 'Content-Type must be application/json' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 400 })
     }
 
     let body: UpdateTemplateRequest
@@ -79,7 +70,7 @@ export async function PATCH(
       console.error('Failed to parse request body:', parseError)
       return NextResponse.json(
         { error: 'Invalid request body - must be valid JSON' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -113,6 +104,7 @@ export async function PATCH(
             collection: 'media',
             data: {
               alt: `${name || existingTemplate.name} - Preview`,
+              isTemplateAsset: true,
             },
             file: {
               data: buffer,
@@ -139,7 +131,10 @@ export async function PATCH(
       // If it's already a number, use it as the ID
       if (typeof backgroundImage === 'number') {
         backgroundImageId = backgroundImage
-      } else if (typeof backgroundImage === 'string' && (backgroundImage.startsWith('#') || backgroundImage.startsWith('linear-gradient'))) {
+      } else if (
+        typeof backgroundImage === 'string' &&
+        (backgroundImage.startsWith('#') || backgroundImage.startsWith('linear-gradient'))
+      ) {
         // It's a color code or gradient, store in backgroundColor field
         finalBackgroundColor = backgroundImage
         backgroundImageId = undefined
@@ -158,6 +153,7 @@ export async function PATCH(
               collection: 'media',
               data: {
                 alt: `${name || existingTemplate.name} - Background`,
+                isTemplateAsset: true,
               },
               file: {
                 data: buffer,
@@ -208,7 +204,12 @@ export async function PATCH(
 
     if (backgroundImageId !== undefined) {
       updateData.backgroundImage = backgroundImageId
-    } else if (backgroundImage !== undefined && (backgroundImage === null || backgroundImage.startsWith('#') || backgroundImage.startsWith('linear-gradient'))) {
+    } else if (
+      backgroundImage !== undefined &&
+      (backgroundImage === null ||
+        backgroundImage.startsWith('#') ||
+        backgroundImage.startsWith('linear-gradient'))
+    ) {
       updateData.backgroundImage = null
     }
 
@@ -238,7 +239,7 @@ export async function PATCH(
         error: 'Failed to update template',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -64,9 +64,9 @@ export default async function EmailTemplateDetailPage({
     <div className="px-6 py-8">
       <div className="mb-6">
         <Button variant="ghost" size="sm" asChild className="mb-4">
-          <Link href="/dash/assets/email-templates">
+          <Link href="/dash/assets">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to templates
+            Back to assets
           </Link>
         </Button>
 
@@ -118,28 +118,35 @@ export default async function EmailTemplateDetailPage({
         </div>
 
         {/* Automation Settings - Only show if configured */}
-        {(template.automationTriggers?.triggerEvent && template.automationTriggers.triggerEvent !== 'none') && (
-          <>
-            <Separator />
-            <details className="group">
-              <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Automation Settings
-              </summary>
-              <div className="mt-4 space-y-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-muted-foreground">Trigger Event</label>
-                    <p className="text-sm">{formatTriggerEvent(template.automationTriggers.triggerEvent)}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-muted-foreground">Delay (Minutes)</label>
-                    <p className="text-sm">{template.automationTriggers?.delayMinutes ?? 0}</p>
+        {template.automationTriggers?.triggerEvent &&
+          template.automationTriggers.triggerEvent !== 'none' && (
+            <>
+              <Separator />
+              <details className="group">
+                <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                  Automation Settings
+                </summary>
+                <div className="mt-4 space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">
+                        Trigger Event
+                      </label>
+                      <p className="text-sm">
+                        {formatTriggerEvent(template.automationTriggers.triggerEvent)}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">
+                        Delay (Minutes)
+                      </label>
+                      <p className="text-sm">{template.automationTriggers?.delayMinutes ?? 0}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </details>
-          </>
-        )}
+              </details>
+            </>
+          )}
 
         <Separator />
 

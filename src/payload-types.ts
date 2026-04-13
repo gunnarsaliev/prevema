@@ -183,6 +183,14 @@ export interface User {
 export interface Media {
   id: number;
   alt?: string | null;
+  /**
+   * The organization this media file belongs to
+   */
+  organization?: (number | null) | Organization;
+  /**
+   * Auto-generated asset used internally by image templates (hidden from media library)
+   */
+  isTemplateAsset?: boolean | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -1246,6 +1254,8 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  organization?: T;
+  isTemplateAsset?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

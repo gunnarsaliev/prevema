@@ -663,7 +663,7 @@ export default function ImageTemplateGenerator() {
               description: 'The template you are trying to edit could not be found.',
               variant: 'destructive',
             })
-            router.push('/dash/assets/image-templates')
+            router.push('/dash/assets')
           }
         } catch (error) {
           console.error('Failed to load template:', error)
@@ -842,7 +842,7 @@ export default function ImageTemplateGenerator() {
       // Call appropriate API based on mode
       const apiUrl =
         editMode.mode === 'edit'
-          ? `/api/image-templates/${editMode.templateId}`
+          ? `/api/custom/image-templates/${editMode.templateId}`
           : '/api/save-image-template'
       const method = editMode.mode === 'edit' ? 'PATCH' : 'POST'
 
@@ -893,8 +893,7 @@ export default function ImageTemplateGenerator() {
       setSaveTemplateName('')
       setShowSaveDialog(false)
 
-      // Redirect to image templates page
-      router.push('/dash/assets/image-templates')
+      router.push('/dash/assets')
     } catch (error) {
       console.error('Save template error:', error)
       toast({
@@ -1011,7 +1010,7 @@ export default function ImageTemplateGenerator() {
 
   // Handle back navigation
   const handleBack = () => {
-    router.push('/dash/assets/image-templates')
+    router.push('/dash/assets')
   }
 
   // Export image handler - composites all canvas layers

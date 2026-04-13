@@ -10,8 +10,8 @@ export const defaultOrganizationValue = async ({ user, req }: any) => {
   try {
     const organizationIds = await getUserOrganizationIds(req.payload, user)
 
-    // If user has exactly one organization, return it as default
-    if (organizationIds.length === 1) {
+    // Return the user's first (current) organization as default
+    if (organizationIds.length > 0) {
       return organizationIds[0]
     }
   } catch (error) {
