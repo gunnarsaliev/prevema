@@ -81,7 +81,7 @@ export function EmailsListClient({ emails: initialEmails }: Props) {
   )
 
   return (
-    <div className="flex flex-1 h-full overflow-hidden">
+    <div className="flex flex-1 h-full min-h-0 w-full overflow-hidden max-w-full">
       <EmailInboxSidebar
         emails={filteredEmails}
         selectedEmailId={selectedEmail ? String(selectedEmail.id) : null}
@@ -94,7 +94,7 @@ export function EmailsListClient({ emails: initialEmails }: Props) {
         onTabChange={setActiveTab}
         unreadInboxCount={unreadInboxCount}
       />
-      <div className="flex-1 flex flex-col overflow-hidden bg-background">
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden bg-background">
         <EmailDetailPanel email={selectedEmail} />
       </div>
     </div>

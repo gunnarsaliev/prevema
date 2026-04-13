@@ -209,7 +209,7 @@ export function ApplicationShell({
         >
           {/* Secondary Sidebar (e.g., Mail List) */}
           {secondarySidebar}
-          <SidebarInset className="min-h-0 flex-1 overflow-auto">{children}</SidebarInset>
+          <SidebarInset className="min-h-0 flex-1 overflow-hidden">{children}</SidebarInset>
         </div>
       </div>
 

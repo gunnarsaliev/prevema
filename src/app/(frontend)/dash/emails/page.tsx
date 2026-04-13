@@ -34,7 +34,7 @@ export default async function EmailsPage() {
   if (!user) redirect('/admin/login')
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col min-h-0 overflow-hidden">
       <Suspense fallback={<EmailsListSkeleton />}>
         <EmailsData />
       </Suspense>

@@ -16,11 +16,9 @@ import {
   MousePointer,
   Paperclip,
   FileText,
-  Code,
   Mail,
 } from 'lucide-react'
 import type { EmailLog } from '@/payload-types'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -40,7 +38,11 @@ function getInitials(name: string) {
 
 const statusConfig: Record<
   string,
-  { label: string; icon: React.ReactNode; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
+  {
+    label: string
+    icon: React.ReactNode
+    variant: 'default' | 'secondary' | 'destructive' | 'outline'
+  }
 > = {
   sent: {
     label: 'Sent',
@@ -115,34 +117,34 @@ export function EmailDetailPanel({ email }: Props) {
   const status = statusConfig[email.status] || statusConfig.sent
   const hasAttachments = email.attachments && email.attachments.length > 0
   const isInbound = email.direction === 'inbound'
-  const senderName = isInbound 
-    ? (email.fromName || email.fromEmail?.split('@')[0] || 'Unknown')
-    : (email.toName || email.toEmail?.split('@')[0] || 'Unknown')
+  const senderName = isInbound
+    ? email.fromName || email.fromEmail?.split('@')[0] || 'Unknown'
+    : email.toName || email.toEmail?.split('@')[0] || 'Unknown'
 
   return (
-    <div className="flex flex-1 flex-col h-full overflow-hidden">
+    <div className="flex flex-1 flex-col h-full min-h-0 min-w-0 overflow-hidden w-full">
       {/* Email Header */}
-      <div className="flex-shrink-0 border-b p-6">
+      <div className="flex-shrink-0 border-b p-6 overflow-hidden">
         <div className="flex items-start gap-4">
           <Avatar className="size-12 shrink-0">
-            <AvatarFallback className={cn(
-              "text-sm font-medium text-primary-foreground",
-              isInbound ? "bg-blue-500" : "bg-green-500"
-            )}>
+            <AvatarFallback
+              className={cn(
+                'text-sm font-medium text-primary-foreground',
+                isInbound ? 'bg-blue-500' : 'bg-green-500',
+              )}
+            >
               {getInitials(senderName)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-1">
-              <h2 className="text-xl font-semibold truncate">
-                {email.subject || '(No Subject)'}
-              </h2>
+              <h2 className="text-xl font-semibold truncate">{email.subject || '(No Subject)'}</h2>
               <Badge variant={status.variant} className="gap-1 shrink-0">
                 {status.icon}
                 {status.label}
               </Badge>
             </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-4 text-sm text-muted-foreground min-w-0 overflow-hidden">
               <div className="flex items-center gap-1">
                 {isInbound ? (
                   <Inbox className="h-3.5 w-3.5 text-blue-500" />
@@ -152,8 +154,8 @@ export function EmailDetailPanel({ email }: Props) {
                 <span>
                   {email.fromName ? (
                     <>
-                      <span className="font-medium text-foreground">{email.fromName}</span>
-                      {' '}&lt;{email.fromEmail}&gt;
+                      <span className="font-medium text-foreground">{email.fromName}</span> &lt;
+                      {email.fromEmail}&gt;
                     </>
                   ) : (
                     email.fromEmail
@@ -164,8 +166,8 @@ export function EmailDetailPanel({ email }: Props) {
               <span>
                 {email.toName ? (
                   <>
-                    <span className="font-medium text-foreground">{email.toName}</span>
-                    {' '}&lt;{email.toEmail}&gt;
+                    <span className="font-medium text-foreground">{email.toName}</span> &lt;
+                    {email.toEmail}&gt;
                   </>
                 ) : (
                   email.toEmail
@@ -190,44 +192,20 @@ export function EmailDetailPanel({ email }: Props) {
       </div>
 
       {/* Email Content */}
-      <ScrollArea className="flex-1">
-        <div className="p-6 space-y-6">
+      <ScrollArea className="flex-1 min-h-0 w-full">
+        <div className="p-6 space-y-6 max-w-full overflow-hidden">
           {/* Email Body */}
-          <Tabs defaultValue="html" className="w-full">
-            <TabsList className="w-full justify-start">
-              <TabsTrigger value="html" className="gap-1">
-                <Code className="h-3 w-3" />
-                HTML
-              </TabsTrigger>
-              <TabsTrigger value="text" className="gap-1">
-                <FileText className="h-3 w-3" />
-                Plain Text
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="html" className="mt-4">
-              {email.htmlContent ? (
-                <div
-                  className="prose prose-sm max-w-none bg-white rounded-md border p-6"
-                  dangerouslySetInnerHTML={{ __html: email.htmlContent }}
-                />
-              ) : (
-                <div className="text-sm text-muted-foreground italic p-4 bg-muted rounded-md">
-                  No HTML content available
-                </div>
-              )}
-            </TabsContent>
-            <TabsContent value="text" className="mt-4">
-              {email.textContent ? (
-                <pre className="text-sm whitespace-pre-wrap bg-muted rounded-md p-6 font-mono">
-                  {email.textContent}
-                </pre>
-              ) : (
-                <div className="text-sm text-muted-foreground italic p-4 bg-muted rounded-md">
-                  No plain text content available
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
+          <div className="overflow-hidden">
+            {email.textContent ? (
+              <pre className="text-sm whitespace-pre-wrap bg-muted rounded-md p-6 font-mono">
+                {email.textContent}
+              </pre>
+            ) : (
+              <div className="text-sm text-muted-foreground italic p-4 bg-muted rounded-md">
+                No content available
+              </div>
+            )}
+          </div>
 
           {/* Attachments */}
           {hasAttachments && (
@@ -246,9 +224,7 @@ export function EmailDetailPanel({ email }: Props) {
                     >
                       <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {attachment.filename}
-                        </p>
+                        <p className="text-sm font-medium truncate">{attachment.filename}</p>
                         <p className="text-xs text-muted-foreground">
                           {attachment.contentType}
                           {attachment.size && ` • ${formatBytes(attachment.size)}`}
@@ -313,7 +289,7 @@ export function EmailDetailPanel({ email }: Props) {
               <Separator />
               <div>
                 <h4 className="text-sm font-medium mb-3">Variables Used</h4>
-                <pre className="text-xs bg-muted rounded-md p-4 font-mono overflow-auto max-h-48">
+                <pre className="text-xs bg-muted rounded-md p-4 font-mono overflow-x-auto max-h-48 max-w-full">
                   {JSON.stringify(JSON.parse(email.variables), null, 2)}
                 </pre>
               </div>
@@ -326,7 +302,7 @@ export function EmailDetailPanel({ email }: Props) {
               <Separator />
               <div>
                 <h4 className="text-sm font-medium mb-3">Metadata</h4>
-                <pre className="text-xs bg-muted rounded-md p-4 font-mono overflow-auto max-h-48">
+                <pre className="text-xs bg-muted rounded-md p-4 font-mono overflow-x-auto max-h-48 max-w-full">
                   {JSON.stringify(email.metadata, null, 2)}
                 </pre>
               </div>
