@@ -1,8 +1,7 @@
 'use client'
 
-import { format } from 'date-fns'
+import { format, formatDistanceToNow } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -18,6 +17,7 @@ import {
   FileText,
   Mail,
 } from 'lucide-react'
+import { BottomBar } from '@/components/BottomBar'
 import type { EmailLog } from '@/payload-types'
 import { cn } from '@/lib/utils'
 
@@ -117,199 +117,132 @@ export function EmailDetailPanel({ email }: Props) {
   const status = statusConfig[email.status] || statusConfig.sent
   const hasAttachments = email.attachments && email.attachments.length > 0
   const isInbound = email.direction === 'inbound'
-  const senderName = isInbound
-    ? email.fromName || email.fromEmail?.split('@')[0] || 'Unknown'
-    : email.toName || email.toEmail?.split('@')[0] || 'Unknown'
+
+  // For the avatar, show the sender's initials (like Gmail does)
+  const senderDisplayName = email.fromName || email.fromEmail?.split('@')[0] || 'Unknown'
+  const recipientDisplayName = email.toName || email.toEmail?.split('@')[0] || 'me'
+
+  const dateStr = email.sentAt || email.createdAt
+  const emailDate = new Date(dateStr)
+  const timeAgo = formatDistanceToNow(emailDate, { addSuffix: true })
+  const formattedTime = format(emailDate, 'h:mm a')
 
   return (
     <div className="flex flex-1 flex-col h-full min-h-0 min-w-0 overflow-hidden w-full">
-      {/* Email Header */}
-      <div className="flex-shrink-0 border-b p-6 overflow-hidden">
-        <div className="flex items-start gap-4">
-          <Avatar className="size-12 shrink-0">
-            <AvatarFallback
-              className={cn(
-                'text-sm font-medium text-primary-foreground',
-                isInbound ? 'bg-blue-500' : 'bg-green-500',
-              )}
-            >
-              {getInitials(senderName)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-1">
-              <h2 className="text-xl font-semibold truncate">{email.subject || '(No Subject)'}</h2>
-              <Badge variant={status.variant} className="gap-1 shrink-0">
-                {status.icon}
-                {status.label}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground min-w-0 overflow-hidden">
-              <div className="flex items-center gap-1">
-                {isInbound ? (
-                  <Inbox className="h-3.5 w-3.5 text-blue-500" />
-                ) : (
-                  <Send className="h-3.5 w-3.5 text-green-500" />
-                )}
-                <span>
-                  {email.fromName ? (
-                    <>
-                      <span className="font-medium text-foreground">{email.fromName}</span> &lt;
-                      {email.fromEmail}&gt;
-                    </>
-                  ) : (
-                    email.fromEmail
-                  )}
-                </span>
-              </div>
-              <span>→</span>
-              <span>
-                {email.toName ? (
-                  <>
-                    <span className="font-medium text-foreground">{email.toName}</span> &lt;
-                    {email.toEmail}&gt;
-                  </>
-                ) : (
-                  email.toEmail
-                )}
-              </span>
-            </div>
-            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-              <span>
-                {email.sentAt
-                  ? format(new Date(email.sentAt), 'PPpp')
-                  : format(new Date(email.createdAt), 'PPpp')}
-              </span>
-              {hasAttachments && (
-                <span className="flex items-center gap-1">
-                  <Paperclip className="h-3 w-3" />
-                  {email.attachments?.length} attachment{email.attachments?.length !== 1 ? 's' : ''}
-                </span>
-              )}
-            </div>
-          </div>
+      {/* Gmail-style Header - Subject line */}
+      <div className="flex-shrink-0 px-6 pt-6 pb-4 overflow-hidden">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-normal text-foreground">
+            {email.subject || '(No Subject)'}
+          </h1>
+          <Badge variant={status.variant} className="gap-1 shrink-0 text-xs">
+            {status.label}
+          </Badge>
         </div>
       </div>
 
       {/* Email Content */}
       <ScrollArea className="flex-1 min-h-0 w-full">
-        <div className="p-6 space-y-6 max-w-full overflow-hidden">
-          {/* Email Body */}
-          <div className="overflow-hidden">
-            {email.textContent ? (
-              <pre className="text-sm whitespace-pre-wrap bg-muted rounded-md p-6 font-mono">
-                {email.textContent}
-              </pre>
-            ) : (
-              <div className="text-sm text-muted-foreground italic p-4 bg-muted rounded-md">
-                No content available
+        <div className="px-6 pb-6 max-w-full overflow-hidden">
+          {/* Gmail-style Sender Info */}
+          <div className="flex items-start gap-3 mb-6">
+            <Avatar className="size-10 shrink-0 mt-0.5">
+              <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                {getInitials(senderDisplayName)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1">
+                    <span className="font-medium text-foreground">{senderDisplayName}</span>
+                    <span className="text-muted-foreground text-sm">&lt;{email.fromEmail}&gt;</span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">to {recipientDisplayName}</div>
+                </div>
+                <div className="text-sm text-muted-foreground shrink-0">
+                  {formattedTime} ({timeAgo})
+                </div>
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* Email Body - Gmail style card */}
+          <div className="border rounded-lg bg-card overflow-hidden">
+            <div className="p-8">
+              {email.textContent ? (
+                <div className="text-base leading-7 whitespace-pre-line font-sans text-foreground">
+                  {email.textContent}
+                </div>
+              ) : (
+                <div className="text-base text-muted-foreground italic">No content available</div>
+              )}
+            </div>
           </div>
 
           {/* Attachments */}
           {hasAttachments && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                  <Paperclip className="h-4 w-4" />
-                  Attachments ({email.attachments?.length})
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {email.attachments?.map((attachment, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 p-3 rounded-md border bg-muted/50"
-                    >
-                      <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{attachment.filename}</p>
+            <div className="mt-6">
+              <h4 className="text-sm font-medium mb-3 flex items-center gap-2 text-muted-foreground">
+                <Paperclip className="h-4 w-4" />
+                {email.attachments?.length} Attachment{email.attachments?.length !== 1 ? 's' : ''}
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {email.attachments?.map((attachment, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
+                  >
+                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate max-w-[200px]">
+                        {attachment.filename}
+                      </p>
+                      {attachment.size && (
                         <p className="text-xs text-muted-foreground">
-                          {attachment.contentType}
-                          {attachment.size && ` • ${formatBytes(attachment.size)}`}
+                          {formatBytes(attachment.size)}
                         </p>
-                      </div>
-                      {attachment.url && (
-                        <a
-                          href={attachment.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-primary hover:underline shrink-0"
-                        >
-                          Download
-                        </a>
                       )}
                     </div>
-                  ))}
-                </div>
+                    {attachment.url && (
+                      <a
+                        href={attachment.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline shrink-0 ml-2"
+                      >
+                        Download
+                      </a>
+                    )}
+                  </div>
+                ))}
               </div>
-            </>
+            </div>
           )}
 
           {/* Error Message */}
           {email.errorMessage && (
-            <>
-              <Separator />
-              <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4">
-                <h4 className="text-sm font-medium text-destructive mb-2 flex items-center gap-2">
-                  <XCircle className="h-4 w-4" />
-                  Error Details
-                </h4>
-                <pre className="text-xs text-destructive whitespace-pre-wrap font-mono">
-                  {email.errorMessage}
-                </pre>
-              </div>
-            </>
-          )}
-
-          {/* Template Info (for outbound) */}
-          {email.direction === 'outbound' && email.templateName && (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Template Information</h4>
-                <div className="grid grid-cols-[100px_1fr] gap-2 text-sm">
-                  <span className="text-muted-foreground">Template:</span>
-                  <span>{email.templateName}</span>
-                </div>
-                {email.triggerEvent && (
-                  <div className="grid grid-cols-[100px_1fr] gap-2 text-sm">
-                    <span className="text-muted-foreground">Trigger:</span>
-                    <Badge variant="outline">{email.triggerEvent}</Badge>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Variables (for outbound) */}
-          {email.direction === 'outbound' && email.variables && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-medium mb-3">Variables Used</h4>
-                <pre className="text-xs bg-muted rounded-md p-4 font-mono overflow-x-auto max-h-48 max-w-full">
-                  {JSON.stringify(JSON.parse(email.variables), null, 2)}
-                </pre>
-              </div>
-            </>
-          )}
-
-          {/* Metadata */}
-          {email.metadata && Object.keys(email.metadata).length > 0 && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-medium mb-3">Metadata</h4>
-                <pre className="text-xs bg-muted rounded-md p-4 font-mono overflow-x-auto max-h-48 max-w-full">
-                  {JSON.stringify(email.metadata, null, 2)}
-                </pre>
-              </div>
-            </>
+            <div className="mt-6 rounded-lg bg-destructive/10 border border-destructive/20 p-4">
+              <h4 className="text-sm font-medium text-destructive mb-2 flex items-center gap-2">
+                <XCircle className="h-4 w-4" />
+                Error Details
+              </h4>
+              <pre className="text-xs text-destructive whitespace-pre-wrap font-mono">
+                {email.errorMessage}
+              </pre>
+            </div>
           )}
         </div>
       </ScrollArea>
+
+      {/* Bottom Bar - Template & Variables Info */}
+      {email.direction === 'outbound' && (
+        <BottomBar
+          templateName={email.templateName}
+          triggerEvent={email.triggerEvent}
+          variables={email.variables}
+        />
+      )}
     </div>
   )
 }
