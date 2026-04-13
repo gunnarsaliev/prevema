@@ -20,7 +20,7 @@ export default async function ImageTemplatesPage() {
     collection: 'image-templates',
     overrideAccess: false,
     user,
-    depth: 0,
+    depth: 1,
     limit: 500,
     sort: '-updatedAt',
   })

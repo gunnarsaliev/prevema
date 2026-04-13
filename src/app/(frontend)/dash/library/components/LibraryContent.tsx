@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ImageIcon, Mail, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ImageTemplateCard } from '@/components/shared/ImageTemplateCard'
 import { TemplateCard } from './TemplateCard'
 
 interface Template {
@@ -93,10 +94,10 @@ export function LibraryContent({
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredImageTemplates.map((template) => (
-                <TemplateCard
+                <ImageTemplateCard
                   key={template.id}
                   template={template}
-                  type="image"
+                  variant="library"
                   isAlreadyAdded={copiedImageIds.includes(template.id)}
                   hasOrganizations={hasOrganizations}
                 />
