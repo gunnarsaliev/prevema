@@ -1,79 +1,102 @@
 'use client'
 
-import { useState } from 'react'
-import { TopBar } from '@/components/shared/TopBar'
-import { EmailsList } from './EmailsList'
-import { EmailDetailSheet } from './EmailDetailSheet'
+import { useState, useMemo, useCallback } from 'react'
+import { EmailInboxSidebar } from './EmailInboxSidebar'
+import { EmailDetailPanel } from './EmailDetailPanel'
 import type { EmailLog } from '@/payload-types'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Input } from '@/components/ui/input'
-import { Search } from 'lucide-react'
+
+export type EmailTab = 'inbox' | 'sent'
 
 interface Props {
   emails: EmailLog[]
 }
 
-export function EmailsListClient({ emails }: Props) {
+export function EmailsListClient({ emails: initialEmails }: Props) {
+  const [emails, setEmails] = useState(initialEmails)
   const [selectedEmail, setSelectedEmail] = useState<EmailLog | null>(null)
-  const [filter, setFilter] = useState<'all' | 'inbound' | 'outbound'>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [showUnreadsOnly, setShowUnreadsOnly] = useState(false)
+  const [activeTab, setActiveTab] = useState<EmailTab>('inbox')
 
-  const filteredEmails = emails.filter((email) => {
-    // Direction filter
-    if (filter !== 'all' && email.direction !== filter) return false
+  const filteredEmails = useMemo(() => {
+    return emails.filter((email) => {
+      // Tab filter - inbox shows inbound, sent shows outbound
+      if (activeTab === 'inbox' && email.direction !== 'inbound') return false
+      if (activeTab === 'sent' && email.direction !== 'outbound') return false
 
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      const matchesSubject = email.subject?.toLowerCase().includes(query)
-      const matchesFrom = email.fromEmail?.toLowerCase().includes(query)
-      const matchesTo = email.toEmail?.toLowerCase().includes(query)
-      return matchesSubject || matchesFrom || matchesTo
+      // Unreads filter - use the read field (only for inbox)
+      if (showUnreadsOnly && activeTab === 'inbox') {
+        if ((email as any).read === true) return false
+      }
+
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase()
+        const matchesSubject = email.subject?.toLowerCase().includes(query)
+        const matchesFrom = email.fromEmail?.toLowerCase().includes(query)
+        const matchesFromName = email.fromName?.toLowerCase().includes(query)
+        const matchesTo = email.toEmail?.toLowerCase().includes(query)
+        const matchesToName = email.toName?.toLowerCase().includes(query)
+        return matchesSubject || matchesFrom || matchesFromName || matchesTo || matchesToName
+      }
+
+      return true
+    })
+  }, [emails, searchQuery, showUnreadsOnly, activeTab])
+
+  // Count unread inbox emails
+  const unreadInboxCount = useMemo(() => {
+    return emails.filter((email) => email.direction === 'inbound' && !(email as any).read).length
+  }, [emails])
+
+  const markAsRead = useCallback(async (emailId: number) => {
+    try {
+      const response = await fetch(`/api/emails/${emailId}/read`, {
+        method: 'PATCH',
+      })
+
+      if (response.ok) {
+        // Update local state to mark email as read
+        setEmails((prev) =>
+          prev.map((email) =>
+            email.id === emailId ? ({ ...email, read: true } as EmailLog) : email,
+          ),
+        )
+      }
+    } catch (error) {
+      console.error('Failed to mark email as read:', error)
     }
+  }, [])
 
-    return true
-  })
+  const handleEmailSelect = useCallback(
+    (email: EmailLog) => {
+      setSelectedEmail(email)
 
-  const inboundCount = emails.filter((e) => e.direction === 'inbound').length
-  const outboundCount = emails.filter((e) => e.direction === 'outbound').length
+      // Mark as read if not already read
+      if (!(email as any).read) {
+        markAsRead(email.id)
+      }
+    },
+    [markAsRead],
+  )
 
   return (
-    <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar title="Email History" description="Track and explore sent and received emails" />
-      <div className="flex-1 overflow-auto">
-        <div className="px-8 py-6">
-          <div className="flex items-center justify-between gap-4 mb-6">
-            <Tabs
-              value={filter}
-              onValueChange={(v: string) => setFilter(v as 'all' | 'inbound' | 'outbound')}
-            >
-              <TabsList>
-                <TabsTrigger value="all">All ({emails.length})</TabsTrigger>
-                <TabsTrigger value="outbound">Sent ({outboundCount})</TabsTrigger>
-                <TabsTrigger value="inbound">Received ({inboundCount})</TabsTrigger>
-              </TabsList>
-            </Tabs>
-
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search emails..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-          </div>
-
-          <EmailsList emails={filteredEmails} onSelectEmail={setSelectedEmail} />
-        </div>
-      </div>
-
-      <EmailDetailSheet
-        email={selectedEmail}
-        open={!!selectedEmail}
-        onOpenChange={(open: boolean) => !open && setSelectedEmail(null)}
+    <div className="flex flex-1 h-full overflow-hidden">
+      <EmailInboxSidebar
+        emails={filteredEmails}
+        selectedEmailId={selectedEmail ? String(selectedEmail.id) : null}
+        onEmailSelect={handleEmailSelect}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        showUnreadsOnly={showUnreadsOnly}
+        onUnreadsToggle={setShowUnreadsOnly}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        unreadInboxCount={unreadInboxCount}
       />
+      <div className="flex-1 flex flex-col overflow-hidden bg-background">
+        <EmailDetailPanel email={selectedEmail} />
+      </div>
     </div>
   )
 }

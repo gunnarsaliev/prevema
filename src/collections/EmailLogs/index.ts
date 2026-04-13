@@ -37,7 +37,25 @@ export const EmailLogs: CollectionConfig = {
 
       return false
     },
-    update: () => false, // Logs are immutable
+    update: async ({ req: { user, payload } }) => {
+      // Allow users to update read status for emails in their organizations
+      if (!user) return false
+
+      if (checkRole(['super-admin', 'admin'], user)) {
+        return true
+      }
+
+      const organizationIds = await getUserOrganizationIds(payload, user)
+      if (organizationIds.length > 0) {
+        return {
+          organization: {
+            in: organizationIds,
+          },
+        }
+      }
+
+      return false
+    },
     delete: ({ req: { user } }) => checkRole(['super-admin'], user), // Only super-admins can delete logs
   },
   fields: [
@@ -218,6 +236,14 @@ export const EmailLogs: CollectionConfig = {
       },
     },
     {
+      name: 'read',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Whether this email has been read by the user',
+      },
+    },
+    {
       name: 'errorMessage',
       type: 'textarea',
       admin: {
@@ -307,6 +333,15 @@ export const EmailLogs: CollectionConfig = {
   hooks: {
     beforeChange: [
       async ({ data, operation }) => {
+        // Set read status based on direction:
+        // - Outbound (sent) emails are read by default
+        // - Inbound (received) emails are unread by default
+        if (operation === 'create') {
+          if (data.read === undefined || data.read === null) {
+            data.read = data.direction === 'outbound'
+          }
+        }
+
         // Auto-populate legacy fields for backward compatibility
         if (operation === 'create' && data.direction === 'outbound') {
           if (!data.recipientEmail && data.toEmail) {

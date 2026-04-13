@@ -126,6 +126,8 @@ export async function triggerAutomatedEmails({
               recipientEmail,
               triggerEvent: event,
               variables: data,
+              htmlContent: result.htmlContent,
+              textContent: result.textContent,
             })
           } else {
             errors.push(`Template "${template.name}": ${result.error}`)
@@ -243,6 +245,8 @@ async function scheduleDelayedEmail({
             recipientEmail,
             triggerEvent: 'scheduled',
             variables,
+            htmlContent: result.htmlContent,
+            textContent: result.textContent,
           })
         }
       } catch (error) {
@@ -265,6 +269,8 @@ async function logEmailSent({
   variables,
   templateName,
   templateSubject,
+  htmlContent,
+  textContent,
 }: {
   payload: Payload
   templateId: string | number
@@ -274,6 +280,8 @@ async function logEmailSent({
   variables: Record<string, any>
   templateName?: string
   templateSubject?: string
+  htmlContent?: string
+  textContent?: string
 }): Promise<void> {
   try {
     // Fetch template details if not provided
@@ -315,6 +323,8 @@ async function logEmailSent({
         variables: JSON.stringify(variables),
         sentAt: new Date().toISOString(),
         status: 'sent',
+        htmlContent,
+        textContent,
       },
     })
   } catch (error) {

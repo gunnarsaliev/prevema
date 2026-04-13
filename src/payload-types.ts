@@ -465,6 +465,10 @@ export interface EmailLog {
    */
   status: 'sent' | 'failed' | 'scheduled' | 'received' | 'bounced' | 'complained' | 'delivered' | 'opened' | 'clicked';
   /**
+   * Whether this email has been read by the user
+   */
+  read?: boolean | null;
+  /**
    * Error message if sending failed
    */
   errorMessage?: string | null;
@@ -1304,6 +1308,7 @@ export interface EmailLogsSelect<T extends boolean = true> {
   triggerEvent?: T;
   variables?: T;
   status?: T;
+  read?: T;
   errorMessage?: T;
   sentAt?: T;
   sentBy?: T;

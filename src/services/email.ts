@@ -45,7 +45,12 @@ export async function sendTenantEmail({
   templateName,
   to,
   variables,
-}: SendEmailOptions): Promise<{ success: boolean; error?: string }> {
+}: SendEmailOptions): Promise<{
+  success: boolean
+  error?: string
+  htmlContent?: string
+  textContent?: string
+}> {
   try {
     // Fetch the organization
     const organization = await payload.findByID({
@@ -157,16 +162,20 @@ export async function sendTenantEmail({
     })
 
     if (!result.data) {
-      throw new Error(
-        `Resend API error: ${result.error?.message || 'Unknown error sending email'}`,
-      )
+      throw new Error(`Resend API error: ${result.error?.message || 'Unknown error sending email'}`)
     }
 
     console.log(
       `✅ Email sent successfully to ${to} using template: ${templateName} (Resend ID: ${result.data.id})`,
     )
 
-    return { success: true }
+    // Generate plain text from HTML by stripping tags
+    const textContent = html
+      .replace(/<[^>]*>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+
+    return { success: true, htmlContent: html, textContent }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     console.error(`❌ Failed to send email:`, errorMessage)
@@ -244,9 +253,7 @@ export async function sendSimpleTenantEmail({
     })
 
     if (!result.data) {
-      throw new Error(
-        `Resend API error: ${result.error?.message || 'Unknown error sending email'}`,
-      )
+      throw new Error(`Resend API error: ${result.error?.message || 'Unknown error sending email'}`)
     }
 
     console.log(`✅ Email sent successfully to ${to} (Resend ID: ${result.data.id})`)

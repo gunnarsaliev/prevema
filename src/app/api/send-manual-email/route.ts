@@ -286,6 +286,8 @@ export async function POST(request: Request) {
                   sentAt: new Date().toISOString(),
                   status: 'sent',
                   sentBy: userId ? Number(userId) : undefined,
+                  htmlContent: result.htmlContent,
+                  textContent: result.textContent,
                 },
               })
             } else {
