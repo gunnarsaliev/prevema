@@ -3,7 +3,16 @@
 import * as React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { BadgeCheck, Bell, ChevronDown, CreditCard, LogOut, Sparkles } from 'lucide-react'
+import {
+  BadgeCheck,
+  Bell,
+  ChevronDown,
+  CreditCard,
+  LogOut,
+  Sparkles,
+  Settings,
+  Building2,
+} from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -76,6 +85,21 @@ function UserMenu({ user }: UserMenuProps) {
               Account
             </Link>
           </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/dash/settings/organization">
+              <Building2 className="mr-2 size-4" />
+              Organization
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/dash/settings">
+              <Settings className="mr-2 size-4" />
+              Settings
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
           <DropdownMenuItem asChild>
             <Link href="/dash/settings/subscription">
               <CreditCard className="mr-2 size-4" />

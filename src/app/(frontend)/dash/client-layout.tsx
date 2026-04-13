@@ -33,17 +33,20 @@ export function DashClientLayout({
       setActiveModuleId('events')
     } else if (
       pathname.startsWith('/dash/participants') ||
-      pathname.startsWith('/dash/partners') ||
-      pathname.startsWith('/dash/participant-roles') ||
-      pathname.startsWith('/dash/partner-types')
+      pathname.startsWith('/dash/participant-roles')
     ) {
       setActiveModuleId('guests')
+    } else if (
+      pathname.startsWith('/dash/partners') ||
+      pathname.startsWith('/dash/partner-types')
+    ) {
+      setActiveModuleId('partners')
     } else if (pathname.startsWith('/dash/image-generator')) {
       setActiveModuleId('image-generator')
     } else if (pathname.startsWith('/dash/assets')) {
       setActiveModuleId('assets')
-    } else if (pathname.startsWith('/dash/settings')) {
-      setActiveModuleId('settings')
+    } else if (pathname.startsWith('/dash/help')) {
+      setActiveModuleId('help')
     } else {
       setActiveModuleId('dashboard')
     }

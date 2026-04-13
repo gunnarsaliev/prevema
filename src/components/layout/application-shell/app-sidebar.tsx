@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { Settings } from 'lucide-react'
+import { HelpCircle } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -64,12 +64,12 @@ export function AppSidebar({
       </SidebarContent>
       <SidebarFooter className="p-3">
         <Link
-          href="/dash/settings"
+          href="/dash/help"
           className="flex aspect-square w-full items-center justify-center rounded-2xl bg-muted/50 text-muted-foreground transition-all hover:rounded-xl hover:bg-primary hover:text-primary-foreground"
-          aria-label="Settings"
-          title="Settings"
+          aria-label="Help"
+          title="Help"
         >
-          <Settings className="size-6" />
+          <HelpCircle className="size-6" />
         </Link>
       </SidebarFooter>
     </Sidebar>
