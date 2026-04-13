@@ -17,30 +17,14 @@ export default async function CreateParticipantRolePage() {
   // Get all organization IDs where user is a member (including as owner)
   const organizationIds = await getUserOrganizationIds(payload, user)
 
-  const [{ docs: eventDocs }, { docs: orgDocs }] = await Promise.all([
-    payload.find({
-      collection: 'events',
-      overrideAccess: false,
-      user,
-      depth: 0,
-      limit: 200,
-      sort: 'name',
-      select: { name: true },
-    }),
-    payload.find({
-      collection: 'organizations',
-      where: {
-        id: {
-          in: organizationIds,
-        },
-      },
-      depth: 0,
-      limit: 100,
-      select: { name: true },
-    }),
-  ])
+  const { docs: orgDocs } = await payload.find({
+    collection: 'organizations',
+    where: { id: { in: organizationIds } },
+    depth: 0,
+    limit: 100,
+    select: { name: true },
+  })
 
-  const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
   const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
@@ -53,7 +37,7 @@ export default async function CreateParticipantRolePage() {
       />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
-          <ParticipantRoleForm mode="create" organizations={organizations} events={events} />
+          <ParticipantRoleForm mode="create" organizations={organizations} />
         </div>
       </div>
     </div>

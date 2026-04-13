@@ -36,7 +36,6 @@ export const participantRoleSchema = z.object({
   organization: z.number().optional(),
   name: z.string().min(1, 'Name is required'),
   description: z.string().nullish(),
-  event: z.number().nullish(),
   isActive: z.boolean(),
   requiredFields: z.array(z.enum(participantFieldValues)),
   showOptionalFields: z.boolean(),

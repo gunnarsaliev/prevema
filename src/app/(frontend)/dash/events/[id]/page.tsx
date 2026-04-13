@@ -63,22 +63,14 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   const orgId = resolveNum(event.organization) ?? 0
 
-  // Fetch roles/types that belong to this org AND are either linked to this
-  // specific event OR have no event set (org-level shared roles/types).
+  // Fetch all roles/types for this organization (now org-scoped only)
   const [{ docs: participantRoles }, { docs: partnerTypes }, { docs: orgDocs }] = await Promise.all(
     [
       payload.find({
         collection: 'participant-roles',
         overrideAccess: false,
         user,
-        where: {
-          and: [
-            { organization: { equals: orgId } },
-            {
-              or: [{ event: { equals: event.id } }, { event: { exists: false } }],
-            },
-          ],
-        },
+        where: { organization: { equals: orgId } },
         depth: 0,
         limit: 100,
         sort: 'name',
@@ -87,14 +79,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         collection: 'partner-types',
         overrideAccess: false,
         user,
-        where: {
-          and: [
-            { organization: { equals: orgId } },
-            {
-              or: [{ event: { equals: event.id } }, { event: { exists: false } }],
-            },
-          ],
-        },
+        where: { organization: { equals: orgId } },
         depth: 0,
         limit: 100,
         sort: 'name',
@@ -103,11 +88,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         collection: 'organizations',
         overrideAccess: false,
         user,
-        where: {
-          id: {
-            in: organizationIds,
-          },
-        },
+        where: { id: { in: organizationIds } },
         depth: 0,
         limit: 50,
         sort: 'name',
@@ -116,7 +97,6 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   )
 
   const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
-  const eventOption = [{ id: event.id, name: event.name }]
 
   const participantRoleItems = participantRoles.map((pt) => ({
     id: pt.id,
@@ -126,7 +106,6 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     requiredFields: (pt.requiredFields as string[] | null | undefined) ?? null,
     publicFormLink: pt.publicFormLink ?? null,
     organization: resolveNum(pt.organization) ?? 0,
-    event: resolveNum(pt.event) ?? null,
     showOptionalFields: pt.showOptionalFields ?? null,
     optionalFields: (pt.optionalFields as string[] | null | undefined) ?? null,
   }))
@@ -139,7 +118,6 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     requiredFields: (pt.requiredFields as string[] | null | undefined) ?? null,
     publicFormLink: pt.publicFormLink ?? null,
     organization: resolveNum(pt.organization) ?? 0,
-    event: resolveNum(pt.event) ?? null,
     showOptionalFields: pt.showOptionalFields ?? null,
     optionalFields: (pt.optionalFields as string[] | null | undefined) ?? null,
   }))
@@ -215,7 +193,6 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             eventId={event.id}
             orgId={orgId}
             organizations={organizations}
-            events={eventOption}
           />
 
           <Separator />
@@ -225,7 +202,6 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             eventId={event.id}
             orgId={orgId}
             organizations={organizations}
-            events={eventOption}
           />
         </div>
       </div>

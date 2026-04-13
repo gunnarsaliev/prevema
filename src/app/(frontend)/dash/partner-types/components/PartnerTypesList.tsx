@@ -58,7 +58,7 @@ export function PartnerTypesList({ partnerTypes }: Props) {
         onStart: () => {},
         onSuccess: () => setCopiedId(id),
         onError: () => setCopiedId(null),
-      }
+      },
     )
   }
 
@@ -77,7 +77,7 @@ export function PartnerTypesList({ partnerTypes }: Props) {
           setDeletingId(null)
         },
         onError: () => setDeletingId(null),
-      }
+      },
     )
   }
 
@@ -95,7 +95,7 @@ export function PartnerTypesList({ partnerTypes }: Props) {
           setBulkDeleting(false)
         },
         onError: () => setBulkDeleting(false),
-      }
+      },
     )
   }
 
@@ -125,12 +125,6 @@ export function PartnerTypesList({ partnerTypes }: Props) {
       accessorKey: 'name',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
-    },
-    {
-      accessorKey: 'event',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Event" />,
-      cell: ({ row }) => getRelationName(row.getValue('event')),
-      enableSorting: false,
     },
     {
       accessorKey: 'requiredFields',

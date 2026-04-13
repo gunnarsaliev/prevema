@@ -474,7 +474,6 @@ export function PartnersList({
             <PartnerTypeForm
               mode="create"
               organizations={organizations}
-              events={events}
               onSuccess={() => {
                 onTypeDrawerChange?.(false)
                 router.refresh()

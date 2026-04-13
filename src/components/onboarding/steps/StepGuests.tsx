@@ -143,7 +143,7 @@ export const StepGuests = ({
     formData.append('name', participantName)
     participantFields.forEach((field) => formData.append('requiredFields', field))
 
-    const result = await createParticipantRoleAction(organizationId, eventId, formData)
+    const result = await createParticipantRoleAction(organizationId, formData)
 
     if (result.success && result.data) {
       setParticipantRoles((prev) => [...prev, result.data as GuestType])
@@ -170,7 +170,7 @@ export const StepGuests = ({
     formData.append('name', partnerName)
     partnerFields.forEach((field) => formData.append('requiredFields', field))
 
-    const result = await createPartnerTypeAction(organizationId, eventId, formData)
+    const result = await createPartnerTypeAction(organizationId, formData)
 
     if (result.success && result.data) {
       setPartnerTypes((prev) => [...prev, result.data as GuestType])
@@ -573,9 +573,7 @@ export const StepGuests = ({
           className="min-w-[200px]"
           disabled={isInitialLoading}
         >
-          {participantRoles.length > 0 || partnerTypes.length > 0
-            ? 'Continue'
-            : 'Skip this step'}
+          {participantRoles.length > 0 || partnerTypes.length > 0 ? 'Continue' : 'Skip this step'}
         </Button>
       </div>
     </div>

@@ -8,11 +8,7 @@ import { TopBar } from '@/components/shared/TopBar'
 import { PartnerTypeForm } from '../../components/PartnerTypeForm'
 import type { PartnerTypeFormValues } from '@/lib/schemas/partner-type'
 
-export default async function EditPartnerTypePage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function EditPartnerTypePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const headers = await getHeaders()
   const payload = await getPayload({ config: await config })
@@ -23,7 +19,7 @@ export default async function EditPartnerTypePage({
   // Get all organization IDs where user is a member (including as owner)
   const organizationIds = await getUserOrganizationIds(payload, user)
 
-  const [partnerType, { docs: eventDocs }, { docs: orgDocs }] = await Promise.all([
+  const [partnerType, { docs: orgDocs }] = await Promise.all([
     payload
       .findByID({
         collection: 'partner-types',
@@ -33,15 +29,6 @@ export default async function EditPartnerTypePage({
         depth: 0,
       })
       .catch(() => null),
-    payload.find({
-      collection: 'events',
-      overrideAccess: false,
-      user,
-      depth: 0,
-      limit: 200,
-      sort: 'name',
-      select: { name: true },
-    }),
     payload.find({
       collection: 'organizations',
       where: {
@@ -69,14 +56,12 @@ export default async function EditPartnerTypePage({
     organization: resolveId(partnerType.organization) ?? undefined,
     name: partnerType.name,
     description: partnerType.description ?? null,
-    event: resolveId(partnerType.event),
     isActive: partnerType.isActive ?? true,
     requiredFields: (partnerType.requiredFields as PartnerTypeFormValues['requiredFields']) ?? [],
     showOptionalFields: partnerType.showOptionalFields ?? false,
     optionalFields: (partnerType.optionalFields as PartnerTypeFormValues['optionalFields']) ?? [],
   }
 
-  const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
   const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
@@ -94,7 +79,6 @@ export default async function EditPartnerTypePage({
             partnerTypeId={String(partnerType.id)}
             defaultValues={defaultValues}
             organizations={organizations}
-            events={events}
           />
         </div>
       </div>

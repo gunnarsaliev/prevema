@@ -37,52 +37,11 @@ export default async function RegisterPage({ params }: Props) {
       ? participantRole.organization.id
       : participantRole.organization
 
-  // If the participant role is linked to a specific event, use it directly
-  if (participantRole.event) {
-    const eventId =
-      typeof participantRole.event === 'object'
-        ? participantRole.event.id
-        : participantRole.event
-
-    let event
-    try {
-      event = await payload.findByID({
-        collection: 'events',
-        id: eventId,
-        depth: 1,
-      })
-    } catch {
-      notFound()
-    }
-
-    if (!event) notFound()
-
-    if (event.status && !['open', 'planning'].includes(event.status)) {
-      notFound()
-    }
-
-    const eventImage = event.image && typeof event.image === 'object' ? (event.image.url ?? null) : null
-
-    return (
-      <RegisterLayout
-        participantRole={participantRole}
-        event={event}
-        eventImage={eventImage}
-        participantRoleId={participantRoleId}
-        eventId={String(eventId)}
-        events={null}
-      />
-    )
-  }
-
-  // No event linked — fetch all open/planning events for the org so the registrant can pick
+  // Fetch all open/planning events for the org so the registrant can pick
   const { docs: orgEvents } = await payload.find({
     collection: 'events',
     where: {
-      and: [
-        { organization: { equals: orgId } },
-        { status: { in: ['open', 'planning'] } },
-      ],
+      and: [{ organization: { equals: orgId } }, { status: { in: ['open', 'planning'] } }],
     },
     depth: 0,
     limit: 50,

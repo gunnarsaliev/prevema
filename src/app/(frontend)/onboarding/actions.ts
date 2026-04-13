@@ -592,7 +592,6 @@ export async function createEventAction(
  */
 export async function createParticipantRoleAction(
   organizationId: number,
-  eventId: number,
   formData: FormData,
 ): Promise<OnboardingActionState<{ id: number; name: string; publicFormLink: string }>> {
   try {
@@ -633,7 +632,6 @@ export async function createParticipantRoleAction(
 
     const rawData = {
       organization: organizationId,
-      event: eventId,
       name: formData.get('name'),
       description: formData.get('description') || null,
       requiredFields: formData.getAll('requiredFields'),
@@ -695,7 +693,6 @@ export async function createParticipantRoleAction(
  */
 export async function createPartnerTypeAction(
   organizationId: number,
-  eventId: number,
   formData: FormData,
 ): Promise<OnboardingActionState<{ id: number; name: string; publicFormLink: string }>> {
   try {
@@ -736,7 +733,6 @@ export async function createPartnerTypeAction(
 
     const rawData = {
       organization: organizationId,
-      event: eventId,
       name: formData.get('name'),
       description: formData.get('description') || null,
       requiredFields: formData.getAll('requiredFields'),

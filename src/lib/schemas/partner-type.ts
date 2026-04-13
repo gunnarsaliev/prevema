@@ -32,7 +32,6 @@ export const partnerTypeSchema = z.object({
   organization: z.number().optional(),
   name: z.string().min(1, 'Name is required'),
   description: z.string().nullish(),
-  event: z.number().nullish(),
   isActive: z.boolean(),
   requiredFields: z.array(z.enum(partnerFieldValues)),
   showOptionalFields: z.boolean(),

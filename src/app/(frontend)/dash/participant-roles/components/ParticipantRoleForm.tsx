@@ -33,17 +33,21 @@ import {
 } from '@/components/ui/select'
 
 type OrgOption = { id: number; name: string }
-type EventOption = { id: number; name: string }
 
 type SharedCallbacks = {
   onSuccess?: (newRoleId?: number) => void
   onCancel?: () => void
-  lockedValues?: { event?: number; organization?: number }
+  lockedValues?: { organization?: number; event?: number }
 }
 
 type Props =
-  | ({ mode: 'create'; organizations: OrgOption[]; events: EventOption[] } & SharedCallbacks)
-  | ({ mode: 'edit'; participantRoleId: string; defaultValues: ParticipantRoleFormValues; organizations: OrgOption[]; events: EventOption[] } & SharedCallbacks)
+  | ({ mode: 'create'; organizations: OrgOption[] } & SharedCallbacks)
+  | ({
+      mode: 'edit'
+      participantRoleId: string
+      defaultValues: ParticipantRoleFormValues
+      organizations: OrgOption[]
+    } & SharedCallbacks)
 
 export function ParticipantRoleForm(props: Props) {
   const router = useRouter()
@@ -58,7 +62,6 @@ export function ParticipantRoleForm(props: Props) {
           organization:
             props.lockedValues?.organization ??
             (organizations.length === 1 ? organizations[0].id : undefined),
-          event: props.lockedValues?.event ?? undefined,
           name: '',
           isActive: true,
           showOptionalFields: false,
@@ -127,39 +130,45 @@ export function ParticipantRoleForm(props: Props) {
       )}
 
       {/* Organization selector — hidden when locked (e.g. from event detail drawer) */}
-      {!props.lockedValues?.organization && props.mode === 'create' && organizations.length >= 2 && (
-        <FieldSet>
-          <FieldLegend>Organization</FieldLegend>
-          <FieldGroup>
-            <Controller
-              name="organization"
-              control={control}
-              rules={{ required: 'Please select an organization' }}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="organization">Organization *</FieldLabel>
-                  <Select
-                    value={field.value ? String(field.value) : ''}
-                    onValueChange={(v) => field.onChange(Number(v))}
-                  >
-                    <SelectTrigger id="organization" ref={field.ref} aria-invalid={fieldState.invalid}>
-                      <SelectValue placeholder="Select organization" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {organizations.map((org) => (
-                        <SelectItem key={org.id} value={String(org.id)}>
-                          {org.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-          </FieldGroup>
-        </FieldSet>
-      )}
+      {!props.lockedValues?.organization &&
+        props.mode === 'create' &&
+        organizations.length >= 2 && (
+          <FieldSet>
+            <FieldLegend>Organization</FieldLegend>
+            <FieldGroup>
+              <Controller
+                name="organization"
+                control={control}
+                rules={{ required: 'Please select an organization' }}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="organization">Organization *</FieldLabel>
+                    <Select
+                      value={field.value ? String(field.value) : ''}
+                      onValueChange={(v) => field.onChange(Number(v))}
+                    >
+                      <SelectTrigger
+                        id="organization"
+                        ref={field.ref}
+                        aria-invalid={fieldState.invalid}
+                      >
+                        <SelectValue placeholder="Select organization" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {organizations.map((org) => (
+                          <SelectItem key={org.id} value={String(org.id)}>
+                            {org.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            </FieldGroup>
+          </FieldSet>
+        )}
 
       {/* General */}
       <FieldSet>
@@ -203,58 +212,27 @@ export function ParticipantRoleForm(props: Props) {
             )}
           />
 
-          <div className={props.lockedValues?.event == null ? 'grid grid-cols-2 gap-4' : undefined}>
-            {props.lockedValues?.event == null && (
-              <Controller
-                name="event"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="event">Link to event</FieldLabel>
-                    <Select
-                      value={field.value ? String(field.value) : 'none'}
-                      onValueChange={(v) => field.onChange(v === 'none' ? null : Number(v))}
-                    >
-                      <SelectTrigger id="event" ref={field.ref} aria-invalid={fieldState.invalid}>
-                        <SelectValue placeholder="Any event" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Any event</SelectItem>
-                        {props.events.map((e) => (
-                          <SelectItem key={e.id} value={String(e.id)}>
-                            {e.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
+          <Controller
+            name="isActive"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="isActive">Active</FieldLabel>
+                <div className="flex items-center gap-2 h-9">
+                  <Checkbox
+                    id="isActive"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    This participant role is accepting registrations
+                  </span>
+                </div>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
             )}
-
-            <Controller
-              name="isActive"
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="isActive">Active</FieldLabel>
-                  <div className="flex items-center gap-2 h-9">
-                    <Checkbox
-                      id="isActive"
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      aria-invalid={fieldState.invalid}
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      This participant role is accepting registrations
-                    </span>
-                  </div>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-          </div>
+          />
         </FieldGroup>
       </FieldSet>
 
@@ -267,8 +245,8 @@ export function ParticipantRoleForm(props: Props) {
             name="requiredFields"
             control={control}
             render={({ field, fieldState }) => {
-              const allFieldValues = PARTICIPANT_FIELD_OPTIONS.map(opt => opt.value)
-              const allSelected = allFieldValues.every(val => field.value?.includes(val))
+              const allFieldValues = PARTICIPANT_FIELD_OPTIONS.map((opt) => opt.value)
+              const allSelected = allFieldValues.every((val) => field.value?.includes(val))
 
               return (
                 <Field data-invalid={fieldState.invalid}>
@@ -405,7 +383,9 @@ export function ParticipantRoleForm(props: Props) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => props.onCancel ? props.onCancel() : router.push('/dash/participant-roles')}
+          onClick={() =>
+            props.onCancel ? props.onCancel() : router.push('/dash/participant-roles')
+          }
           disabled={isSubmitting}
         >
           Cancel

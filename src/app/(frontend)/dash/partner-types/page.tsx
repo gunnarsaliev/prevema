@@ -7,12 +7,9 @@ import { getUserOrganizationIds } from '@/access/utilities'
 import { getCachedPartnerTypes } from '@/lib/cached-queries'
 import { PartnerTypesList } from './components/PartnerTypesList'
 import { PartnerTypesListSkeleton } from './components/PartnerTypesListSkeleton'
-import { EmptyEventState } from '@/components/EmptyEventState'
 
 async function PartnerTypesData({ organizationIds }: { organizationIds: number[] }) {
-  const { partnerTypes, events } = await getCachedPartnerTypes(organizationIds)
-
-  if (events.length === 0) return <EmptyEventState />
+  const partnerTypes = await getCachedPartnerTypes(organizationIds)
 
   return <PartnerTypesList partnerTypes={partnerTypes as any} />
 }

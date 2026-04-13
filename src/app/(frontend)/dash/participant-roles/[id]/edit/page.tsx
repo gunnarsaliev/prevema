@@ -23,7 +23,7 @@ export default async function EditParticipantRolePage({
   // Get all organization IDs where user is a member (including as owner)
   const organizationIds = await getUserOrganizationIds(payload, user)
 
-  const [participantRole, { docs: eventDocs }, { docs: orgDocs }] = await Promise.all([
+  const [participantRole, { docs: orgDocs }] = await Promise.all([
     payload
       .findByID({
         collection: 'participant-roles',
@@ -33,15 +33,6 @@ export default async function EditParticipantRolePage({
         depth: 0,
       })
       .catch(() => null),
-    payload.find({
-      collection: 'events',
-      overrideAccess: false,
-      user,
-      depth: 0,
-      limit: 200,
-      sort: 'name',
-      select: { name: true },
-    }),
     payload.find({
       collection: 'organizations',
       where: {
@@ -69,14 +60,14 @@ export default async function EditParticipantRolePage({
     organization: resolveId(participantRole.organization) ?? undefined,
     name: participantRole.name,
     description: participantRole.description ?? null,
-    event: resolveId(participantRole.event),
     isActive: participantRole.isActive ?? true,
-    requiredFields: (participantRole.requiredFields as ParticipantRoleFormValues['requiredFields']) ?? [],
+    requiredFields:
+      (participantRole.requiredFields as ParticipantRoleFormValues['requiredFields']) ?? [],
     showOptionalFields: participantRole.showOptionalFields ?? false,
-    optionalFields: (participantRole.optionalFields as ParticipantRoleFormValues['optionalFields']) ?? [],
+    optionalFields:
+      (participantRole.optionalFields as ParticipantRoleFormValues['optionalFields']) ?? [],
   }
 
-  const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
   const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
@@ -94,7 +85,6 @@ export default async function EditParticipantRolePage({
             participantRoleId={String(participantRole.id)}
             defaultValues={defaultValues}
             organizations={organizations}
-            events={events}
           />
         </div>
       </div>

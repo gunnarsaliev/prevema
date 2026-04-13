@@ -14,7 +14,6 @@ import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { makeOrgCacheRevalidator } from '@/hooks/revalidateOrgCache'
 import { orgRolesTag } from '@/lib/cached-queries'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
-import { defaultEventValue } from '@/fields/defaultEventValue'
 
 const { afterChange: revalidateCache, afterDelete: revalidateCacheOnDelete } =
   makeOrgCacheRevalidator([orgRolesTag])
@@ -66,27 +65,6 @@ export const ParticipantRoles: CollectionConfig = {
     {
       name: 'description',
       type: 'textarea',
-    },
-    {
-      name: 'event',
-      type: 'relationship',
-      relationTo: 'events',
-      required: false,
-      defaultValue: defaultEventValue,
-      filterOptions: ({ data }) => {
-        if (data?.organization) {
-          return {
-            organization: {
-              equals: data.organization,
-            },
-          }
-        }
-        return true
-      },
-      admin: {
-        description:
-          'Optional: Link this participant role to a specific event. If set, the public form will be for this event only.',
-      },
     },
     {
       name: 'isActive',

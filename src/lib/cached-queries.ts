@@ -315,14 +315,14 @@ export function getCachedMedia(organizationIds: number[]) {
 }
 
 /**
- * Cached participant roles + events list scoped to the user's organizations.
+ * Cached participant roles list scoped to the user's organizations.
  */
 export function getCachedParticipantRoles(organizationIds: number[]) {
   const cacheKey = organizationIds
     .slice()
     .sort((a, b) => a - b)
     .join(',')
-  const tags = organizationIds.flatMap((id) => [orgRolesTag(id), orgEventsTag(id)])
+  const tags = organizationIds.map(orgRolesTag)
 
   return unstable_cache(
     async () => {
@@ -330,27 +330,16 @@ export function getCachedParticipantRoles(organizationIds: number[]) {
       const orgFilter =
         organizationIds.length > 0 ? { organization: { in: organizationIds } } : undefined
 
-      const [{ docs: participantRoles }, { docs: events }] = await Promise.all([
-        payload.find({
-          collection: 'participant-roles',
-          overrideAccess: true,
-          where: orgFilter,
-          depth: 1,
-          limit: 200,
-          sort: 'name',
-        }),
-        payload.find({
-          collection: 'events',
-          overrideAccess: true,
-          where: orgFilter,
-          depth: 0,
-          limit: 200,
-          sort: 'name',
-          select: { name: true },
-        }),
-      ])
+      const { docs: participantRoles } = await payload.find({
+        collection: 'participant-roles',
+        overrideAccess: true,
+        where: orgFilter,
+        depth: 1,
+        limit: 200,
+        sort: 'name',
+      })
 
-      return { participantRoles, events }
+      return participantRoles
     },
     [`participant-roles-${cacheKey}`],
     { revalidate: 60, tags },
@@ -358,14 +347,14 @@ export function getCachedParticipantRoles(organizationIds: number[]) {
 }
 
 /**
- * Cached partner types + events list scoped to the user's organizations.
+ * Cached partner types list scoped to the user's organizations.
  */
 export function getCachedPartnerTypes(organizationIds: number[]) {
   const cacheKey = organizationIds
     .slice()
     .sort((a, b) => a - b)
     .join(',')
-  const tags = organizationIds.flatMap((id) => [orgPartnerTypesTag(id), orgEventsTag(id)])
+  const tags = organizationIds.map(orgPartnerTypesTag)
 
   return unstable_cache(
     async () => {
@@ -373,27 +362,16 @@ export function getCachedPartnerTypes(organizationIds: number[]) {
       const orgFilter =
         organizationIds.length > 0 ? { organization: { in: organizationIds } } : undefined
 
-      const [{ docs: partnerTypes }, { docs: events }] = await Promise.all([
-        payload.find({
-          collection: 'partner-types',
-          overrideAccess: true,
-          where: orgFilter,
-          depth: 1,
-          limit: 200,
-          sort: 'name',
-        }),
-        payload.find({
-          collection: 'events',
-          overrideAccess: true,
-          where: orgFilter,
-          depth: 0,
-          limit: 200,
-          sort: 'name',
-          select: { name: true },
-        }),
-      ])
+      const { docs: partnerTypes } = await payload.find({
+        collection: 'partner-types',
+        overrideAccess: true,
+        where: orgFilter,
+        depth: 1,
+        limit: 200,
+        sort: 'name',
+      })
 
-      return { partnerTypes, events }
+      return partnerTypes
     },
     [`partner-types-${cacheKey}`],
     { revalidate: 60, tags },

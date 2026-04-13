@@ -37,42 +37,7 @@ export default async function PartnerRegisterPage({ params }: Props) {
       ? partnerType.organization.id
       : partnerType.organization
 
-  // If the partner type is linked to a specific event, use it directly
-  if (partnerType.event) {
-    const eventId = typeof partnerType.event === 'object' ? partnerType.event.id : partnerType.event
-
-    let event
-    try {
-      event = await payload.findByID({
-        collection: 'events',
-        id: eventId,
-        depth: 1,
-      })
-    } catch {
-      notFound()
-    }
-
-    if (!event) notFound()
-
-    if (event.status && !['open', 'planning'].includes(event.status)) {
-      notFound()
-    }
-
-    const eventImage = event.image && typeof event.image === 'object' ? (event.image.url ?? null) : null
-
-    return (
-      <PartnerRegisterLayout
-        partnerType={partnerType}
-        event={event}
-        eventImage={eventImage}
-        partnerTypeId={partnerTypeId}
-        eventId={String(eventId)}
-        events={null}
-      />
-    )
-  }
-
-  // No event linked — fetch all open/planning events for the org so the registrant can pick
+  // Fetch all open/planning events for the org so the registrant can pick
   const { docs: orgEvents } = await payload.find({
     collection: 'events',
     where: {

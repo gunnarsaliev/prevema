@@ -499,7 +499,6 @@ export function ParticipantsList({
             <ParticipantRoleForm
               mode="create"
               organizations={organizations}
-              events={events}
               onSuccess={() => {
                 setRoleDrawerOpen(false)
                 router.refresh()

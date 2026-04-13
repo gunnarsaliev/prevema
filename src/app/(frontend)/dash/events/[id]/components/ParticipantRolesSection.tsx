@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Copy, ExternalLink, Share2 } from 'lucide-react'
-import Link from 'next/link'
+import { Copy, ExternalLink } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
@@ -11,7 +10,6 @@ import { ParticipantRoleForm } from '@/app/(frontend)/dash/participant-roles/com
 import type { ParticipantRoleFormValues } from '@/lib/schemas/participant-role'
 
 type OrgOption = { id: number; name: string }
-type EventOption = { id: number; name: string }
 
 type ParticipantRoleItem = {
   id: number
@@ -21,7 +19,6 @@ type ParticipantRoleItem = {
   requiredFields?: string[] | null
   publicFormLink?: string | null
   organization: number
-  event?: number | null
   showOptionalFields?: boolean | null
   optionalFields?: string[] | null
 }
@@ -31,10 +28,9 @@ type Props = {
   eventId: number
   orgId: number
   organizations: OrgOption[]
-  events: EventOption[]
 }
 
-export function ParticipantRolesSection({ items, eventId, orgId, organizations, events }: Props) {
+export function ParticipantRolesSection({ items, eventId, orgId, organizations }: Props) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<ParticipantRoleItem | null>(null)
@@ -68,7 +64,6 @@ export function ParticipantRolesSection({ items, eventId, orgId, organizations, 
         organization: typeof editing.organization === 'number' ? editing.organization : undefined,
         name: editing.name,
         description: editing.description ?? null,
-        event: editing.event ?? null,
         isActive: editing.isActive ?? true,
         requiredFields: (editing.requiredFields ??
           []) as ParticipantRoleFormValues['requiredFields'],
@@ -103,12 +98,7 @@ export function ParticipantRolesSection({ items, eventId, orgId, organizations, 
               <div className="min-w-0 space-y-0.5">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">{item.name}</span>
-                  {item.event === null ? (
-                    <Badge variant="outline" className="text-xs gap-1">
-                      <Share2 className="h-3 w-3" />
-                      Shared
-                    </Badge>
-                  ) : item.isActive ? (
+                  {item.isActive ? (
                     <Badge variant="default" className="text-xs">
                       Active
                     </Badge>
@@ -157,15 +147,9 @@ export function ParticipantRolesSection({ items, eventId, orgId, organizations, 
                     </Button>
                   </>
                 )}
-                {item.event === null ? (
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/dash/participant-roles/${item.id}/edit`}>Edit</Link>
-                  </Button>
-                ) : (
-                  <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
-                    Edit
-                  </Button>
-                )}
+                <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
+                  Edit
+                </Button>
               </div>
             </div>
           ))}
@@ -191,8 +175,7 @@ export function ParticipantRolesSection({ items, eventId, orgId, organizations, 
                 key="create"
                 mode="create"
                 organizations={organizations}
-                events={events}
-                lockedValues={{ event: eventId, organization: orgId }}
+                lockedValues={{ organization: orgId }}
                 onSuccess={handleSuccess}
                 onCancel={handleClose}
               />
@@ -204,8 +187,7 @@ export function ParticipantRolesSection({ items, eventId, orgId, organizations, 
                 participantRoleId={String(editing!.id)}
                 defaultValues={editDefaultValues}
                 organizations={organizations}
-                events={events}
-                lockedValues={{ event: eventId, organization: orgId }}
+                lockedValues={{ organization: orgId }}
                 onSuccess={handleSuccess}
                 onCancel={handleClose}
               />

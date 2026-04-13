@@ -7,12 +7,9 @@ import { getUserOrganizationIds } from '@/access/utilities'
 import { getCachedParticipantRoles } from '@/lib/cached-queries'
 import { ParticipantRolesList } from './components/ParticipantRolesList'
 import { ParticipantRolesListSkeleton } from './components/ParticipantRolesListSkeleton'
-import { EmptyEventState } from '@/components/EmptyEventState'
 
 async function ParticipantRolesData({ organizationIds }: { organizationIds: number[] }) {
-  const { participantRoles, events } = await getCachedParticipantRoles(organizationIds)
-
-  if (events.length === 0) return <EmptyEventState />
+  const participantRoles = await getCachedParticipantRoles(organizationIds)
 
   return <ParticipantRolesList participantRoles={participantRoles as any} />
 }

@@ -881,10 +881,6 @@ export interface ParticipantRole {
   organization: number | Organization;
   name: string;
   description?: string | null;
-  /**
-   * Optional: Link this participant role to a specific event. If set, the public form will be for this event only.
-   */
-  event?: (number | null) | Event;
   isActive?: boolean | null;
   /**
    * Select which fields are required in the public registration form
@@ -1030,10 +1026,6 @@ export interface PartnerType {
   organization: number | Organization;
   name: string;
   description?: string | null;
-  /**
-   * Optional: Link this partner type to a specific event. If set, the public form will be for this event only.
-   */
-  event?: (number | null) | Event;
   isActive?: boolean | null;
   /**
    * Select which fields are required in the public registration form
@@ -1480,7 +1472,6 @@ export interface ParticipantRolesSelect<T extends boolean = true> {
   organization?: T;
   name?: T;
   description?: T;
-  event?: T;
   isActive?: T;
   requiredFields?: T;
   showOptionalFields?: T;
@@ -1549,7 +1540,6 @@ export interface PartnerTypesSelect<T extends boolean = true> {
   organization?: T;
   name?: T;
   description?: T;
-  event?: T;
   isActive?: T;
   requiredFields?: T;
   showOptionalFields?: T;
