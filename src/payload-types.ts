@@ -555,6 +555,22 @@ export interface EmailTemplate {
    */
   isPremium?: boolean | null;
   /**
+   * Show this template in the public library where other users can browse and copy it
+   */
+  isPublicLibrary?: boolean | null;
+  /**
+   * Organization that published this template to the public library (auto-set)
+   */
+  publisherOrganization?: (number | null) | Organization;
+  /**
+   * Original public library template this was copied from (auto-set)
+   */
+  copiedFrom?: (number | null) | EmailTemplate;
+  /**
+   * True if this template was copied from the public library (auto-set)
+   */
+  isCopy?: boolean | null;
+  /**
    * Email subject line. Use {{variable}} for dynamic content.
    */
   subject: string;
@@ -689,6 +705,22 @@ export interface ImageTemplate {
    * Premium templates require a premium subscription to use
    */
   isPremium?: boolean | null;
+  /**
+   * Show this template in the public library where other users can browse and copy it
+   */
+  isPublicLibrary?: boolean | null;
+  /**
+   * Organization that published this template to the public library (auto-set)
+   */
+  publisherOrganization?: (number | null) | Organization;
+  /**
+   * Original public library template this was copied from (auto-set)
+   */
+  copiedFrom?: (number | null) | ImageTemplate;
+  /**
+   * True if this template was copied from the public library (auto-set)
+   */
+  isCopy?: boolean | null;
   /**
    * Canvas width in pixels
    */
@@ -1362,6 +1394,10 @@ export interface ImageTemplatesSelect<T extends boolean = true> {
   isActive?: T;
   isPublic?: T;
   isPremium?: T;
+  isPublicLibrary?: T;
+  publisherOrganization?: T;
+  copiedFrom?: T;
+  isCopy?: T;
   width?: T;
   height?: T;
   backgroundImage?: T;
@@ -1524,6 +1560,10 @@ export interface EmailTemplatesSelect<T extends boolean = true> {
   isActive?: T;
   isPublic?: T;
   isPremium?: T;
+  isPublicLibrary?: T;
+  publisherOrganization?: T;
+  copiedFrom?: T;
+  isCopy?: T;
   subject?: T;
   htmlBody?: T;
   automationTriggers?:

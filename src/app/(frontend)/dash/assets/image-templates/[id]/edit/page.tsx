@@ -29,5 +29,5 @@ export default async function EditImageTemplatePage({
   if (!template) notFound()
 
   // Redirect to image generator with template ID
-  redirect(`/image-generator?templateId=${id}`)
+  redirect(`/dash/image-generator?templateId=${id}`)
 }

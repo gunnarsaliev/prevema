@@ -6,10 +6,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
 
-import {
-  imageTemplateSchema,
-  type ImageTemplateFormValues,
-} from '@/lib/schemas/imageTemplate'
+import { imageTemplateSchema, type ImageTemplateFormValues } from '@/lib/schemas/imageTemplate'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -68,8 +65,8 @@ export function ImageTemplateForm(props: Props) {
     try {
       const url =
         props.mode === 'edit'
-          ? `/api/image-templates/${props.templateId}`
-          : '/api/image-templates'
+          ? `/api/custom/image-templates/${props.templateId}`
+          : '/api/custom/image-templates'
       const method = props.mode === 'edit' ? 'PATCH' : 'POST'
 
       // Parse elements JSON string to object
@@ -157,11 +154,7 @@ export function ImageTemplateForm(props: Props) {
                     Whether this template is active and can be used
                   </p>
                 </div>
-                <Switch
-                  id="isActive"
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
+                <Switch id="isActive" checked={field.value} onCheckedChange={field.onChange} />
               </div>
             )}
           />
@@ -179,11 +172,7 @@ export function ImageTemplateForm(props: Props) {
                     Make this template available to all users across all organizations
                   </p>
                 </div>
-                <Switch
-                  id="isPublic"
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
+                <Switch id="isPublic" checked={field.value} onCheckedChange={field.onChange} />
               </div>
             )}
           />
@@ -201,11 +190,7 @@ export function ImageTemplateForm(props: Props) {
                     Require a premium subscription to use this template
                   </p>
                 </div>
-                <Switch
-                  id="isPremium"
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
+                <Switch id="isPremium" checked={field.value} onCheckedChange={field.onChange} />
               </div>
             )}
           />

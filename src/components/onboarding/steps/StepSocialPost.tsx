@@ -107,7 +107,7 @@ export const StepSocialPost = ({
         }
       } else if (selectedOption === 'create') {
         // Redirect to image generator if "create" option was selected
-        router.push('/image-generator')
+        router.push('/dash/image-generator')
       } else {
         onNext?.()
       }

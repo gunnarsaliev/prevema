@@ -1,30 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { getUserOrganizationIds, checkRole } from '@/access/utilities'
 
 /**
  * GET /api/load-image-templates
- * Fetches user's image templates with optional filtering
- * Query params: organization
+ * Fetches user's image templates scoped to their organizations
+ * Query params: organization (optional - to filter within user's orgs)
  */
 export async function GET(req: NextRequest) {
   try {
     const payload = await getPayload({ config })
 
+    // Authenticate user
+    const { user } = await payload.auth({ headers: req.headers })
+
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
+    // Get user's organization IDs
+    const userOrgIds = await getUserOrganizationIds(payload, user)
+
+    if (userOrgIds.length === 0 && !checkRole(['super-admin', 'admin'], user)) {
+      return NextResponse.json({
+        success: true,
+        templates: [],
+        total: 0,
+      })
+    }
+
     // Get query parameters
     const { searchParams } = new URL(req.url)
     const organizationFilter = searchParams.get('organization')
 
-    // Build query
+    // Build query - scope to user's organizations
     const where: any = {
       isActive: {
         equals: true,
       },
     }
 
-    if (organizationFilter) {
+    // Super-admins and admins can see all templates
+    if (!checkRole(['super-admin', 'admin'], user)) {
+      // Regular users only see templates from their organizations
       where.organization = {
-        equals: organizationFilter,
+        in: userOrgIds,
+      }
+    }
+
+    // If specific organization filter provided, ensure it's within user's orgs
+    if (organizationFilter) {
+      const filterId = Number(organizationFilter)
+      if (checkRole(['super-admin', 'admin'], user) || userOrgIds.includes(filterId)) {
+        where.organization = {
+          equals: filterId,
+        }
       }
     }
 

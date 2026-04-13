@@ -45,6 +45,8 @@ export function DashClientLayout({
       setActiveModuleId('image-generator')
     } else if (pathname.startsWith('/dash/assets')) {
       setActiveModuleId('assets')
+    } else if (pathname.startsWith('/dash/library')) {
+      setActiveModuleId('library')
     } else if (pathname.startsWith('/dash/help')) {
       setActiveModuleId('help')
     } else {

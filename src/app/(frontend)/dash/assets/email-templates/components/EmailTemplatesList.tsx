@@ -1,8 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
-import { MoreHorizontal, Pencil, Eye, Copy } from 'lucide-react'
+import { MoreHorizontal, Pencil, Eye, Copy, Trash2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -10,11 +12,13 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { createSelectColumn } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { EntityList, EntityListConfig } from '@/components/shared/EntityList'
+import { handleEntityDelete } from '@/lib/entity-actions'
 
 type EmailTemplate = {
   id: number
@@ -35,6 +39,30 @@ interface EmailTemplatesListProps {
 }
 
 export function EmailTemplatesList({ templates }: EmailTemplatesListProps) {
+  const router = useRouter()
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+      return
+    }
+
+    await handleEntityDelete(
+      { id, name },
+      {
+        apiEndpoint: '/api/email-templates',
+        entityName: 'email template',
+      },
+      {
+        onStart: () => setDeletingId(id),
+        onSuccess: () => {
+          router.refresh()
+          setDeletingId(null)
+        },
+        onError: () => setDeletingId(null),
+      },
+    )
+  }
   const formatTriggerEvent = (event?: string | null) => {
     if (!event || event === 'none') return 'Manual'
     return event
@@ -59,9 +87,7 @@ export function EmailTemplatesList({ templates }: EmailTemplatesListProps) {
               {row.getValue('name')}
             </Link>
             {template.description && (
-              <p className="text-sm text-muted-foreground mt-0.5">
-                {template.description}
-              </p>
+              <p className="text-sm text-muted-foreground mt-0.5">{template.description}</p>
             )}
           </div>
         )
@@ -70,9 +96,7 @@ export function EmailTemplatesList({ templates }: EmailTemplatesListProps) {
     {
       accessorKey: 'subject',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Subject" />,
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">{row.getValue('subject')}</div>
-      ),
+      cell: ({ row }) => <div className="max-w-xs truncate">{row.getValue('subject')}</div>,
     },
     {
       accessorKey: 'isPublic',
@@ -91,9 +115,7 @@ export function EmailTemplatesList({ templates }: EmailTemplatesListProps) {
       header: ({ column }) => <DataTableColumnHeader column={column} title="Premium" />,
       cell: ({ row }) => {
         const isPremium = row.getValue('isPremium') as boolean | undefined
-        return isPremium ? (
-          <Badge variant="default">Premium</Badge>
-        ) : null
+        return isPremium ? <Badge variant="default">Premium</Badge> : null
       },
     },
     {
@@ -162,12 +184,23 @@ export function EmailTemplatesList({ templates }: EmailTemplatesListProps) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link
-                    href={`/dash/assets/email-templates/create?clone=${template.id}`}
-                  >
+                  <Link href={`/dash/assets/email-templates/create?clone=${template.id}`}>
                     <Copy className="mr-2 h-4 w-4" />
                     Duplicate
                   </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => handleDelete(template.id, template.name)}
+                  disabled={deletingId === template.id}
+                  className="text-destructive focus:text-destructive"
+                >
+                  {deletingId === template.id ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="mr-2 h-4 w-4" />
+                  )}
+                  Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

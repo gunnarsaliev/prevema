@@ -32,7 +32,7 @@ export default async function ImageTemplatesPage() {
         description="Manage saved canvas templates for bulk image generation"
         actions={
           <Button asChild>
-            <Link href="/image-generator">
+            <Link href="/dash/image-generator">
               <Plus className="mr-2 h-4 w-4" />
               Create template
             </Link>

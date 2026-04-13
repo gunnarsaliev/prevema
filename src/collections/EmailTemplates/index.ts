@@ -3,6 +3,7 @@ import { checkRole, getUserOrganizationIds } from '@/access/utilities'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import { formatSlugHook } from '@/utils/formatSlug'
+import { setPublisherOrganization } from '@/hooks/setPublisherOrganization'
 import {
   FixedToolbarFeature,
   HeadingFeature,
@@ -20,6 +21,7 @@ export const EmailTemplates: CollectionConfig = {
   slug: 'email-templates',
   hooks: {
     beforeValidate: [autoSelectOrganization],
+    beforeChange: [setPublisherOrganization],
   },
   access: {
     admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),
@@ -38,39 +40,68 @@ export const EmailTemplates: CollectionConfig = {
         return true
       }
 
-      // Regular users can read public templates + their organization's private templates
+      // Regular users can read:
+      // - Templates from their organizations (including copies of public library templates)
+      // - Legacy public templates (isPublic: true)
+      // NOTE: Public library templates (isPublicLibrary: true) are ONLY accessible via the library page
       if (!user) return false
 
       const organizationIds = await getUserOrganizationIds(payload, user)
 
       return {
         or: [
-          { isPublic: { equals: true } },
+          // Legacy public templates (accessible to all authenticated users)
+          { isPublic: { equals: true } } as Where,
+          // Templates from user's organizations (includes copied templates)
           {
             and: [
               {
-                or: [
-                  { isPublic: { equals: false } },
-                  { isPublic: { exists: false } },
-                ],
+                or: [{ isPublic: { equals: false } }, { isPublic: { exists: false } }],
               },
               { organization: { in: organizationIds } },
             ],
-          },
+          } as Where,
         ],
       } as Where
     },
-    update: async ({ req: { user, payload } }) => {
+    update: async ({ req: { user, payload }, id }) => {
       // Super-admins and admins can update any template
       if (checkRole(['super-admin', 'admin'], user)) {
         return true
       }
 
-      // Regular users can only update templates for their organizations
-      if (!user) return false
+      if (!user || !id) return false
 
       const organizationIds = await getUserOrganizationIds(payload, user)
 
+      // If updating a specific template, check if it's a public library template
+      if (id) {
+        try {
+          const template = await payload.findByID({
+            collection: 'email-templates',
+            id,
+          })
+
+          // Public library templates can only be updated by their publisher organization
+          if (template?.isPublicLibrary) {
+            const publisherOrgId =
+              typeof template.publisherOrganization === 'object'
+                ? template.publisherOrganization?.id
+                : template.publisherOrganization
+
+            // Allow update if user belongs to the publisher organization
+            if (publisherOrgId && organizationIds.includes(publisherOrgId)) {
+              return true
+            }
+            // Otherwise deny updates to public library templates
+            return false
+          }
+        } catch {
+          // If template not found, fall through to default behavior
+        }
+      }
+
+      // Regular users can only update templates for their organizations
       if (organizationIds.length > 0) {
         return {
           organization: {
@@ -81,17 +112,44 @@ export const EmailTemplates: CollectionConfig = {
 
       return false
     },
-    delete: async ({ req: { user, payload } }) => {
+    delete: async ({ req: { user, payload }, id }) => {
       // Super-admins and admins can delete any template
       if (checkRole(['super-admin', 'admin'], user)) {
         return true
       }
 
-      // Regular users can only delete templates for their organizations
-      if (!user) return false
+      if (!user || !id) return false
 
       const organizationIds = await getUserOrganizationIds(payload, user)
 
+      // If deleting a specific template, check if it's a public library template
+      if (id) {
+        try {
+          const template = await payload.findByID({
+            collection: 'email-templates',
+            id,
+          })
+
+          // Public library templates can only be deleted by their publisher organization
+          if (template?.isPublicLibrary) {
+            const publisherOrgId =
+              typeof template.publisherOrganization === 'object'
+                ? template.publisherOrganization?.id
+                : template.publisherOrganization
+
+            // Allow delete if user belongs to the publisher organization
+            if (publisherOrgId && organizationIds.includes(publisherOrgId)) {
+              return true
+            }
+            // Otherwise deny deletion of public library templates
+            return false
+          }
+        } catch {
+          // If template not found, fall through to default behavior
+        }
+      }
+
+      // Regular users can only delete templates for their organizations
       if (organizationIds.length > 0) {
         return {
           organization: {
@@ -175,6 +233,48 @@ export const EmailTemplates: CollectionConfig = {
       admin: {
         description: 'Premium templates require a premium subscription to use',
         position: 'sidebar',
+      },
+    },
+    {
+      name: 'isPublicLibrary',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description:
+          'Show this template in the public library where other users can browse and copy it',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'publisherOrganization',
+      type: 'relationship',
+      relationTo: 'organizations',
+      required: false,
+      admin: {
+        description: 'Organization that published this template to the public library (auto-set)',
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'copiedFrom',
+      type: 'relationship',
+      relationTo: 'email-templates',
+      required: false,
+      admin: {
+        description: 'Original public library template this was copied from (auto-set)',
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'isCopy',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'True if this template was copied from the public library (auto-set)',
+        position: 'sidebar',
+        readOnly: true,
       },
     },
     {

@@ -18,7 +18,7 @@ interface UpdateTemplateRequest {
 }
 
 /**
- * PATCH /api/image-templates/[id]
+ * PATCH /api/custom/image-templates/[id]
  * Updates an existing image template
  */
 export async function PATCH(
@@ -63,14 +63,22 @@ export async function PATCH(
       )
     }
 
-    // Parse body
+    // Parse body - only accept JSON
+    const contentType = req.headers.get('content-type') || ''
+    if (!contentType.includes('application/json')) {
+      return NextResponse.json(
+        { error: 'Content-Type must be application/json' },
+        { status: 400 }
+      )
+    }
+
     let body: UpdateTemplateRequest
     try {
       body = (await req.json()) as UpdateTemplateRequest
     } catch (parseError) {
       console.error('Failed to parse request body:', parseError)
       return NextResponse.json(
-        { error: 'Invalid request body' },
+        { error: 'Invalid request body - must be valid JSON' },
         { status: 400 }
       )
     }
@@ -127,8 +135,6 @@ export async function PATCH(
     let backgroundImageId: number | string | undefined
     let finalBackgroundColor: string | undefined = backgroundColor
 
-    console.log('Received backgroundImage:', typeof backgroundImage, backgroundImage)
-
     if (backgroundImage !== undefined) {
       // If it's already a number, use it as the ID
       if (typeof backgroundImage === 'number') {
@@ -136,7 +142,6 @@ export async function PATCH(
       } else if (typeof backgroundImage === 'string' && (backgroundImage.startsWith('#') || backgroundImage.startsWith('linear-gradient'))) {
         // It's a color code or gradient, store in backgroundColor field
         finalBackgroundColor = backgroundImage
-        // Clear backgroundImage field when using a color/gradient
         backgroundImageId = undefined
       } else if (typeof backgroundImage === 'string' && backgroundImage.startsWith('data:')) {
         try {
@@ -171,7 +176,6 @@ export async function PATCH(
         }
       } else if (typeof backgroundImage === 'string' && backgroundImage) {
         // It's a string but not a color or base64 - could be an ID or URL
-        // Try to parse as number, otherwise use as-is
         const parsedId = parseInt(backgroundImage, 10)
         backgroundImageId = isNaN(parsedId) ? backgroundImage : parsedId
       }
@@ -185,7 +189,7 @@ export async function PATCH(
         })
       : undefined
 
-    // Build update data (allow null values to clear fields)
+    // Build update data
     const updateData: any = {}
     if (name !== undefined) updateData.name = name
     if (isPublic !== undefined) updateData.isPublic = isPublic
@@ -193,7 +197,6 @@ export async function PATCH(
     if (width !== undefined) updateData.width = width
     if (height !== undefined) updateData.height = height
 
-    // Handle backgroundColor - use finalBackgroundColor if available, otherwise use backgroundColor param
     if (finalBackgroundColor !== undefined) {
       updateData.backgroundColor = finalBackgroundColor
     } else if (backgroundColor !== undefined) {
@@ -203,21 +206,13 @@ export async function PATCH(
     if (cleanedElements !== undefined) updateData.elements = cleanedElements
     if (isActive !== undefined) updateData.isActive = isActive
 
-    // Handle backgroundImage - allow null to clear the field
     if (backgroundImageId !== undefined) {
       updateData.backgroundImage = backgroundImageId
     } else if (backgroundImage !== undefined && (backgroundImage === null || backgroundImage.startsWith('#') || backgroundImage.startsWith('linear-gradient'))) {
-      // Explicitly clear backgroundImage field when using colors/gradients
       updateData.backgroundImage = null
     }
 
     if (previewImageId !== undefined) updateData.previewImage = previewImageId
-
-    console.log('Updating template:', {
-      id,
-      ...updateData,
-      elements: updateData.elements ? `${updateData.elements.length} elements` : undefined,
-    })
 
     // Update the template
     const updatedTemplate = await payload.update({
@@ -227,8 +222,6 @@ export async function PATCH(
       user: user || undefined,
       overrideAccess: !user,
     })
-
-    console.log('Template updated successfully:', updatedTemplate.id)
 
     return NextResponse.json({
       success: true,
