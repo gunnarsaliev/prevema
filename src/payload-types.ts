@@ -372,7 +372,7 @@ export interface Subscription {
   createdAt: string;
 }
 /**
- * Audit log of all sent emails
+ * Audit log of all sent and received emails
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "email-logs".
@@ -380,38 +380,82 @@ export interface Subscription {
 export interface EmailLog {
   id: number;
   /**
+   * Whether this email was sent or received
+   */
+  direction: 'outbound' | 'inbound';
+  /**
    * The organization this email belongs to
    */
-  organization: number | Organization;
+  organization?: (number | null) | Organization;
   /**
-   * The template used for this email (may be deleted)
+   * Email subject line
+   */
+  subject: string;
+  /**
+   * Sender email address
+   */
+  fromEmail: string;
+  /**
+   * Sender name
+   */
+  fromName?: string | null;
+  /**
+   * Recipient email address
+   */
+  toEmail: string;
+  /**
+   * Recipient name
+   */
+  toName?: string | null;
+  /**
+   * CC email addresses (comma-separated)
+   */
+  ccEmails?: string | null;
+  /**
+   * Reply-to email address
+   */
+  replyTo?: string | null;
+  /**
+   * HTML content of the email
+   */
+  htmlContent?: string | null;
+  /**
+   * Plain text content of the email
+   */
+  textContent?: string | null;
+  /**
+   * The template used for this email (outbound only)
    */
   template?: (number | null) | EmailTemplate;
   /**
    * Name of the template at time of sending
    */
-  templateName: string;
+  templateName?: string | null;
   /**
-   * Subject line from the template at time of sending
+   * Email address of the recipient (legacy field)
    */
-  templateSubject: string;
+  recipientEmail?: string | null;
   /**
-   * Email address of the recipient
+   * Subject line from the template at time of sending (legacy field)
    */
-  recipientEmail: string;
+  templateSubject?: string | null;
   /**
    * What triggered this email
    */
-  triggerEvent:
-    | 'manual'
-    | 'scheduled'
-    | 'participant.created'
-    | 'participant.updated'
-    | 'partner.invited'
-    | 'event.published'
-    | 'form.submitted'
-    | 'custom'
-    | 'test';
+  triggerEvent?:
+    | (
+        | 'manual'
+        | 'scheduled'
+        | 'participant.created'
+        | 'participant.updated'
+        | 'partner.invited'
+        | 'event.published'
+        | 'form.submitted'
+        | 'custom'
+        | 'test'
+        | 'inbound'
+      )
+    | null;
   /**
    * Variables used in the email (JSON format)
    */
@@ -419,19 +463,57 @@ export interface EmailLog {
   /**
    * Status of the email
    */
-  status: 'sent' | 'failed' | 'scheduled';
+  status: 'sent' | 'failed' | 'scheduled' | 'received' | 'bounced' | 'complained' | 'delivered' | 'opened' | 'clicked';
   /**
    * Error message if sending failed
    */
   errorMessage?: string | null;
   /**
-   * When the email was sent
+   * When the email was sent/received
    */
-  sentAt: string;
+  sentAt?: string | null;
   /**
    * User who manually sent this email (if applicable)
    */
   sentBy?: (number | null) | User;
+  /**
+   * Email message ID from the email provider
+   */
+  messageId?: string | null;
+  /**
+   * Message ID this email is replying to
+   */
+  inReplyTo?: string | null;
+  /**
+   * Email attachments
+   */
+  attachments?:
+    | {
+        filename: string;
+        contentType?: string | null;
+        /**
+         * File size in bytes
+         */
+        size?: number | null;
+        /**
+         * URL to download the attachment
+         */
+        url?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Additional metadata from the email provider
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1204,17 +1286,39 @@ export interface SubscriptionsSelect<T extends boolean = true> {
  * via the `definition` "email-logs_select".
  */
 export interface EmailLogsSelect<T extends boolean = true> {
+  direction?: T;
   organization?: T;
+  subject?: T;
+  fromEmail?: T;
+  fromName?: T;
+  toEmail?: T;
+  toName?: T;
+  ccEmails?: T;
+  replyTo?: T;
+  htmlContent?: T;
+  textContent?: T;
   template?: T;
   templateName?: T;
-  templateSubject?: T;
   recipientEmail?: T;
+  templateSubject?: T;
   triggerEvent?: T;
   variables?: T;
   status?: T;
   errorMessage?: T;
   sentAt?: T;
   sentBy?: T;
+  messageId?: T;
+  inReplyTo?: T;
+  attachments?:
+    | T
+    | {
+        filename?: T;
+        contentType?: T;
+        size?: T;
+        url?: T;
+        id?: T;
+      };
+  metadata?: T;
   updatedAt?: T;
   createdAt?: T;
 }

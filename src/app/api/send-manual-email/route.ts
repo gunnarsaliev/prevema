@@ -93,7 +93,9 @@ export async function POST(request: Request) {
 
     // Verify organization matches
     const templateOrganizationId =
-      typeof template.organization === 'object' && template.organization ? template.organization.id : template.organization
+      typeof template.organization === 'object' && template.organization
+        ? template.organization.id
+        : template.organization
     if (String(templateOrganizationId) !== String(organizationId)) {
       return NextResponse.json(
         { success: false, error: 'Template does not belong to this organization' },
@@ -259,11 +261,21 @@ export async function POST(request: Request) {
               error: result.error,
             })
 
+            // Get organization email config for from address
+            const orgEmailConfig = organization.emailConfig
+            const fromEmail = orgEmailConfig?.fromEmail || 'noreply@example.com'
+            const fromName = orgEmailConfig?.senderName || organization.name
+
             // Log sent email
             if (result.success) {
               await payload.create({
                 collection: 'email-logs',
                 data: {
+                  direction: 'outbound',
+                  subject: template.subject,
+                  fromEmail,
+                  fromName,
+                  toEmail: recipient.email,
                   template: Number(templateId),
                   templateName: template.name,
                   templateSubject: template.subject,
@@ -281,6 +293,11 @@ export async function POST(request: Request) {
               await payload.create({
                 collection: 'email-logs',
                 data: {
+                  direction: 'outbound',
+                  subject: template.subject,
+                  fromEmail,
+                  fromName,
+                  toEmail: recipient.email,
                   template: Number(templateId),
                   templateName: template.name,
                   templateSubject: template.subject,

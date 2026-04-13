@@ -289,9 +289,23 @@ async function logEmailSent({
       subject = template.subject
     }
 
+    // Fetch organization for email config
+    const organization = await payload.findByID({
+      collection: 'organizations',
+      id: organizationId,
+    })
+    const emailConfig = organization.emailConfig
+    const fromEmail = emailConfig?.fromEmail || 'noreply@example.com'
+    const fromName = emailConfig?.senderName || organization.name
+
     await payload.create({
       collection: 'email-logs',
       data: {
+        direction: 'outbound',
+        subject: subject,
+        fromEmail,
+        fromName,
+        toEmail: recipientEmail,
         template: templateId as any,
         templateName: name,
         templateSubject: subject,

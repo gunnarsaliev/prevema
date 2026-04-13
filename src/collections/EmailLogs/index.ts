@@ -8,10 +8,10 @@ export const EmailLogs: CollectionConfig = {
     plural: 'Email History',
   },
   admin: {
-    useAsTitle: 'recipientEmail',
+    useAsTitle: 'subject',
     group: 'Communication',
-    defaultColumns: ['recipientEmail', 'template', 'status', 'sentAt'],
-    description: 'Audit log of all sent emails',
+    defaultColumns: ['direction', 'subject', 'fromEmail', 'toEmail', 'status', 'createdAt'],
+    description: 'Audit log of all sent and received emails',
   },
   access: {
     admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),
@@ -42,12 +42,94 @@ export const EmailLogs: CollectionConfig = {
   },
   fields: [
     {
+      name: 'direction',
+      type: 'select',
+      options: [
+        { label: 'Outbound', value: 'outbound' },
+        { label: 'Inbound', value: 'inbound' },
+      ],
+      required: true,
+      defaultValue: 'outbound',
+      admin: {
+        description: 'Whether this email was sent or received',
+      },
+    },
+    {
       name: 'organization',
       type: 'relationship',
       relationTo: 'organizations',
-      required: true,
+      required: false,
       admin: {
         description: 'The organization this email belongs to',
+      },
+    },
+    {
+      name: 'subject',
+      type: 'text',
+      required: true,
+      admin: {
+        description: 'Email subject line',
+      },
+    },
+    {
+      name: 'fromEmail',
+      type: 'email',
+      required: true,
+      admin: {
+        description: 'Sender email address',
+      },
+    },
+    {
+      name: 'fromName',
+      type: 'text',
+      admin: {
+        description: 'Sender name',
+      },
+    },
+    {
+      name: 'toEmail',
+      type: 'email',
+      required: true,
+      admin: {
+        description: 'Recipient email address',
+      },
+    },
+    {
+      name: 'toName',
+      type: 'text',
+      admin: {
+        description: 'Recipient name',
+      },
+    },
+    {
+      name: 'ccEmails',
+      type: 'text',
+      admin: {
+        description: 'CC email addresses (comma-separated)',
+        condition: (data) => data.direction === 'inbound',
+      },
+    },
+    {
+      name: 'replyTo',
+      type: 'email',
+      admin: {
+        description: 'Reply-to email address',
+      },
+    },
+    {
+      name: 'htmlContent',
+      type: 'textarea',
+      admin: {
+        description: 'HTML content of the email',
+        rows: 10,
+      },
+    },
+    {
+      name: 'textContent',
+      type: 'textarea',
+      admin: {
+        description: 'Plain text content of the email',
+        rows: 5,
       },
     },
     {
@@ -56,33 +138,33 @@ export const EmailLogs: CollectionConfig = {
       relationTo: 'email-templates',
       required: false,
       admin: {
-        description: 'The template used for this email (may be deleted)',
+        description: 'The template used for this email (outbound only)',
+        condition: (data) => data.direction === 'outbound',
       },
     },
     {
       name: 'templateName',
       type: 'text',
-      required: true,
       admin: {
         description: 'Name of the template at time of sending',
         readOnly: true,
-      },
-    },
-    {
-      name: 'templateSubject',
-      type: 'text',
-      required: true,
-      admin: {
-        description: 'Subject line from the template at time of sending',
-        readOnly: true,
+        condition: (data) => data.direction === 'outbound',
       },
     },
     {
       name: 'recipientEmail',
       type: 'email',
-      required: true,
       admin: {
-        description: 'Email address of the recipient',
+        description: 'Email address of the recipient (legacy field)',
+        condition: () => false, // Hidden, kept for backward compatibility
+      },
+    },
+    {
+      name: 'templateSubject',
+      type: 'text',
+      admin: {
+        description: 'Subject line from the template at time of sending (legacy field)',
+        condition: () => false, // Hidden, kept for backward compatibility
       },
     },
     {
@@ -98,10 +180,11 @@ export const EmailLogs: CollectionConfig = {
         { label: 'Form Submitted', value: 'form.submitted' },
         { label: 'Custom', value: 'custom' },
         { label: 'Test', value: 'test' },
+        { label: 'Inbound', value: 'inbound' },
       ],
-      required: true,
       admin: {
         description: 'What triggered this email',
+        condition: (data) => data.direction === 'outbound',
       },
     },
     {
@@ -111,6 +194,7 @@ export const EmailLogs: CollectionConfig = {
         description: 'Variables used in the email (JSON format)',
         readOnly: true,
         rows: 5,
+        condition: (data) => data.direction === 'outbound',
       },
     },
     {
@@ -120,6 +204,12 @@ export const EmailLogs: CollectionConfig = {
         { label: 'Sent', value: 'sent' },
         { label: 'Failed', value: 'failed' },
         { label: 'Scheduled', value: 'scheduled' },
+        { label: 'Received', value: 'received' },
+        { label: 'Bounced', value: 'bounced' },
+        { label: 'Complained', value: 'complained' },
+        { label: 'Delivered', value: 'delivered' },
+        { label: 'Opened', value: 'opened' },
+        { label: 'Clicked', value: 'clicked' },
       ],
       required: true,
       defaultValue: 'sent',
@@ -132,19 +222,18 @@ export const EmailLogs: CollectionConfig = {
       type: 'textarea',
       admin: {
         description: 'Error message if sending failed',
-        condition: (data) => data.status === 'failed',
+        condition: (data) => data.status === 'failed' || data.status === 'bounced',
         readOnly: true,
       },
     },
     {
       name: 'sentAt',
       type: 'date',
-      required: true,
       admin: {
         date: {
           pickerAppearance: 'dayAndTime',
         },
-        description: 'When the email was sent',
+        description: 'When the email was sent/received',
         readOnly: true,
       },
       defaultValue: () => new Date().toISOString(),
@@ -156,7 +245,79 @@ export const EmailLogs: CollectionConfig = {
       admin: {
         description: 'User who manually sent this email (if applicable)',
         readOnly: true,
+        condition: (data) => data.direction === 'outbound',
+      },
+    },
+    {
+      name: 'messageId',
+      type: 'text',
+      admin: {
+        description: 'Email message ID from the email provider',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'inReplyTo',
+      type: 'text',
+      admin: {
+        description: 'Message ID this email is replying to',
+        condition: (data) => data.direction === 'inbound',
+      },
+    },
+    {
+      name: 'attachments',
+      type: 'array',
+      admin: {
+        description: 'Email attachments',
+      },
+      fields: [
+        {
+          name: 'filename',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'contentType',
+          type: 'text',
+        },
+        {
+          name: 'size',
+          type: 'number',
+          admin: {
+            description: 'File size in bytes',
+          },
+        },
+        {
+          name: 'url',
+          type: 'text',
+          admin: {
+            description: 'URL to download the attachment',
+          },
+        },
+      ],
+    },
+    {
+      name: 'metadata',
+      type: 'json',
+      admin: {
+        description: 'Additional metadata from the email provider',
       },
     },
   ],
+  hooks: {
+    beforeChange: [
+      async ({ data, operation }) => {
+        // Auto-populate legacy fields for backward compatibility
+        if (operation === 'create' && data.direction === 'outbound') {
+          if (!data.recipientEmail && data.toEmail) {
+            data.recipientEmail = data.toEmail
+          }
+          if (!data.templateSubject && data.subject) {
+            data.templateSubject = data.subject
+          }
+        }
+        return data
+      },
+    ],
+  },
 }
