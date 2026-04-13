@@ -216,10 +216,37 @@ export function clearCanvas(canvas: HTMLCanvasElement): void {
 }
 
 /**
- * Fill canvas with solid color
+ * Fill canvas with solid color or linear gradient
  */
 export function fillCanvas(canvas: HTMLCanvasElement, color: string): void {
   const ctx = getCanvasContext(canvas)
+  if (color.startsWith('linear-gradient')) {
+    const match = color.match(/linear-gradient\(([^)]+)\)/)
+    if (match) {
+      const parts = match[1].split(',').map((s: string) => s.trim())
+      const angle = parts[0].includes('deg') ? parseInt(parts[0]) : 135
+      const angleRad = (angle - 90) * (Math.PI / 180)
+      const w = canvas.width
+      const h = canvas.height
+      const x1 = w / 2 - (Math.cos(angleRad) * w) / 2
+      const y1 = h / 2 - (Math.sin(angleRad) * h) / 2
+      const x2 = w / 2 + (Math.cos(angleRad) * w) / 2
+      const y2 = h / 2 + (Math.sin(angleRad) * h) / 2
+      const gradient = ctx.createLinearGradient(x1, y1, x2, y2)
+      for (let i = 1; i < parts.length; i++) {
+        const part = parts[i].trim()
+        const colorMatch = part.match(/(#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}|rgb\([^)]+\))\s*(\d+%)?/)
+        if (colorMatch) {
+          const stopColor = colorMatch[1]
+          const position = colorMatch[2] ? parseInt(colorMatch[2]) / 100 : i / (parts.length - 1)
+          gradient.addColorStop(position, stopColor)
+        }
+      }
+      ctx.fillStyle = gradient
+      ctx.fillRect(0, 0, w, h)
+      return
+    }
+  }
   ctx.fillStyle = color
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 }
