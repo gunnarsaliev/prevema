@@ -13,6 +13,11 @@ import { setDefaultStatus } from './hooks/setDefaultStatus'
 import { handleEmailAutomation } from './hooks/handleEmailAutomation'
 import { handleSocialPostGeneration } from './hooks/handleSocialPostGeneration'
 import { defaultEventValue } from '@/fields/defaultEventValue'
+import { makeOrgCacheRevalidator } from '@/hooks/revalidateOrgCache'
+import { orgCountsTag } from '@/lib/cached-queries'
+
+const { afterChange: revalidateCounts, afterDelete: revalidateCountsOnDelete } =
+  makeOrgCacheRevalidator([orgCountsTag])
 
 export const Participants: CollectionConfig = {
   slug: 'participants',
@@ -248,6 +253,7 @@ export const Participants: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [setDefaultStatus, populateOrganizationFromEvent],
-    afterChange: [handleEmailAutomation, handleSocialPostGeneration],
+    afterChange: [handleEmailAutomation, handleSocialPostGeneration, revalidateCounts],
+    afterDelete: [revalidateCountsOnDelete],
   },
 }

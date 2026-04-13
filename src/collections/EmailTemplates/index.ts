@@ -4,6 +4,8 @@ import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import { formatSlugHook } from '@/utils/formatSlug'
 import { setPublisherOrganization } from '@/hooks/setPublisherOrganization'
+import { makeOrgCacheRevalidator } from '@/hooks/revalidateOrgCache'
+import { orgTemplatesTag } from '@/lib/cached-queries'
 import {
   FixedToolbarFeature,
   HeadingFeature,
@@ -17,11 +19,16 @@ import {
   ParagraphFeature,
 } from '@payloadcms/richtext-lexical'
 
+const { afterChange: revalidateCache, afterDelete: revalidateCacheOnDelete } =
+  makeOrgCacheRevalidator([orgTemplatesTag])
+
 export const EmailTemplates: CollectionConfig = {
   slug: 'email-templates',
   hooks: {
     beforeValidate: [autoSelectOrganization],
     beforeChange: [setPublisherOrganization],
+    afterChange: [revalidateCache],
+    afterDelete: [revalidateCacheOnDelete],
   },
   access: {
     admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),

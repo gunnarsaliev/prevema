@@ -2,6 +2,11 @@ import type { CollectionConfig, Where } from 'payload'
 import { checkRole, getUserOrganizationIds } from '@/access/utilities'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
+import { makeOrgCacheRevalidator } from '@/hooks/revalidateOrgCache'
+import { orgMediaTag } from '@/lib/cached-queries'
+
+const { afterChange: revalidateCache, afterDelete: revalidateCacheOnDelete } =
+  makeOrgCacheRevalidator([orgMediaTag])
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -10,6 +15,8 @@ export const Media: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [autoSelectOrganization],
+    afterChange: [revalidateCache],
+    afterDelete: [revalidateCacheOnDelete],
   },
   access: {
     create: async ({ req: { user, payload } }) => {

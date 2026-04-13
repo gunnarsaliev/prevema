@@ -1,10 +1,21 @@
+import { Suspense } from 'react'
 import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-
+import { getUserOrganizationIds } from '@/access/utilities'
+import { getCachedParticipantRoles } from '@/lib/cached-queries'
 import { ParticipantRolesList } from './components/ParticipantRolesList'
+import { ParticipantRolesListSkeleton } from './components/ParticipantRolesListSkeleton'
 import { EmptyEventState } from '@/components/EmptyEventState'
+
+async function ParticipantRolesData({ organizationIds }: { organizationIds: number[] }) {
+  const { participantRoles, events } = await getCachedParticipantRoles(organizationIds)
+
+  if (events.length === 0) return <EmptyEventState />
+
+  return <ParticipantRolesList participantRoles={participantRoles as any} />
+}
 
 export default async function ParticipantRolesPage() {
   const headers = await getHeaders()
@@ -13,30 +24,14 @@ export default async function ParticipantRolesPage() {
 
   if (!user) redirect('/admin/login')
 
-  const [{ docs: participantRoles }, { docs: eventDocs }] = await Promise.all([
-    payload.find({
-      collection: 'participant-roles',
-      overrideAccess: false,
-      user,
-      depth: 1, // resolve event name
-      limit: 200,
-      sort: 'name',
-    }),
-    payload.find({
-      collection: 'events',
-      overrideAccess: false,
-      user,
-      depth: 0,
-      limit: 200,
-      sort: 'name',
-      select: { name: true },
-    }),
-  ])
+  const rawOrgIds = await getUserOrganizationIds(payload, user)
+  const organizationIds = rawOrgIds.map(Number)
 
-  // Show empty state if no events exist
-  if (eventDocs.length === 0) {
-    return <EmptyEventState />
-  }
-
-  return <ParticipantRolesList participantRoles={participantRoles} />
+  return (
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <Suspense fallback={<ParticipantRolesListSkeleton />}>
+        <ParticipantRolesData organizationIds={organizationIds} />
+      </Suspense>
+    </div>
+  )
 }

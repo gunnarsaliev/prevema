@@ -9,6 +9,11 @@ import { populateOrganizationFromEvent } from './hooks/populateOrganizationFromE
 import { handleEmailAutomation } from './hooks/handleEmailAutomation'
 import { handleSocialPostGeneration } from './hooks/handleSocialPostGeneration'
 import { defaultEventValue } from '@/fields/defaultEventValue'
+import { makeOrgCacheRevalidator } from '@/hooks/revalidateOrgCache'
+import { orgCountsTag } from '@/lib/cached-queries'
+
+const { afterChange: revalidateCounts, afterDelete: revalidateCountsOnDelete } =
+  makeOrgCacheRevalidator([orgCountsTag])
 
 const setPartnerCreatedDate = ({
   value,
@@ -278,6 +283,7 @@ export const Partners: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [populateOrganizationFromEvent],
-    afterChange: [handleEmailAutomation, handleSocialPostGeneration],
+    afterChange: [handleEmailAutomation, handleSocialPostGeneration, revalidateCounts],
+    afterDelete: [revalidateCountsOnDelete],
   },
 }

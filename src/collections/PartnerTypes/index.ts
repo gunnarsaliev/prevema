@@ -11,8 +11,13 @@ import { generatePublicFormLinkAfterCreate } from './hooks/generatePublicFormLin
 import { syncOptionalFields } from './hooks/syncOptionalFields'
 import { validatePartnerFields } from './hooks/validateFields'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
+import { makeOrgCacheRevalidator } from '@/hooks/revalidateOrgCache'
+import { orgPartnerTypesTag } from '@/lib/cached-queries'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import { defaultEventValue } from '@/fields/defaultEventValue'
+
+const { afterChange: revalidateCache, afterDelete: revalidateCacheOnDelete } =
+  makeOrgCacheRevalidator([orgPartnerTypesTag])
 
 const partnerFieldOptions = [
   { label: 'Company Logo', value: 'companyLogo' },
@@ -157,6 +162,7 @@ export const PartnerTypes: CollectionConfig = {
   hooks: {
     beforeValidate: [autoSelectOrganization, validatePartnerFields, syncOptionalFields],
     beforeChange: [generatePublicFormLink],
-    afterChange: [generatePublicFormLinkAfterCreate],
+    afterChange: [generatePublicFormLinkAfterCreate, revalidateCache],
+    afterDelete: [revalidateCacheOnDelete],
   },
 }

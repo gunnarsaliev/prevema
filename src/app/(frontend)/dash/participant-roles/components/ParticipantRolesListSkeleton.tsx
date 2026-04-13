@@ -1,0 +1,58 @@
+import { Skeleton } from '@/components/ui/skeleton'
+
+export function ParticipantRolesListSkeleton() {
+  return (
+    <div className="flex flex-1 flex-col h-full overflow-hidden">
+      <div className="flex items-center justify-between border-b px-6 py-3 shrink-0">
+        <div className="space-y-1">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-3 w-56" />
+        </div>
+        <Skeleton className="h-9 w-32" />
+      </div>
+
+      <div className="flex-1 overflow-auto">
+        <div className="px-6 py-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-9 w-64" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-9 w-24" />
+              <Skeleton className="h-9 w-24" />
+            </div>
+          </div>
+
+          <div className="rounded-md border">
+            <div className="flex items-center gap-4 border-b px-4 py-3">
+              <Skeleton className="h-4 w-4" />
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-4 w-32 ml-auto" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-8" />
+            </div>
+
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-4 border-b last:border-0 px-4 py-3"
+              >
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-44" />
+                <Skeleton className="h-4 w-36 ml-auto" />
+                <Skeleton className="h-6 w-20 rounded-full" />
+                <Skeleton className="h-8 w-8" />
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-4 w-36" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-9 w-20" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

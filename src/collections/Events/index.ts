@@ -8,8 +8,13 @@ import {
 import { checkRole } from '@/access/utilities'
 import { populateCreatedBy } from './hooks/populateCreatedBy'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
+import { makeOrgCacheRevalidator } from '@/hooks/revalidateOrgCache'
+import { orgEventsTag, orgLayoutTag, orgCountsTag } from '@/lib/cached-queries'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import { formatSlugHook } from '@/utils/formatSlug'
+
+const { afterChange: revalidateCache, afterDelete: revalidateCacheOnDelete } =
+  makeOrgCacheRevalidator([orgEventsTag, orgLayoutTag, orgCountsTag])
 
 export const Events: CollectionConfig = {
   slug: 'events',
@@ -27,6 +32,8 @@ export const Events: CollectionConfig = {
   hooks: {
     beforeValidate: [autoSelectOrganization],
     beforeChange: [populateCreatedBy],
+    afterChange: [revalidateCache],
+    afterDelete: [revalidateCacheOnDelete],
   },
   fields: [
     {

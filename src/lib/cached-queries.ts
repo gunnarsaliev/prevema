@@ -12,6 +12,21 @@ export function orgCountsTag(organizationId: number | string) {
 export function orgEventsTag(organizationId: number | string) {
   return `org-${organizationId}-events`
 }
+export function orgLayoutTag(organizationId: number | string) {
+  return `org-${organizationId}-layout`
+}
+export function orgTemplatesTag(organizationId: number | string) {
+  return `org-${organizationId}-templates`
+}
+export function orgMediaTag(organizationId: number | string) {
+  return `org-${organizationId}-media`
+}
+export function orgRolesTag(organizationId: number | string) {
+  return `org-${organizationId}-roles`
+}
+export function orgPartnerTypesTag(organizationId: number | string) {
+  return `org-${organizationId}-partner-types`
+}
 
 /**
  * Cached dashboard counts scoped to the user's organizations.
@@ -132,5 +147,255 @@ export function getCachedUpcomingEvent(organizationIds: number[]): Promise<Event
       revalidate: 60,
       tags,
     },
+  )()
+}
+
+/**
+ * Cached layout data: events list + user role in first org.
+ * Used by the dash layout to avoid a blocking DB round-trip on every navigation.
+ */
+export function getCachedLayoutData(userId: number, organizationIds: number[]) {
+  const orgKey = organizationIds
+    .slice()
+    .sort((a, b) => a - b)
+    .join(',')
+  const tags = organizationIds.flatMap((id) => [orgLayoutTag(id), orgEventsTag(id)])
+
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config: await config })
+      const firstOrgId = organizationIds[0] ?? null
+
+      const [eventsResult, membershipResult] = await Promise.all([
+        payload.find({
+          collection: 'events',
+          overrideAccess: true,
+          where: organizationIds.length > 0 ? { organization: { in: organizationIds } } : undefined,
+          depth: 0,
+          limit: 100,
+          sort: '-createdAt',
+          select: { name: true },
+        }),
+        firstOrgId
+          ? payload.find({
+              collection: 'members',
+              where: {
+                and: [
+                  { user: { equals: userId } },
+                  { organization: { equals: firstOrgId } },
+                  { status: { equals: 'active' } },
+                ],
+              },
+              depth: 0,
+              limit: 1,
+            })
+          : Promise.resolve({ docs: [] as any[] }),
+      ])
+
+      const events = eventsResult.docs.map((doc) => ({ id: String(doc.id), name: doc.name }))
+
+      const rawRole = (membershipResult.docs[0]?.role as string | undefined) ?? null
+      const validRoles = ['owner', 'admin', 'editor', 'viewer'] as const
+      type OrgRole = (typeof validRoles)[number]
+      const role: OrgRole | null =
+        rawRole && (validRoles as readonly string[]).includes(rawRole) ? (rawRole as OrgRole) : null
+
+      const roleHierarchy: Record<string, number> = { owner: 4, admin: 3, editor: 2, viewer: 1 }
+      const roleLevel = role ? (roleHierarchy[role] ?? 0) : 0
+
+      const permissions = {
+        role,
+        canEdit: roleLevel >= roleHierarchy.editor,
+        canAdmin: roleLevel >= roleHierarchy.admin,
+        isOwner: role === 'owner',
+      }
+
+      return { events, permissions }
+    },
+    [`layout-${userId}-${orgKey}`],
+    { revalidate: 60, tags },
+  )()
+}
+
+/**
+ * Cached image templates scoped to the user's organizations.
+ */
+export function getCachedImageTemplates(organizationIds: number[]) {
+  const cacheKey = organizationIds
+    .slice()
+    .sort((a, b) => a - b)
+    .join(',')
+  const tags = organizationIds.map(orgTemplatesTag)
+
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config: await config })
+      const { docs } = await payload.find({
+        collection: 'image-templates',
+        overrideAccess: true,
+        where: organizationIds.length > 0 ? { organization: { in: organizationIds } } : undefined,
+        depth: 1,
+        limit: 500,
+        sort: '-updatedAt',
+      })
+      return docs
+    },
+    [`image-templates-${cacheKey}`],
+    { revalidate: 30, tags },
+  )()
+}
+
+/**
+ * Cached email templates scoped to the user's organizations.
+ */
+export function getCachedEmailTemplates(organizationIds: number[]) {
+  const cacheKey = organizationIds
+    .slice()
+    .sort((a, b) => a - b)
+    .join(',')
+  const tags = organizationIds.map(orgTemplatesTag)
+
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config: await config })
+      const { docs } = await payload.find({
+        collection: 'email-templates',
+        overrideAccess: true,
+        where: organizationIds.length > 0 ? { organization: { in: organizationIds } } : undefined,
+        depth: 0,
+        limit: 500,
+        sort: '-updatedAt',
+      })
+      return docs
+    },
+    [`email-templates-${cacheKey}`],
+    { revalidate: 30, tags },
+  )()
+}
+
+/**
+ * Cached media files scoped to the user's organizations (excluding template assets).
+ */
+export function getCachedMedia(organizationIds: number[]) {
+  const cacheKey = organizationIds
+    .slice()
+    .sort((a, b) => a - b)
+    .join(',')
+  const tags = organizationIds.map(orgMediaTag)
+
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config: await config })
+      const { docs } = await payload.find({
+        collection: 'media',
+        overrideAccess: true,
+        where:
+          organizationIds.length > 0
+            ? {
+                and: [
+                  { organization: { in: organizationIds } },
+                  {
+                    or: [
+                      { isTemplateAsset: { equals: false } },
+                      { isTemplateAsset: { exists: false } },
+                    ],
+                  },
+                ],
+              }
+            : undefined,
+        depth: 1,
+        limit: 500,
+        sort: '-updatedAt',
+      })
+      return docs
+    },
+    [`media-${cacheKey}`],
+    { revalidate: 30, tags },
+  )()
+}
+
+/**
+ * Cached participant roles + events list scoped to the user's organizations.
+ */
+export function getCachedParticipantRoles(organizationIds: number[]) {
+  const cacheKey = organizationIds
+    .slice()
+    .sort((a, b) => a - b)
+    .join(',')
+  const tags = organizationIds.flatMap((id) => [orgRolesTag(id), orgEventsTag(id)])
+
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config: await config })
+      const orgFilter =
+        organizationIds.length > 0 ? { organization: { in: organizationIds } } : undefined
+
+      const [{ docs: participantRoles }, { docs: events }] = await Promise.all([
+        payload.find({
+          collection: 'participant-roles',
+          overrideAccess: true,
+          where: orgFilter,
+          depth: 1,
+          limit: 200,
+          sort: 'name',
+        }),
+        payload.find({
+          collection: 'events',
+          overrideAccess: true,
+          where: orgFilter,
+          depth: 0,
+          limit: 200,
+          sort: 'name',
+          select: { name: true },
+        }),
+      ])
+
+      return { participantRoles, events }
+    },
+    [`participant-roles-${cacheKey}`],
+    { revalidate: 60, tags },
+  )()
+}
+
+/**
+ * Cached partner types + events list scoped to the user's organizations.
+ */
+export function getCachedPartnerTypes(organizationIds: number[]) {
+  const cacheKey = organizationIds
+    .slice()
+    .sort((a, b) => a - b)
+    .join(',')
+  const tags = organizationIds.flatMap((id) => [orgPartnerTypesTag(id), orgEventsTag(id)])
+
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config: await config })
+      const orgFilter =
+        organizationIds.length > 0 ? { organization: { in: organizationIds } } : undefined
+
+      const [{ docs: partnerTypes }, { docs: events }] = await Promise.all([
+        payload.find({
+          collection: 'partner-types',
+          overrideAccess: true,
+          where: orgFilter,
+          depth: 1,
+          limit: 200,
+          sort: 'name',
+        }),
+        payload.find({
+          collection: 'events',
+          overrideAccess: true,
+          where: orgFilter,
+          depth: 0,
+          limit: 200,
+          sort: 'name',
+          select: { name: true },
+        }),
+      ])
+
+      return { partnerTypes, events }
+    },
+    [`partner-types-${cacheKey}`],
+    { revalidate: 60, tags },
   )()
 }

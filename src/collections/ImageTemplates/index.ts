@@ -3,6 +3,11 @@ import { checkRole, getUserOrganizationIds } from '@/access/utilities'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { defaultOrganizationValue } from '@/fields/defaultOrganizationValue'
 import { setPublisherOrganization } from '@/hooks/setPublisherOrganization'
+import { makeOrgCacheRevalidator } from '@/hooks/revalidateOrgCache'
+import { orgTemplatesTag } from '@/lib/cached-queries'
+
+const { afterChange: revalidateCache, afterDelete: revalidateCacheOnDelete } =
+  makeOrgCacheRevalidator([orgTemplatesTag])
 
 /**
  * ImageTemplates Collection
@@ -14,6 +19,8 @@ export const ImageTemplates: CollectionConfig = {
   hooks: {
     beforeValidate: [autoSelectOrganization],
     beforeChange: [setPublisherOrganization],
+    afterChange: [revalidateCache],
+    afterDelete: [revalidateCacheOnDelete],
   },
   access: {
     admin: ({ req: { user } }) => checkRole(['super-admin', 'admin', 'user'], user),

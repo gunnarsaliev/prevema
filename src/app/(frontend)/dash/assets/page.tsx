@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
@@ -9,7 +10,29 @@ import { Button } from '@/components/ui/button'
 import { ImageTemplatesList } from './image-templates/components/ImageTemplatesList'
 import { EmailTemplatesList } from './email-templates/components/EmailTemplatesList'
 import { MediaList } from './components/MediaList'
+import { AssetsGridSkeleton } from './components/AssetsGridSkeleton'
 import { ImageIcon, Mail, FileImage, Plus } from 'lucide-react'
+import { getUserOrganizationIds } from '@/access/utilities'
+import {
+  getCachedImageTemplates,
+  getCachedEmailTemplates,
+  getCachedMedia,
+} from '@/lib/cached-queries'
+
+async function ImageTemplatesData({ organizationIds }: { organizationIds: number[] }) {
+  const docs = await getCachedImageTemplates(organizationIds)
+  return <ImageTemplatesList templates={docs as any} />
+}
+
+async function EmailTemplatesData({ organizationIds }: { organizationIds: number[] }) {
+  const docs = await getCachedEmailTemplates(organizationIds)
+  return <EmailTemplatesList templates={docs as any} />
+}
+
+async function MediaData({ organizationIds }: { organizationIds: number[] }) {
+  const docs = await getCachedMedia(organizationIds)
+  return <MediaList media={docs as any} />
+}
 
 export default async function AssetsPage() {
   const headers = await getHeaders()
@@ -18,38 +41,8 @@ export default async function AssetsPage() {
 
   if (!user) redirect('/admin/login')
 
-  // Fetch image templates
-  const { docs: imageTemplates } = await payload.find({
-    collection: 'image-templates',
-    overrideAccess: false,
-    user,
-    depth: 1,
-    limit: 500,
-    sort: '-updatedAt',
-  })
-
-  // Fetch email templates
-  const { docs: emailTemplates } = await payload.find({
-    collection: 'email-templates',
-    overrideAccess: false,
-    user,
-    depth: 0,
-    limit: 500,
-    sort: '-updatedAt',
-  })
-
-  // Fetch media files (with depth:1 to get organization info, exclude template assets)
-  const { docs: mediaFiles } = await payload.find({
-    collection: 'media',
-    overrideAccess: false,
-    user,
-    depth: 1,
-    limit: 500,
-    sort: '-updatedAt',
-    where: {
-      or: [{ isTemplateAsset: { equals: false } }, { isTemplateAsset: { exists: false } }],
-    },
-  })
+  const rawOrgIds = await getUserOrganizationIds(payload, user)
+  const organizationIds = rawOrgIds.map(Number)
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
@@ -84,7 +77,9 @@ export default async function AssetsPage() {
                   </Link>
                 </Button>
               </div>
-              <ImageTemplatesList templates={imageTemplates as any} />
+              <Suspense fallback={<AssetsGridSkeleton />}>
+                <ImageTemplatesData organizationIds={organizationIds} />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="email-templates" className="mt-0">
@@ -96,11 +91,15 @@ export default async function AssetsPage() {
                   </Link>
                 </Button>
               </div>
-              <EmailTemplatesList templates={emailTemplates as any} />
+              <Suspense fallback={<AssetsGridSkeleton />}>
+                <EmailTemplatesData organizationIds={organizationIds} />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="media" className="mt-0">
-              <MediaList media={mediaFiles as any} />
+              <Suspense fallback={<AssetsGridSkeleton />}>
+                <MediaData organizationIds={organizationIds} />
+              </Suspense>
             </TabsContent>
           </Tabs>
         </div>
