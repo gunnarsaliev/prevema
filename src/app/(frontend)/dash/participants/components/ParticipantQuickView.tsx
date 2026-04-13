@@ -3,16 +3,22 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Loader2, ExternalLink, Mail, User, Building2, FileText, Pencil, Trash2, X } from 'lucide-react'
+import {
+  Loader2,
+  ExternalLink,
+  Mail,
+  User,
+  Building2,
+  FileText,
+  Pencil,
+  Trash2,
+  X,
+} from 'lucide-react'
+import { EmailHistorySection } from '@/components/EmailHistorySection'
 import type { Participant } from '@/payload-types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { getRelationName } from '@/lib/entity-actions'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -190,7 +196,9 @@ export function ParticipantQuickView({ participantId, open, onClose, onDelete }:
               )}
 
               {/* Company Information */}
-              {(participant.companyName || participant.companyPosition || participant.companyWebsite) && (
+              {(participant.companyName ||
+                participant.companyPosition ||
+                participant.companyWebsite) && (
                 <div className="border-t pt-6">
                   <div className="flex items-center gap-2 mb-3">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -239,7 +247,9 @@ export function ParticipantQuickView({ participantId, open, onClose, onDelete }:
               )}
 
               {/* Presentation Details */}
-              {(participant.presentationTopic || participant.presentationSummary || participant.technicalRequirements) && (
+              {(participant.presentationTopic ||
+                participant.presentationSummary ||
+                participant.technicalRequirements) && (
                 <div className="border-t pt-6">
                   <div className="flex items-center gap-2 mb-3">
                     <FileText className="h-4 w-4 text-muted-foreground" />
@@ -255,13 +265,19 @@ export function ParticipantQuickView({ participantId, open, onClose, onDelete }:
                     {participant.presentationSummary && (
                       <div>
                         <dt className="text-xs font-medium text-muted-foreground">Summary</dt>
-                        <dd className="mt-1 text-sm whitespace-pre-wrap">{participant.presentationSummary}</dd>
+                        <dd className="mt-1 text-sm whitespace-pre-wrap">
+                          {participant.presentationSummary}
+                        </dd>
                       </div>
                     )}
                     {participant.technicalRequirements && (
                       <div>
-                        <dt className="text-xs font-medium text-muted-foreground">Technical Requirements</dt>
-                        <dd className="mt-1 text-sm whitespace-pre-wrap">{participant.technicalRequirements}</dd>
+                        <dt className="text-xs font-medium text-muted-foreground">
+                          Technical Requirements
+                        </dt>
+                        <dd className="mt-1 text-sm whitespace-pre-wrap">
+                          {participant.technicalRequirements}
+                        </dd>
                       </div>
                     )}
                   </div>
@@ -288,6 +304,9 @@ export function ParticipantQuickView({ participantId, open, onClose, onDelete }:
                   </div>
                 </div>
               )}
+
+              {/* Email History */}
+              <EmailHistorySection recipientEmail={participant.email} className="border-t pt-6" />
             </div>
           )}
         </div>

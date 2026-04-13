@@ -152,12 +152,20 @@ export async function sendTenantEmail({
       ? `${emailConfig.senderName} <${emailConfig.fromEmail}>`
       : emailConfig.fromEmail
 
+    // Generate plain text from HTML by stripping tags (for better deliverability)
+    const textContent = html
+      .replace(/<[^>]*>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+
     // Send the email using organization's Resend account
+    // Including both html and text improves deliverability and avoids spam filters
     const result = await resend.emails.send({
       from: fromAddress,
       to,
       subject,
       html,
+      text: textContent,
       replyTo: emailConfig.replyToEmail || undefined,
     })
 
@@ -168,12 +176,6 @@ export async function sendTenantEmail({
     console.log(
       `✅ Email sent successfully to ${to} using template: ${templateName} (Resend ID: ${result.data.id})`,
     )
-
-    // Generate plain text from HTML by stripping tags
-    const textContent = html
-      .replace(/<[^>]*>/g, '')
-      .replace(/\s+/g, ' ')
-      .trim()
 
     return { success: true, htmlContent: html, textContent }
   } catch (error) {
@@ -243,12 +245,20 @@ export async function sendSimpleTenantEmail({
       ? `${emailConfig.senderName} <${emailConfig.fromEmail}>`
       : emailConfig.fromEmail
 
+    // Generate plain text from HTML by stripping tags (for better deliverability)
+    const textContent = html
+      .replace(/<[^>]*>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+
     // Send the email using organization's Resend account
+    // Including both html and text improves deliverability and avoids spam filters
     const result = await resend.emails.send({
       from: fromAddress,
       to,
       subject,
       html,
+      text: textContent,
       replyTo: emailConfig.replyToEmail || undefined,
     })
 

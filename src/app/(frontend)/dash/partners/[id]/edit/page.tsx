@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
 import { TopBar } from '@/components/shared/TopBar'
+import { EmailHistorySection } from '@/components/EmailHistorySection'
 
 import { PartnerForm } from '../../components/PartnerForm'
 import type { PartnerFormValues } from '@/lib/schemas/partner'
@@ -18,51 +19,52 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
 
   const organizationIds = await getUserOrganizationIds(payload, user)
 
-  const [partner, { docs: eventDocs }, { docs: typeDocs }, { docs: tierDocs }, { docs: orgDocs }] = await Promise.all([
-    payload
-      .findByID({
-        collection: 'partners',
-        id: Number(id),
+  const [partner, { docs: eventDocs }, { docs: typeDocs }, { docs: tierDocs }, { docs: orgDocs }] =
+    await Promise.all([
+      payload
+        .findByID({
+          collection: 'partners',
+          id: Number(id),
+          overrideAccess: false,
+          user,
+          depth: 1, // Fetch depth 1 to get image relationships
+        })
+        .catch(() => null),
+      payload.find({
+        collection: 'events',
         overrideAccess: false,
         user,
-        depth: 1, // Fetch depth 1 to get image relationships
-      })
-      .catch(() => null),
-    payload.find({
-      collection: 'events',
-      overrideAccess: false,
-      user,
-      depth: 0,
-      limit: 200,
-      sort: 'name',
-      select: { name: true },
-    }),
-    payload.find({
-      collection: 'partner-types',
-      overrideAccess: false,
-      user,
-      depth: 0,
-      limit: 100,
-      sort: 'name',
-      select: { name: true },
-    }),
-    payload.find({
-      collection: 'partner-tiers',
-      overrideAccess: false,
-      user,
-      depth: 0,
-      limit: 100,
-      sort: 'name',
-      select: { name: true },
-    }),
-    payload.find({
-      collection: 'organizations',
-      where: { id: { in: organizationIds } },
-      depth: 0,
-      limit: 100,
-      select: { name: true },
-    }),
-  ])
+        depth: 0,
+        limit: 200,
+        sort: 'name',
+        select: { name: true },
+      }),
+      payload.find({
+        collection: 'partner-types',
+        overrideAccess: false,
+        user,
+        depth: 0,
+        limit: 100,
+        sort: 'name',
+        select: { name: true },
+      }),
+      payload.find({
+        collection: 'partner-tiers',
+        overrideAccess: false,
+        user,
+        depth: 0,
+        limit: 100,
+        sort: 'name',
+        select: { name: true },
+      }),
+      payload.find({
+        collection: 'organizations',
+        where: { id: { in: organizationIds } },
+        depth: 0,
+        limit: 100,
+        select: { name: true },
+      }),
+    ])
 
   if (!partner) notFound()
 
@@ -131,6 +133,11 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
             tiers={tiers}
             organizations={organizations}
           />
+
+          {/* Email History */}
+          <div className="mt-8 bg-card rounded-lg border p-6">
+            <EmailHistorySection recipientEmail={partner.email || partner.contactEmail} />
+          </div>
         </div>
       </div>
     </div>

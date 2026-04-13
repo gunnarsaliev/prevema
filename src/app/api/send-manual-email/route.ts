@@ -290,30 +290,8 @@ export async function POST(request: Request) {
                   textContent: result.textContent,
                 },
               })
-            } else {
-              // Log failed email
-              await payload.create({
-                collection: 'email-logs',
-                data: {
-                  direction: 'outbound',
-                  subject: template.subject,
-                  fromEmail,
-                  fromName,
-                  toEmail: recipient.email,
-                  template: Number(templateId),
-                  templateName: template.name,
-                  templateSubject: template.subject,
-                  organization: Number(organizationId),
-                  recipientEmail: recipient.email,
-                  triggerEvent: 'manual',
-                  variables: JSON.stringify(recipient.variables),
-                  sentAt: new Date().toISOString(),
-                  status: 'failed',
-                  errorMessage: result.error,
-                  sentBy: userId ? Number(userId) : undefined,
-                },
-              })
             }
+            // Failed emails are not logged - only successful sends appear in email history
 
             // Send progress update
             const sentCount = i + 1

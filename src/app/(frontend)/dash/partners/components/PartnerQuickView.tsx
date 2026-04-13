@@ -3,16 +3,22 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Loader2, ExternalLink, Mail, Building2, FileText, Handshake, Pencil, Trash2, X } from 'lucide-react'
+import {
+  Loader2,
+  ExternalLink,
+  Mail,
+  Building2,
+  FileText,
+  Handshake,
+  Pencil,
+  Trash2,
+  X,
+} from 'lucide-react'
+import { EmailHistorySection } from '@/components/EmailHistorySection'
 import type { Partner } from '@/payload-types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { getRelationName } from '@/lib/entity-actions'
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -185,7 +191,10 @@ export function PartnerQuickView({ partnerId, open, onClose, onDelete }: Props) 
                   <div>
                     <dt className="text-xs font-medium text-muted-foreground">Contact Email</dt>
                     <dd className="mt-1 text-sm">
-                      <a href={`mailto:${partner.contactEmail}`} className="text-primary hover:underline">
+                      <a
+                        href={`mailto:${partner.contactEmail}`}
+                        className="text-primary hover:underline"
+                      >
                         {partner.contactEmail}
                       </a>
                     </dd>
@@ -194,7 +203,10 @@ export function PartnerQuickView({ partnerId, open, onClose, onDelete }: Props) 
                     <div>
                       <dt className="text-xs font-medium text-muted-foreground">Company Email</dt>
                       <dd className="mt-1 text-sm">
-                        <a href={`mailto:${partner.email}`} className="text-primary hover:underline">
+                        <a
+                          href={`mailto:${partner.email}`}
+                          className="text-primary hover:underline"
+                        >
                           {partner.email}
                         </a>
                       </dd>
@@ -230,7 +242,9 @@ export function PartnerQuickView({ partnerId, open, onClose, onDelete }: Props) 
                     {partner.companyDescription && (
                       <div>
                         <dt className="text-xs font-medium text-muted-foreground">Description</dt>
-                        <dd className="mt-1 text-sm whitespace-pre-wrap">{partner.companyDescription}</dd>
+                        <dd className="mt-1 text-sm whitespace-pre-wrap">
+                          {partner.companyDescription}
+                        </dd>
                       </div>
                     )}
                   </div>
@@ -247,14 +261,20 @@ export function PartnerQuickView({ partnerId, open, onClose, onDelete }: Props) 
                   <div className="space-y-3">
                     {partner.sponsorshipLevel && (
                       <div>
-                        <dt className="text-xs font-medium text-muted-foreground">Sponsorship Level</dt>
+                        <dt className="text-xs font-medium text-muted-foreground">
+                          Sponsorship Level
+                        </dt>
                         <dd className="mt-1 text-sm">{partner.sponsorshipLevel}</dd>
                       </div>
                     )}
                     {partner.additionalNotes && (
                       <div>
-                        <dt className="text-xs font-medium text-muted-foreground">Additional Notes</dt>
-                        <dd className="mt-1 text-sm whitespace-pre-wrap">{partner.additionalNotes}</dd>
+                        <dt className="text-xs font-medium text-muted-foreground">
+                          Additional Notes
+                        </dt>
+                        <dd className="mt-1 text-sm whitespace-pre-wrap">
+                          {partner.additionalNotes}
+                        </dd>
                       </div>
                     )}
                   </div>
@@ -281,6 +301,12 @@ export function PartnerQuickView({ partnerId, open, onClose, onDelete }: Props) 
                   </div>
                 </div>
               )}
+
+              {/* Email History */}
+              <EmailHistorySection
+                recipientEmail={partner.email || partner.contactEmail}
+                className="border-t pt-6"
+              />
             </div>
           )}
         </div>
