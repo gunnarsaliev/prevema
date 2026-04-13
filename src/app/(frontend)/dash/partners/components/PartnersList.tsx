@@ -19,24 +19,15 @@ import {
 import { createSelectColumn, BulkAction } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { EntityList, EntityListConfig } from '@/components/shared/EntityList'
-import {
-  handleEntityDelete,
-  handleEntityBulkDelete,
-  getRelationName,
-} from '@/lib/entity-actions'
+import { handleEntityDelete, handleEntityBulkDelete, getRelationName } from '@/lib/entity-actions'
 import { BulkEmailModal } from '@/components/BulkEmailModal'
 import { GenerationModal } from '@/components/GenerationModal'
 import { StatusSelect } from '@/components/shared/StatusSelect'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { PartnerTypeForm } from '../../partner-types/components/PartnerTypeForm'
 
 const PartnerQuickView = lazy(() =>
-  import('./PartnerQuickView').then((module) => ({ default: module.PartnerQuickView }))
+  import('./PartnerQuickView').then((module) => ({ default: module.PartnerQuickView })),
 )
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -71,7 +62,7 @@ export function PartnersList({
   organizations,
   eventId,
   typeDrawerOpen = false,
-  onTypeDrawerChange
+  onTypeDrawerChange,
 }: Props) {
   const router = useRouter()
   const [deletingId, setDeletingId] = useState<number | null>(null)
@@ -105,7 +96,7 @@ export function PartnersList({
           setDeletingId(null)
         },
         onError: () => setDeletingId(null),
-      }
+      },
     )
   }
 
@@ -123,7 +114,7 @@ export function PartnersList({
           setBulkDeleting(false)
         },
         onError: () => setBulkDeleting(false),
-      }
+      },
     )
   }
 
@@ -150,16 +141,16 @@ export function PartnersList({
       const partner = await response.json()
 
       const partnerOrganizationId =
-        typeof partner.organization === 'object'
-          ? partner.organization.id
-          : partner.organization
+        typeof partner.organization === 'object' ? partner.organization.id : partner.organization
 
       setSelectedPartnerIds(ids)
       setOrganizationId(String(partnerOrganizationId))
       setIsEmailModalOpen(true)
     } catch (error) {
       console.error('Failed to prepare bulk email:', error)
-      alert(`Failed to prepare bulk email: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      alert(
+        `Failed to prepare bulk email: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     } finally {
       setLoadingEmail(false)
     }
@@ -231,19 +222,17 @@ export function PartnersList({
       accessorKey: 'companyName',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Company" />,
       cell: ({ row }) => (
-        <button
-          onClick={() => handleQuickView(row.original.id)}
+        <Link
+          href={`/dash/partners/${row.original.id}`}
           className="font-medium hover:underline text-left"
         >
           {row.getValue('companyName')}
-        </button>
+        </Link>
       ),
     },
     {
       accessorKey: 'partnerType',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Partner type" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Partner type" />,
       cell: ({ row }) => getRelationName(row.getValue('partnerType')),
       enableSorting: false,
     },
@@ -276,7 +265,11 @@ export function PartnersList({
         const isDeleting = deletingId === partner.id
 
         return (
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => handleQuickView(partner.id)}>
+              <Eye className="mr-2 h-4 w-4" />
+              Quick View
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -316,9 +309,46 @@ export function PartnersList({
     },
   ]
 
-  const createHref = eventId
-    ? `/dash/partners/create?eventId=${eventId}`
-    : '/dash/partners/create'
+  const getImageUrl = (media: unknown): string | null => {
+    if (!media) return null
+    if (typeof media === 'object' && media !== null && 'url' in media) {
+      return (media as { url: string }).url
+    }
+    return null
+  }
+
+  // Convert partner to stacked list item
+  const toStackedListItem = (partner: Partner) => {
+    const imageUrl = getImageUrl(partner.companyLogo) || partner.companyLogoUrl
+    const partnerTypeName = getRelationName(partner.partnerType)
+    const eventName = getRelationName(partner.event)
+    const tierName = getRelationName(partner.tier)
+    const isDeleting = deletingId === partner.id
+
+    return {
+      id: partner.id,
+      title: partner.companyName,
+      href: `/dash/partners/${partner.id}`,
+      subtitle: partner.contactPerson || partner.contactEmail,
+      imageUrl,
+      status: partner.status
+        ? {
+            label: partner.status.charAt(0).toUpperCase() + partner.status.slice(1),
+            variant: STATUS_VARIANT[partner.status] || 'secondary',
+          }
+        : undefined,
+      meta: [
+        ...(partnerTypeName ? [{ label: 'Type', value: partnerTypeName }] : []),
+        ...(tierName ? [{ label: 'Tier', value: tierName }] : []),
+        ...(eventName ? [{ label: 'Event', value: eventName }] : []),
+      ],
+      onQuickView: () => handleQuickView(partner.id),
+      onDelete: () => handleDelete(partner.id, partner.companyName),
+      isDeleting,
+    }
+  }
+
+  const createHref = eventId ? `/dash/partners/create?eventId=${eventId}` : '/dash/partners/create'
 
   const config: EntityListConfig<Partner> = {
     columns,
@@ -332,6 +362,9 @@ export function PartnersList({
     emptyActionHref: createHref,
     emptyActionLabel: 'Add partner',
     bulkActions,
+    toStackedListItem,
+    enableViewToggle: true,
+    defaultViewMode: 'stacked',
   }
 
   return (

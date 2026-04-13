@@ -21,26 +21,16 @@ import {
 import { createSelectColumn, BulkAction } from '@/components/ui/data-table'
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { EntityList, EntityListConfig } from '@/components/shared/EntityList'
-import {
-  handleEntityDelete,
-  handleEntityBulkDelete,
-  getRelationName,
-} from '@/lib/entity-actions'
+import { handleEntityDelete, handleEntityBulkDelete, getRelationName } from '@/lib/entity-actions'
 import { BulkEmailModal } from '@/components/BulkEmailModal'
 import { GenerationModal } from '@/components/GenerationModal'
 import { StatusSelect } from '@/components/shared/StatusSelect'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { ParticipantRoleForm } from '../../participant-roles/components/ParticipantRoleForm'
 
 const ParticipantQuickView = lazy(() =>
-  import('./ParticipantQuickView').then((module) => ({ default: module.ParticipantQuickView }))
+  import('./ParticipantQuickView').then((module) => ({ default: module.ParticipantQuickView })),
 )
-
 
 interface EventOption {
   id: number
@@ -60,7 +50,13 @@ interface Props {
   createHref: string
 }
 
-export function ParticipantsList({ participants, events, organizations, eventId, createHref }: Props) {
+export function ParticipantsList({
+  participants,
+  events,
+  organizations,
+  eventId,
+  createHref,
+}: Props) {
   const router = useRouter()
   const [roleDrawerOpen, setRoleDrawerOpen] = useState(false)
 
@@ -105,7 +101,7 @@ export function ParticipantsList({ participants, events, organizations, eventId,
           setDeletingId(null)
         },
         onError: () => setDeletingId(null),
-      }
+      },
     )
   }
 
@@ -123,7 +119,7 @@ export function ParticipantsList({ participants, events, organizations, eventId,
           setBulkDeleting(false)
         },
         onError: () => setBulkDeleting(false),
-      }
+      },
     )
   }
 
@@ -159,7 +155,9 @@ export function ParticipantsList({ participants, events, organizations, eventId,
       setIsEmailModalOpen(true)
     } catch (error) {
       console.error('Failed to prepare bulk email:', error)
-      alert(`Failed to prepare bulk email: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      alert(
+        `Failed to prepare bulk email: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     } finally {
       setLoadingEmail(false)
     }
@@ -225,25 +223,31 @@ export function ParticipantsList({ participants, events, organizations, eventId,
     },
   ]
 
+  const getImageUrl = (media: unknown): string | null => {
+    if (!media) return null
+    if (typeof media === 'object' && media !== null && 'url' in media) {
+      return (media as { url: string }).url
+    }
+    return null
+  }
+
   const columns: ColumnDef<Participant>[] = [
     createSelectColumn<Participant>(),
     {
       accessorKey: 'name',
       header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
       cell: ({ row }) => (
-        <button
-          onClick={() => handleQuickView(row.original.id)}
+        <Link
+          href={`/dash/participants/${row.original.id}`}
           className="font-medium hover:underline text-left"
         >
           {row.getValue('name')}
-        </button>
+        </Link>
       ),
     },
     {
       accessorKey: 'participantRole',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Participant role" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Participant role" />,
       cell: ({ row }) => getRelationName(row.getValue('participantRole')),
       enableSorting: false,
     },
@@ -270,7 +274,11 @@ export function ParticipantsList({ participants, events, organizations, eventId,
         const isDeleting = deletingId === participant.id
 
         return (
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => handleQuickView(participant.id)}>
+              <Eye className="mr-2 h-4 w-4" />
+              Quick View
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -310,6 +318,49 @@ export function ParticipantsList({ participants, events, organizations, eventId,
     },
   ]
 
+  // Convert participant to stacked list item
+  const toStackedListItem = (participant: Participant) => {
+    const imageUrl = getImageUrl(participant.imageUrl)
+    const roleName = getRelationName(participant.participantRole)
+    const eventName = getRelationName(participant.event)
+    const isDeleting = deletingId === participant.id
+
+    const getStatusVariant = (
+      status: string | null | undefined,
+    ): 'default' | 'secondary' | 'destructive' | 'outline' => {
+      if (status === 'approved') return 'default'
+      if (status === 'cancelled') return 'destructive'
+      if (status === 'need-info') return 'outline'
+      return 'secondary'
+    }
+
+    return {
+      id: participant.id,
+      title: participant.name,
+      href: `/dash/participants/${participant.id}`,
+      subtitle: participant.email,
+      imageUrl,
+      status: participant.status
+        ? {
+            label:
+              participant.status === 'not-approved'
+                ? 'Not Approved'
+                : participant.status === 'need-info'
+                  ? 'Need Info'
+                  : participant.status.charAt(0).toUpperCase() + participant.status.slice(1),
+            variant: getStatusVariant(participant.status),
+          }
+        : undefined,
+      meta: [
+        ...(roleName ? [{ label: 'Role', value: roleName }] : []),
+        ...(eventName ? [{ label: 'Event', value: eventName }] : []),
+      ],
+      onQuickView: () => handleQuickView(participant.id),
+      onDelete: () => handleDelete(participant.id, participant.name),
+      isDeleting,
+    }
+  }
+
   const config: EntityListConfig<Participant> = {
     columns,
     data: participants,
@@ -322,6 +373,9 @@ export function ParticipantsList({ participants, events, organizations, eventId,
     emptyActionHref: createHref,
     emptyActionLabel: 'Add participant',
     bulkActions,
+    toStackedListItem,
+    enableViewToggle: true,
+    defaultViewMode: 'stacked',
   }
 
   return (
@@ -330,9 +384,7 @@ export function ParticipantsList({ participants, events, organizations, eventId,
         title="Participants"
         description="Manage event attendees and roles"
         centerContent={<EventSwitcher />}
-        actions={
-          <NewButtonDropdown items={newButtonItems} />
-        }
+        actions={<NewButtonDropdown items={newButtonItems} />}
       />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
