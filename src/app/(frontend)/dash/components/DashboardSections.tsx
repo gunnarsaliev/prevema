@@ -20,7 +20,7 @@ export async function DashboardStats({ organizationIds }: Props) {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <Link href="/dash/events/create">
-        <Card className="bg-zinc-800 cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
+        <Card className="dark:bg-zinc-800 cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Events</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -33,7 +33,7 @@ export async function DashboardStats({ organizationIds }: Props) {
       </Link>
 
       <Link href="/dash/participants">
-        <Card className="bg-zinc-800 cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
+        <Card className="dark:bg-zinc-800 cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Participants</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -46,7 +46,7 @@ export async function DashboardStats({ organizationIds }: Props) {
       </Link>
 
       <Link href="/dash/partners">
-        <Card className="bg-zinc-800 cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
+        <Card className="dark:bg-zinc-800 cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Partners</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -59,7 +59,7 @@ export async function DashboardStats({ organizationIds }: Props) {
       </Link>
 
       <Link href="/dash/assets">
-        <Card className="bg-zinc-800 cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
+        <Card className="dark:bg-zinc-800 cursor-pointer transition-colors hover:bg-muted/50 dark:hover:bg-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Creatives</CardTitle>
             <ImageIcon className="h-4 w-4 text-muted-foreground" />
@@ -113,7 +113,7 @@ export async function QuickStartSection({ organizationIds }: Props) {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-      <Card className="bg-zinc-800 md:col-span-2 lg:col-span-4">
+      <Card className="dark:bg-zinc-800 md:col-span-2 lg:col-span-4">
         <CardHeader>
           <CardTitle>Quick Start</CardTitle>
           <CardDescription>Get started with managing your events</CardDescription>
@@ -232,7 +232,7 @@ export async function QuickStartSection({ organizationIds }: Props) {
         </CardContent>
       </Card>
 
-      <Card className="bg-zinc-800 md:col-span-2 lg:col-span-3">
+      <Card className="dark:bg-zinc-800 md:col-span-2 lg:col-span-3">
         <CardHeader>
           <CardTitle>Recent Activity</CardTitle>
           <CardDescription>Latest updates from your events</CardDescription>

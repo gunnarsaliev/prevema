@@ -37,7 +37,7 @@ export function DashboardEventCard({
   }
 
   return (
-    <Card className="bg-zinc-800 overflow-hidden hover:shadow-lg transition-shadow p-0">
+    <Card className="dark:bg-zinc-800 overflow-hidden hover:shadow-lg transition-shadow p-0">
       <div className="grid md:grid-cols-[400px_1fr] gap-0">
         {/* Image Section */}
         <div className="relative h-[250px] md:h-full bg-muted">
