@@ -97,7 +97,7 @@ export function ParticipantRolesSection({ items, eventId, orgId, organizations, 
           {items.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between gap-4 px-4 py-3 shadow-sm rounded-lg bg-slate-50"
+              className="flex items-center justify-between gap-4 px-4 py-3 shadow-sm rounded-lg bg-slate-50 dark:bg-zinc-800/50"
             >
               <div className="min-w-0 space-y-0.5">
                 <div className="flex items-center gap-2">

@@ -95,7 +95,7 @@ export function PartnerTypesSection({ items, eventId, orgId, organizations, even
           {items.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between gap-4 px-4 py-3 bg-slate-50 shadow-sm rounded-lg"
+              className="flex items-center justify-between gap-4 px-4 py-3 bg-slate-50 dark:bg-zinc-800/50 shadow-sm rounded-lg"
             >
               <div className="min-w-0 space-y-0.5">
                 <div className="flex items-center gap-2">
