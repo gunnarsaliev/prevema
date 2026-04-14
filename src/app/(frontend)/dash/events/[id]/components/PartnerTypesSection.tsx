@@ -124,7 +124,7 @@ export function PartnerTypesSection({ items, eventId, orgId, organizations }: Pr
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        const url = `${window.location.origin}/partner-register/${item.id}`
+                        const url = `${window.location.origin}/partner-register/${item.id}/${eventId}`
                         navigator.clipboard.writeText(url)
                         setCopiedId(item.id)
                         setTimeout(() => setCopiedId(null), 2000)
@@ -135,7 +135,7 @@ export function PartnerTypesSection({ items, eventId, orgId, organizations }: Pr
                     </Button>
                     <Button variant="outline" size="sm" asChild>
                       <a
-                        href={`/partner-register/${item.id}`}
+                        href={`/partner-register/${item.id}/${eventId}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >

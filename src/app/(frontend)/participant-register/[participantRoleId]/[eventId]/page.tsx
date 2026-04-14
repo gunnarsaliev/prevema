@@ -9,12 +9,12 @@ import { mergeOpenGraph } from '@/utils/mergeOpenGraph'
 type Props = {
   params: Promise<{
     participantRoleId: string
+    eventId: string
   }>
 }
 
 export default async function RegisterPage({ params }: Props) {
-  const { participantRoleId } = await params
-  const eventId = undefined
+  const { participantRoleId, eventId } = await params
   const payload = await getPayload({ config: configPromise })
 
   // Fetch the participant role
@@ -38,63 +38,43 @@ export default async function RegisterPage({ params }: Props) {
       ? participantRole.organization.id
       : participantRole.organization
 
-  // If eventId is provided in URL, fetch that specific event
+  // Fetch the specific event
   let event = null
   let eventImage = null
-  if (eventId) {
-    try {
-      const fetchedEvent = await payload.findByID({
-        collection: 'events',
-        id: eventId,
-        depth: 1,
-      })
-
-      // Verify event belongs to the same organization and is open/planning
-      if (
-        fetchedEvent &&
-        (fetchedEvent.organization === orgId ||
-          (typeof fetchedEvent.organization === 'object' &&
-            fetchedEvent.organization.id === orgId)) &&
-        (fetchedEvent.status === 'open' || fetchedEvent.status === 'planning')
-      ) {
-        event = {
-          name: fetchedEvent.name,
-          description: fetchedEvent.description || null,
-          startDate: fetchedEvent.startDate || undefined,
-          endDate: fetchedEvent.endDate || null,
-          eventType: fetchedEvent.eventType || null,
-          address: fetchedEvent.address || null,
-        }
-
-        // Extract event image if available
-        if (fetchedEvent.eventImage && typeof fetchedEvent.eventImage === 'object') {
-          eventImage = fetchedEvent.eventImage.url || null
-        }
-      } else {
-        // Event doesn't belong to org or isn't open/planning
-        notFound()
-      }
-    } catch {
-      notFound()
-    }
-  }
-
-  // Fetch all open/planning events for the org (for dropdown if no eventId provided)
-  let events: { id: string; name: string }[] | null = null
-  if (!eventId) {
-    const { docs: orgEvents } = await payload.find({
+  try {
+    const fetchedEvent = await payload.findByID({
       collection: 'events',
-      where: {
-        and: [{ organization: { equals: orgId } }, { status: { in: ['open', 'planning'] } }],
-      },
-      depth: 0,
-      limit: 50,
-      sort: 'name',
+      id: eventId,
+      depth: 1,
     })
 
-    if (orgEvents.length === 0) notFound()
+    // Verify event belongs to the same organization and is open/planning
+    if (
+      fetchedEvent &&
+      (fetchedEvent.organization === orgId ||
+        (typeof fetchedEvent.organization === 'object' &&
+          fetchedEvent.organization.id === orgId)) &&
+      (fetchedEvent.status === 'open' || fetchedEvent.status === 'planning')
+    ) {
+      event = {
+        name: fetchedEvent.name,
+        description: fetchedEvent.description || null,
+        startDate: fetchedEvent.startDate || undefined,
+        endDate: fetchedEvent.endDate || null,
+        eventType: fetchedEvent.eventType || null,
+        address: fetchedEvent.address || null,
+      }
 
-    events = orgEvents.map((e) => ({ id: String(e.id), name: e.name }))
+      // Extract event image if available
+      if (fetchedEvent.eventImage && typeof fetchedEvent.eventImage === 'object') {
+        eventImage = fetchedEvent.eventImage.url || null
+      }
+    } else {
+      // Event doesn't belong to org or isn't open/planning
+      notFound()
+    }
+  } catch {
+    notFound()
   }
 
   return (
@@ -103,13 +83,10 @@ export default async function RegisterPage({ params }: Props) {
       event={event}
       eventImage={eventImage}
       participantRoleId={participantRoleId}
-      eventId={eventId || null}
-      events={events}
+      eventId={eventId}
     />
   )
 }
-
-type EventOption = { id: string; name: string }
 
 function RegisterLayout({
   participantRole,
@@ -117,7 +94,6 @@ function RegisterLayout({
   eventImage,
   participantRoleId,
   eventId,
-  events,
 }: {
   participantRole: {
     name: string
@@ -135,8 +111,7 @@ function RegisterLayout({
   } | null
   eventImage: string | null
   participantRoleId: string
-  eventId: string | null
-  events: EventOption[] | null
+  eventId: string
 }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
@@ -165,7 +140,7 @@ function RegisterLayout({
             )}
           </div>
 
-          {/* Event Details Card — only when a specific event is linked */}
+          {/* Event Details Card */}
           {event && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden mb-8 border border-gray-100 dark:border-gray-700">
               {eventImage && (
@@ -253,7 +228,7 @@ function RegisterLayout({
               requiredFields={participantRole.requiredFields || []}
               optionalFields={participantRole.optionalFields || []}
               eventId={eventId}
-              events={events}
+              events={null}
             />
           </div>
         </div>
@@ -263,8 +238,7 @@ function RegisterLayout({
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { participantRoleId } = await params
-  const eventId = undefined
+  const { participantRoleId, eventId } = await params
   const payload = await getPayload({ config: configPromise })
 
   let participantRole
@@ -297,9 +271,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: participantRole.description || `Register as a ${participantRole.name}`,
     openGraph: mergeOpenGraph({
       title: `Register as ${participantRole.name}${eventName}`,
-      url: eventId
-        ? `/participant-register/${participantRoleId}/${eventId}`
-        : `/participant-register/${participantRoleId}`,
+      url: `/participant-register/${participantRoleId}/${eventId}`,
     }),
   }
 }

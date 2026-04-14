@@ -3,123 +3,99 @@ import { notFound } from 'next/navigation'
 import React from 'react'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import { PublicParticipantForm } from '@/components/forms/PublicParticipantForm'
+import { PublicPartnerForm } from '@/components/forms/PublicPartnerForm'
 import { mergeOpenGraph } from '@/utils/mergeOpenGraph'
 
 type Props = {
   params: Promise<{
-    participantRoleId: string
+    partnerTypeId: string
+    eventId: string
   }>
 }
 
-export default async function RegisterPage({ params }: Props) {
-  const { participantRoleId } = await params
-  const eventId = undefined
+export default async function PartnerRegisterPage({ params }: Props) {
+  const { partnerTypeId, eventId } = await params
   const payload = await getPayload({ config: configPromise })
 
-  // Fetch the participant role
-  let participantRole
+  // Fetch the partner type
+  let partnerType
   try {
-    participantRole = await payload.findByID({
-      collection: 'participant-roles',
-      id: participantRoleId,
+    partnerType = await payload.findByID({
+      collection: 'partner-types',
+      id: partnerTypeId,
       depth: 1,
     })
   } catch {
     notFound()
   }
 
-  if (!participantRole || !participantRole.isActive) {
+  if (!partnerType || !partnerType.isActive) {
     notFound()
   }
 
   const orgId =
-    typeof participantRole.organization === 'object'
-      ? participantRole.organization.id
-      : participantRole.organization
+    typeof partnerType.organization === 'object'
+      ? partnerType.organization.id
+      : partnerType.organization
 
-  // If eventId is provided in URL, fetch that specific event
+  // Fetch the specific event
   let event = null
   let eventImage = null
-  if (eventId) {
-    try {
-      const fetchedEvent = await payload.findByID({
-        collection: 'events',
-        id: eventId,
-        depth: 1,
-      })
-
-      // Verify event belongs to the same organization and is open/planning
-      if (
-        fetchedEvent &&
-        (fetchedEvent.organization === orgId ||
-          (typeof fetchedEvent.organization === 'object' &&
-            fetchedEvent.organization.id === orgId)) &&
-        (fetchedEvent.status === 'open' || fetchedEvent.status === 'planning')
-      ) {
-        event = {
-          name: fetchedEvent.name,
-          description: fetchedEvent.description || null,
-          startDate: fetchedEvent.startDate || undefined,
-          endDate: fetchedEvent.endDate || null,
-          eventType: fetchedEvent.eventType || null,
-          address: fetchedEvent.address || null,
-        }
-
-        // Extract event image if available
-        if (fetchedEvent.eventImage && typeof fetchedEvent.eventImage === 'object') {
-          eventImage = fetchedEvent.eventImage.url || null
-        }
-      } else {
-        // Event doesn't belong to org or isn't open/planning
-        notFound()
-      }
-    } catch {
-      notFound()
-    }
-  }
-
-  // Fetch all open/planning events for the org (for dropdown if no eventId provided)
-  let events: { id: string; name: string }[] | null = null
-  if (!eventId) {
-    const { docs: orgEvents } = await payload.find({
+  try {
+    const fetchedEvent = await payload.findByID({
       collection: 'events',
-      where: {
-        and: [{ organization: { equals: orgId } }, { status: { in: ['open', 'planning'] } }],
-      },
-      depth: 0,
-      limit: 50,
-      sort: 'name',
+      id: eventId,
+      depth: 1,
     })
 
-    if (orgEvents.length === 0) notFound()
+    // Verify event belongs to the same organization and is open/planning
+    if (
+      fetchedEvent &&
+      (fetchedEvent.organization === orgId ||
+        (typeof fetchedEvent.organization === 'object' &&
+          fetchedEvent.organization.id === orgId)) &&
+      (fetchedEvent.status === 'open' || fetchedEvent.status === 'planning')
+    ) {
+      event = {
+        name: fetchedEvent.name,
+        description: fetchedEvent.description || null,
+        startDate: fetchedEvent.startDate || undefined,
+        endDate: fetchedEvent.endDate || null,
+        eventType: fetchedEvent.eventType || null,
+        address: fetchedEvent.address || null,
+      }
 
-    events = orgEvents.map((e) => ({ id: String(e.id), name: e.name }))
+      // Extract event image if available
+      if (fetchedEvent.eventImage && typeof fetchedEvent.eventImage === 'object') {
+        eventImage = fetchedEvent.eventImage.url || null
+      }
+    } else {
+      // Event doesn't belong to org or isn't open/planning
+      notFound()
+    }
+  } catch {
+    notFound()
   }
 
   return (
-    <RegisterLayout
-      participantRole={participantRole}
+    <PartnerRegisterLayout
+      partnerType={partnerType}
       event={event}
       eventImage={eventImage}
-      participantRoleId={participantRoleId}
-      eventId={eventId || null}
-      events={events}
+      partnerTypeId={partnerTypeId}
+      eventId={eventId}
     />
   )
 }
 
-type EventOption = { id: string; name: string }
-
-function RegisterLayout({
-  participantRole,
+function PartnerRegisterLayout({
+  partnerType,
   event,
   eventImage,
-  participantRoleId,
+  partnerTypeId,
   eventId,
-  events,
 }: {
-  participantRole: {
+  partnerType: {
     name: string
     description?: string | null
     requiredFields?: string[] | null
@@ -134,9 +110,8 @@ function RegisterLayout({
     address?: string | null
   } | null
   eventImage: string | null
-  participantRoleId: string
-  eventId: string | null
-  events: EventOption[] | null
+  partnerTypeId: string
+  eventId: string
 }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
@@ -144,32 +119,32 @@ function RegisterLayout({
         <div className="w-full max-w-3xl">
           {/* Hero Section */}
           <div className="text-center mb-12">
-            <div className="inline-block bg-blue-100 dark:bg-blue-900/30 px-4 py-2 rounded-full mb-4">
-              <span className="text-blue-700 dark:text-blue-300 font-medium text-sm">
-                You're Invited!
+            <div className="inline-block bg-purple-100 dark:bg-purple-900/30 px-4 py-2 rounded-full mb-4">
+              <span className="text-purple-700 dark:text-purple-300 font-medium text-sm">
+                Partnership Opportunity
               </span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              {event ? `Join ${event.name}` : 'Register Now'}
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              {event ? `Partner with ${event.name}` : 'Partner with Us'}
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-2">
               as a{' '}
               <span className="font-semibold text-gray-900 dark:text-white">
-                {participantRole.name}
+                {partnerType.name}
               </span>
             </p>
-            {participantRole.description && (
+            {partnerType.description && (
               <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mt-4">
-                {participantRole.description}
+                {partnerType.description}
               </p>
             )}
           </div>
 
-          {/* Event Details Card — only when a specific event is linked */}
+          {/* Event Details Card */}
           {event && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden mb-8 border border-gray-100 dark:border-gray-700">
               {eventImage && (
-                <div className="h-48 bg-gradient-to-r from-blue-500 to-purple-600 relative overflow-hidden">
+                <div className="h-48 bg-gradient-to-r from-purple-500 to-blue-600 relative overflow-hidden">
                   <img
                     src={eventImage}
                     alt={event.name}
@@ -234,8 +209,8 @@ function RegisterLayout({
 
                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Complete the registration form below. Your submission will be reviewed by our
-                    team, and we'll contact you at the email address you provide.
+                    Complete the partnership registration form below. Your submission will be
+                    reviewed by our team, and we'll contact you at the email address you provide.
                   </p>
                 </div>
               </div>
@@ -245,15 +220,15 @@ function RegisterLayout({
           {/* Registration Form Section */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              Registration Form
+              Partnership Registration Form
             </h3>
 
-            <PublicParticipantForm
-              participantRoleId={participantRoleId}
-              requiredFields={participantRole.requiredFields || []}
-              optionalFields={participantRole.optionalFields || []}
+            <PublicPartnerForm
+              partnerTypeId={partnerTypeId}
+              requiredFields={partnerType.requiredFields || []}
+              optionalFields={partnerType.optionalFields || []}
               eventId={eventId}
-              events={events}
+              events={null}
             />
           </div>
         </div>
@@ -263,19 +238,18 @@ function RegisterLayout({
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { participantRoleId } = await params
-  const eventId = undefined
+  const { partnerTypeId, eventId } = await params
   const payload = await getPayload({ config: configPromise })
 
-  let participantRole
+  let partnerType
   try {
-    participantRole = await payload.findByID({
-      collection: 'participant-roles',
-      id: participantRoleId,
+    partnerType = await payload.findByID({
+      collection: 'partner-types',
+      id: partnerTypeId,
       depth: 0,
     })
   } catch {
-    return { title: 'Registration' }
+    return { title: 'Partnership Registration' }
   }
 
   let eventName = ''
@@ -293,13 +267,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `Register as ${participantRole.name}${eventName}`,
-    description: participantRole.description || `Register as a ${participantRole.name}`,
+    title: `Partner as ${partnerType.name}${eventName}`,
+    description: partnerType.description || `Register as a ${partnerType.name} partner`,
     openGraph: mergeOpenGraph({
-      title: `Register as ${participantRole.name}${eventName}`,
-      url: eventId
-        ? `/participant-register/${participantRoleId}/${eventId}`
-        : `/participant-register/${participantRoleId}`,
+      title: `Partner as ${partnerType.name}${eventName}`,
+      url: `/partner-register/${partnerTypeId}/${eventId}`,
     }),
   }
 }

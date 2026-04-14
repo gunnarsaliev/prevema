@@ -14,6 +14,7 @@ type Props = {
 
 export default async function PartnerRegisterPage({ params }: Props) {
   const { partnerTypeId } = await params
+  const eventId = undefined
   const payload = await getPayload({ config: configPromise })
 
   // Fetch the partner type
@@ -37,28 +38,72 @@ export default async function PartnerRegisterPage({ params }: Props) {
       ? partnerType.organization.id
       : partnerType.organization
 
-  // Fetch all open/planning events for the org so the registrant can pick
-  const { docs: orgEvents } = await payload.find({
-    collection: 'events',
-    where: {
-      and: [{ organization: { equals: orgId } }, { status: { in: ['open', 'planning'] } }],
-    },
-    depth: 0,
-    limit: 50,
-    sort: 'name',
-  })
+  // If eventId is provided in URL, fetch that specific event
+  let event = null
+  let eventImage = null
+  if (eventId) {
+    try {
+      const fetchedEvent = await payload.findByID({
+        collection: 'events',
+        id: eventId,
+        depth: 1,
+      })
 
-  if (orgEvents.length === 0) notFound()
+      // Verify event belongs to the same organization and is open/planning
+      if (
+        fetchedEvent &&
+        (fetchedEvent.organization === orgId ||
+          (typeof fetchedEvent.organization === 'object' &&
+            fetchedEvent.organization.id === orgId)) &&
+        (fetchedEvent.status === 'open' || fetchedEvent.status === 'planning')
+      ) {
+        event = {
+          name: fetchedEvent.name,
+          description: fetchedEvent.description || null,
+          startDate: fetchedEvent.startDate || undefined,
+          endDate: fetchedEvent.endDate || null,
+          eventType: fetchedEvent.eventType || null,
+          address: fetchedEvent.address || null,
+        }
 
-  const events = orgEvents.map((e) => ({ id: String(e.id), name: e.name }))
+        // Extract event image if available
+        if (fetchedEvent.eventImage && typeof fetchedEvent.eventImage === 'object') {
+          eventImage = fetchedEvent.eventImage.url || null
+        }
+      } else {
+        // Event doesn't belong to org or isn't open/planning
+        notFound()
+      }
+    } catch {
+      notFound()
+    }
+  }
+
+  // Fetch all open/planning events for the org (for dropdown if no eventId provided)
+  let events: { id: string; name: string }[] | null = null
+  if (!eventId) {
+    const { docs: orgEvents } = await payload.find({
+      collection: 'events',
+      where: {
+        and: [{ organization: { equals: orgId } }, { status: { in: ['open', 'planning'] } }],
+      },
+      depth: 0,
+      limit: 50,
+      sort: 'name',
+    })
+
+    if (orgEvents.length === 0) notFound()
+
+    events = orgEvents.map((e) => ({ id: String(e.id), name: e.name }))
+  }
 
   return (
     <PartnerRegisterLayout
       partnerType={partnerType}
-      event={null}
-      eventImage={null}
+      event={event}
+      eventImage={eventImage}
       partnerTypeId={partnerTypeId}
-      eventId={null}
+      eventId={eventId || null}
       events={events}
     />
   )
@@ -219,6 +264,7 @@ function PartnerRegisterLayout({
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { partnerTypeId } = await params
+  const eventId = undefined
   const payload = await getPayload({ config: configPromise })
 
   let partnerType
@@ -232,12 +278,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: 'Partnership Registration' }
   }
 
+  let eventName = ''
+  if (eventId) {
+    try {
+      const event = await payload.findByID({
+        collection: 'events',
+        id: eventId,
+        depth: 0,
+      })
+      eventName = event.name ? ` - ${event.name}` : ''
+    } catch {
+      // Event not found, continue without event name
+    }
+  }
+
   return {
-    title: `Partner as ${partnerType.name}`,
+    title: `Partner as ${partnerType.name}${eventName}`,
     description: partnerType.description || `Register as a ${partnerType.name} partner`,
     openGraph: mergeOpenGraph({
-      title: `Partner as ${partnerType.name}`,
-      url: `/partner-register/${partnerTypeId}`,
+      title: `Partner as ${partnerType.name}${eventName}`,
+      url: eventId
+        ? `/partner-register/${partnerTypeId}/${eventId}`
+        : `/partner-register/${partnerTypeId}`,
     }),
   }
 }
