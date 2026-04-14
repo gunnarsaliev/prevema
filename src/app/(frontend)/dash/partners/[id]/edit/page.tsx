@@ -3,7 +3,6 @@ import { notFound, redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
-import { TopBar } from '@/components/shared/TopBar'
 import { EmailHistorySection } from '@/components/EmailHistorySection'
 
 import { PartnerForm } from '../../components/PartnerForm'
@@ -114,12 +113,6 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar
-        title="Edit Partner"
-        description={partner.companyName}
-        backHref="/dash/partners"
-        backTitle="Back to partners"
-      />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
           <PartnerForm

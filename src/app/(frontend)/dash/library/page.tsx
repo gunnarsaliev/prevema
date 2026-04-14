@@ -2,7 +2,6 @@ import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import { TopBar } from '@/components/shared/TopBar'
 import { LibraryContent } from './components/LibraryContent'
 import { getUserOrganizationIds } from '@/access/utilities'
 
@@ -110,10 +109,6 @@ export default async function LibraryPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <TopBar
-        title="Template Library"
-        description="Browse and copy public templates from the community"
-      />
       <div className="flex-1 px-8 py-8">
         <LibraryContent
           imageTemplates={imageTemplates as any}

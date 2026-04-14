@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
-import { TopBar } from '@/components/shared/TopBar'
 
 import { ParticipantForm } from '../components/ParticipantForm'
 
@@ -55,12 +54,6 @@ export default async function CreateParticipantPage({
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar
-        title="Add Participant"
-        description="Fill in the details to add a new participant"
-        backHref="/dash/participants"
-        backTitle="Back to participants"
-      />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
           <ParticipantForm

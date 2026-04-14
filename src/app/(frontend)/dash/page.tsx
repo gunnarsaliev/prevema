@@ -4,8 +4,6 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
-import { TopBar } from '@/components/shared/TopBar'
-import { EventSwitcher } from '@/components/event-switcher'
 import {
   DashboardStats,
   UpcomingEventSection,
@@ -29,11 +27,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar
-        title="Dashboard"
-        description="Welcome to your event management dashboard"
-        centerContent={<EventSwitcher />}
-      />
       <div className="flex-1 overflow-auto">
         <div className="p-6 md:p-8 space-y-8">
           <Suspense fallback={<StatsCardsSkeleton />}>

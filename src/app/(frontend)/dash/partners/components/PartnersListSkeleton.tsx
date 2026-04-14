@@ -3,18 +3,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 export function PartnersListSkeleton() {
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      {/* TopBar skeleton */}
-      <div className="flex items-center justify-between border-b px-6 py-3 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="space-y-1">
-            <Skeleton className="h-5 w-24" />
-            <Skeleton className="h-3 w-44" />
-          </div>
-          <Skeleton className="h-8 w-40" />
-        </div>
-        <Skeleton className="h-9 w-32" />
-      </div>
-
       <div className="flex-1 overflow-auto">
         <div className="px-6 py-6 space-y-4">
           {/* Toolbar */}

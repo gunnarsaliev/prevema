@@ -2,10 +2,7 @@ import { headers as getHeaders } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import Image from 'next/image'
-import Link from 'next/link'
 import config from '@/payload.config'
-import { TopBar } from '@/components/shared/TopBar'
-import { Button } from '@/components/ui/button'
 import { ParticipantImageUpload } from './ParticipantImageUpload'
 import { EmailHistorySection } from '@/components/EmailHistorySection'
 
@@ -46,17 +43,6 @@ export default async function ParticipantDetailPage({
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar
-        title={participant.name}
-        description="Participant details"
-        backHref="/dash/participants"
-        backTitle="Back to participants"
-        actions={
-          <Button asChild size="sm">
-            <Link href={`/dash/participants/${id}/edit`}>Edit</Link>
-          </Button>
-        }
-      />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
           <div className="bg-card rounded-lg border p-8">

@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import Link from 'next/link'
-import { TopBar } from '@/components/shared/TopBar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { ImageTemplatesList } from './image-templates/components/ImageTemplatesList'
@@ -46,10 +45,6 @@ export default async function AssetsPage() {
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar
-        title="Assets"
-        description="Manage your image templates, email templates, and media files"
-      />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="p-8">
           <Tabs defaultValue="image-templates" className="w-full">

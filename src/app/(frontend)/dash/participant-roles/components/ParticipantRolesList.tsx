@@ -17,7 +17,6 @@ import {
 } from 'lucide-react'
 
 import type { ParticipantRole } from '@/payload-types'
-import { TopBar } from '@/components/shared/TopBar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -227,18 +226,6 @@ export function ParticipantRolesList({ participantRoles }: Props) {
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar
-        title="Participant Roles"
-        description="Manage attendee categories and registration forms"
-        actions={
-          <Button asChild>
-            <Link href="/dash/participant-roles/create">
-              <Plus className="mr-2 h-4 w-4" />
-              New participant role
-            </Link>
-          </Button>
-        }
-      />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
           <EntityList config={config} />

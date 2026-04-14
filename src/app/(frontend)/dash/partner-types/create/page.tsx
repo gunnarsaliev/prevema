@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
-import { TopBar } from '@/components/shared/TopBar'
 
 import { PartnerTypeForm } from '../components/PartnerTypeForm'
 
@@ -29,12 +28,6 @@ export default async function CreatePartnerTypePage() {
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar
-        title="Create Partner Type"
-        description="Define a new partner type and its registration form fields"
-        backHref="/dash/partner-types"
-        backTitle="Back to partner types"
-      />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
           <PartnerTypeForm mode="create" organizations={organizations} />

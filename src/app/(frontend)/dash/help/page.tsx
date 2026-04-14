@@ -2,7 +2,6 @@ import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import { TopBar } from '@/components/shared/TopBar'
 import {
   HelpCircle,
   Users,
@@ -13,7 +12,6 @@ import {
   Image,
   BookOpen,
   MessageCircle,
-  ChevronDown,
 } from 'lucide-react'
 import {
   Accordion,
@@ -131,11 +129,6 @@ async function HelpPage() {
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar
-        title="Help Center"
-        description="Find answers and get support"
-      />
-
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8 max-w-6xl mx-auto">
           {/* Welcome Section */}

@@ -3,7 +3,6 @@ import { notFound, redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
-import { TopBar } from '@/components/shared/TopBar'
 
 import { PartnerTypeForm } from '../../components/PartnerTypeForm'
 import type { PartnerTypeFormValues } from '@/lib/schemas/partner-type'
@@ -66,12 +65,6 @@ export default async function EditPartnerTypePage({ params }: { params: Promise<
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar
-        title="Edit Partner Type"
-        description={partnerType.name}
-        backHref="/dash/partner-types"
-        backTitle="Back to partner types"
-      />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
           <PartnerTypeForm

@@ -2,7 +2,6 @@ import { headers as getHeaders } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import { TopBar } from '@/components/shared/TopBar'
 
 import { EventForm } from '../../components/EventForm'
 import type { EventFormValues } from '@/lib/schemas/event'
@@ -55,12 +54,6 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar
-        title="Edit Event"
-        description={event.name}
-        backHref={`/dash/events/${event.id}`}
-        backTitle="Back to event details"
-      />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
           {/* organizations not passed on edit — org is locked to the event's existing value */}

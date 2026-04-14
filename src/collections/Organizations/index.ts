@@ -65,13 +65,13 @@ export const Organizations: CollectionConfig = {
       }
     },
     update: async ({ req: { user, payload } }) => {
+      // Organization owners can update their own organizations
+      if (!user) return false
+
       // Super-admins and admins can update any organization
       if (checkRole(['super-admin', 'admin'], user)) {
         return true
       }
-
-      // Organization owners can update their own organizations
-      if (!user) return false
 
       // Get organization IDs from members collection
       const ownedOrganizationIds = await getUserOrganizationIds(payload, user, 'owner')

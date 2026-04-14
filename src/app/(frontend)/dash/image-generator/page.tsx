@@ -15,7 +15,6 @@ import { cn } from '@/lib/utils'
 import { Palette, Settings, Paintbrush, Layers } from 'lucide-react'
 import CanvasEditor from './components/canvas-editor'
 import FormattingToolbar from './components/formatting-toolbar'
-import { TopBar } from '@/components/shared/TopBar'
 import { Download, Save, Undo, Redo } from 'lucide-react'
 import DesignToolsPanel from './components/panels/design-tools-panel'
 import CanvasSettingsPanel from './components/panels/canvas-settings-panel'
@@ -1191,86 +1190,6 @@ export default function ImageTemplateGenerator() {
 
         {/* Canvas Area */}
         <div className="flex flex-1 flex-col overflow-hidden h-full">
-          {/* Top Bar */}
-          <TopBar
-            title={editMode.mode === 'edit' ? editMode.templateName || '' : saveTemplateName}
-            titleEditable={true}
-            onTitleChange={(name) => {
-              if (editMode.mode === 'edit') {
-                editMode.templateName = name
-              } else {
-                setSaveTemplateName(name)
-              }
-            }}
-            titlePlaceholder="Enter template name..."
-            onBack={handleBack}
-            backTitle="Back to templates"
-            centerContent={
-              <select
-                value={selectedTemplate.id}
-                onChange={(e) => handleTemplateChange(e.target.value)}
-                className="h-9 px-3 text-sm border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                {templates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name}
-                  </option>
-                ))}
-              </select>
-            }
-            actions={
-              <>
-                {/* Undo/Redo */}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleUndo}
-                  disabled={!canUndo}
-                  className="h-9 w-9 p-0"
-                  title="Undo"
-                >
-                  <Undo className="w-4 h-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={handleRedo}
-                  disabled={!canRedo}
-                  className="h-9 w-9 p-0"
-                  title="Redo"
-                >
-                  <Redo className="w-4 h-4" />
-                </Button>
-
-                {/* Divider */}
-                <div className="w-px h-6 bg-border" />
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleExportImage}
-                  className="h-9 gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Export</span>
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={handleSaveTemplate}
-                  disabled={isSaving}
-                  className="h-9 gap-2"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>
-                    {isSaving ? 'Saving...' : editMode.mode === 'edit' ? 'Update' : 'Save'}
-                  </span>
-                </Button>
-              </>
-            }
-          />
-
           {/* Formatting Toolbar */}
           <FormattingToolbar
             selectedElement={selectedElement}

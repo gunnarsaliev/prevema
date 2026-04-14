@@ -7,9 +7,6 @@ import { ColumnDef, Row } from '@tanstack/react-table'
 import { Pencil, Trash2, Loader2, MoreHorizontal, Mail, Image, Eye } from 'lucide-react'
 
 import type { Participant } from '@/payload-types'
-import { TopBar } from '@/components/shared/TopBar'
-import { EventSwitcher } from '@/components/event-switcher'
-import { NewButtonDropdown } from '@/components/shared/NewButtonDropdown'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -70,17 +67,6 @@ export function ParticipantsList({
   const [selectedRoleId, setSelectedRoleId] = useState<string>('all')
   const [sortField, setSortField] = useState<string>('name')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-
-  const newButtonItems = [
-    {
-      label: 'New participant',
-      href: createHref,
-    },
-    {
-      label: 'New participant role',
-      onClick: () => setRoleDrawerOpen(true),
-    },
-  ]
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
@@ -471,19 +457,6 @@ export function ParticipantsList({
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar
-        title="Participants"
-        description="Manage event attendees and roles"
-        centerContent={<EventSwitcher />}
-        actions={
-          <>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/dash/participant-roles">Manage roles</Link>
-            </Button>
-            <NewButtonDropdown items={newButtonItems} />
-          </>
-        }
-      />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
           <EntityList config={config} />

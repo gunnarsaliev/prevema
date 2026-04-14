@@ -3,7 +3,6 @@ import { notFound, redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
-import { TopBar } from '@/components/shared/TopBar'
 
 import { ParticipantRoleForm } from '../../components/ParticipantRoleForm'
 import type { ParticipantRoleFormValues } from '@/lib/schemas/participant-role'
@@ -72,12 +71,6 @@ export default async function EditParticipantRolePage({
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar
-        title="Edit Participant Role"
-        description={participantRole.name}
-        backHref="/dash/participant-roles"
-        backTitle="Back to participant roles"
-      />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-8 py-8">
           <ParticipantRoleForm

@@ -5,7 +5,6 @@ import { format } from 'date-fns'
 import Link from 'next/link'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
-import { TopBar } from '@/components/shared/TopBar'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -124,22 +123,6 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <TopBar
-        title={event.name}
-        description={event.theme || 'Event details'}
-        backHref="/dash/events"
-        backTitle="Back to events"
-        actions={
-          <>
-            <Badge variant={STATUS_VARIANT[event.status ?? 'planning']}>
-              {event.status ?? 'planning'}
-            </Badge>
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/dash/events/${event.id}/edit`}>Edit</Link>
-            </Button>
-          </>
-        }
-      />
       <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
         <div className="px-6 py-8 space-y-8">
           <Separator />
