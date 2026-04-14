@@ -1,11 +1,12 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { headers as getHeaders } from 'next/headers'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { eventSchema, type EventFormValues } from '@/lib/schemas/event'
+import { orgEventsTag } from '@/lib/cached-queries'
 
 // Helper to check if an error is a Next.js redirect
 function isRedirectError(error: unknown): boolean {
@@ -134,6 +135,12 @@ export async function createEvent(
 
     // Revalidate the events list page to show the new event
     revalidatePath('/dash/events')
+
+    // Invalidate the cached events for this organization
+    const orgId = validatedFields.data.organization
+    if (orgId) {
+      revalidateTag(orgEventsTag(orgId))
+    }
 
     // Redirect to events list on success
     redirect('/dash/events')
@@ -265,6 +272,12 @@ export async function updateEvent(
     // Revalidate both the events list and the specific event page
     revalidatePath('/dash/events')
     revalidatePath(`/dash/events/${eventId}`)
+
+    // Invalidate the cached events for this organization
+    const orgId = validatedFields.data.organization
+    if (orgId) {
+      revalidateTag(orgEventsTag(orgId))
+    }
 
     // Redirect to events list on success
     redirect('/dash/events')

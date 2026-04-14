@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { HelpCircle } from 'lucide-react'
 import {
   Sidebar,
@@ -35,7 +36,7 @@ export function AppSidebar({
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="p-3">
         <Link href="/dash">
-          <img src={logo.src} alt={logo.alt} className="size-14 object-contain" />
+          <Image src={logo.src} alt={logo.alt} width={56} height={56} className="size-14 object-contain" />
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-3 pt-0">

@@ -3,10 +3,17 @@ import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { getUserOrganizationIds } from '@/access/utilities'
+import { getEvents } from './data'
 import { EventsListClient } from './components/EventsListClient'
 import { EventsListSkeleton } from './components/EventsListSkeleton'
-import type { Event } from '@/payload-types'
 
+/**
+ * Server component that fetches and renders events data.
+ *
+ * Uses React cache() under the hood (via getEvents) to deduplicate
+ * requests within the same render pass.
+ */
 async function EventsData() {
   const headers = await getHeaders()
   const payload = await getPayload({ config: await config })
@@ -14,16 +21,17 @@ async function EventsData() {
 
   if (!user) return null
 
-  const { docs } = await payload.find({
-    collection: 'events',
-    overrideAccess: false,
-    user,
-    depth: 1,
-    limit: 200,
-    sort: '-createdAt',
-  })
+  // Get user's organization IDs for scoped queries
+  const rawOrgIds = await getUserOrganizationIds(payload, user)
+  const organizationIds: number[] = rawOrgIds.map(Number)
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
 
-  return <EventsListClient events={docs as Event[]} />
+  // Fetch events with two-tier caching:
+  // 1. React cache() deduplicates within this request
+  // 2. unstable_cache() persists across requests
+  const events = await getEvents(userId, organizationIds)
+
+  return <EventsListClient events={events} />
 }
 
 export default async function EventsPage() {

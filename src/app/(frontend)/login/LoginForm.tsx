@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -90,9 +91,9 @@ export function LoginForm() {
 
           <div className="flex justify-center gap-1 text-sm text-muted-foreground">
             <p>Need an account?</p>
-            <a href="/register" className="font-medium text-primary hover:underline">
+            <Link href="/register" className="font-medium text-primary hover:underline">
               Register
-            </a>
+            </Link>
           </div>
         </div>
       </div>

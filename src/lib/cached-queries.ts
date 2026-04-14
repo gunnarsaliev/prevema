@@ -1,4 +1,5 @@
 import { unstable_cache } from 'next/cache'
+import { cache } from 'react'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import type { Event } from '@/payload-types'
@@ -377,3 +378,54 @@ export function getCachedPartnerTypes(organizationIds: number[]) {
     { revalidate: 60, tags },
   )()
 }
+
+/**
+ * Fetch events from database (base function).
+ * This is the raw database query without any caching.
+ */
+async function fetchEventsFromDB(organizationIds: number[]) {
+  const payload = await getPayload({ config: await config })
+
+  const { docs } = await payload.find({
+    collection: 'events',
+    overrideAccess: true,
+    where: organizationIds.length > 0 ? { organization: { in: organizationIds } } : undefined,
+    depth: 1,
+    limit: 200,
+    sort: '-createdAt',
+  })
+
+  return docs as Event[]
+}
+
+/**
+ * Cached events list with full data for the events page.
+ *
+ * Uses two-tier caching strategy:
+ * 1. React cache() - Deduplicates requests within a single render pass
+ * 2. unstable_cache() - Caches across requests with time-based and tag-based revalidation
+ *
+ * Best practices from Next.js docs:
+ * - Cache key includes userId and sorted org IDs for proper scoping
+ * - Tags allow granular invalidation when events are created/updated
+ * - 30-second revalidation keeps data fresh while reducing DB load
+ */
+export const getCachedEvents = cache(async (userId: number, organizationIds: number[]) => {
+  const cacheKey = organizationIds
+    .slice()
+    .sort((a, b) => a - b)
+    .join(',')
+  const tags = organizationIds.map(orgEventsTag)
+
+  // unstable_cache for persistent cross-request caching
+  const cachedFetch = unstable_cache(
+    async () => fetchEventsFromDB(organizationIds),
+    ['events-list', userId.toString(), cacheKey], // Explicit cache key array
+    {
+      revalidate: 30, // Revalidate every 30 seconds
+      tags, // Enable tag-based invalidation
+    },
+  )
+
+  return cachedFetch()
+})

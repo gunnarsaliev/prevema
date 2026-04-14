@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import Image from "next/image";
 import { Download } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -85,25 +87,27 @@ const LogoBrandDownload = ({
 
 const Logo = ({ url, className, children, ...props }: LogoProps) => {
   return (
-    <a
+    <Link
       href={url}
       className={cn("flex max-h-8 items-center gap-2", className)}
       {...props}
     >
       {children}
-    </a>
+    </Link>
   );
 };
 
 const LogoImage = ({ src, alt, className, ...props }: LogoImageProps) => (
-  <img src={src} alt={alt} className={cn("block h-8", className)} {...props} />
+  <Image src={src} alt={alt} width={32} height={32} className={cn("block h-8 w-auto", className)} {...props} />
 );
 
 const LogoImageMobile = ({ src, alt, className, ...props }: LogoImageProps) => (
-  <img
+  <Image
     src={src}
     alt={alt}
-    className={cn("flex h-8 md:hidden", className)}
+    width={32}
+    height={32}
+    className={cn("flex h-8 w-auto md:hidden", className)}
     {...props}
   />
 );
@@ -114,10 +118,12 @@ const LogoImageDesktop = ({
   className,
   ...props
 }: LogoImageProps) => (
-  <img
+  <Image
     src={src}
     alt={alt}
-    className={cn("hidden h-8 md:flex", className)}
+    width={32}
+    height={32}
+    className={cn("hidden h-8 w-auto md:flex", className)}
     {...props}
   />
 );

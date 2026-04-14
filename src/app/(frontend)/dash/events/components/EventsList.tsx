@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, lazy, Suspense } from 'react'
 import Link from 'next/link'
 import { Plus, Calendar } from 'lucide-react'
 
@@ -23,6 +23,11 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
+// Lazy load the search bar for better initial load performance
+const EventsSearchBar = lazy(() =>
+  import('./EventsSearchBar').then((mod) => ({ default: mod.EventsSearchBar })),
+)
+
 interface Props {
   events: Event[]
 }
@@ -31,24 +36,25 @@ export function EventsList({ events }: Props) {
   const [searchQuery, setSearchQuery] = useState('')
   const { canEdit, role } = usePermissions()
 
-  // Filter events based on search query
-  const filteredEvents = events.filter((event) =>
-    event.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Memoize filtered events to avoid unnecessary recalculations
+  const filteredEvents = useMemo(
+    () => events.filter((event) => event.name.toLowerCase().includes(searchQuery.toLowerCase())),
+    [events, searchQuery],
   )
 
   return (
     <div className="space-y-8">
-      {/* Search Bar */}
+      {/* Search Bar - Lazy loaded */}
       {events.length > 0 && (
-        <div className="flex items-center gap-4">
-          <input
-            type="text"
-            placeholder="Search events..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 max-w-sm"
-          />
-        </div>
+        <Suspense
+          fallback={
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-full max-w-sm rounded-md border border-input bg-muted/50 animate-pulse" />
+            </div>
+          }
+        >
+          <EventsSearchBar onSearchChange={setSearchQuery} />
+        </Suspense>
       )}
 
       {/* Events Grid */}

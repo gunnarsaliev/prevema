@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
+import { getEvents } from './events/data'
 import {
   DashboardStats,
   UpcomingEventSection,
@@ -24,6 +25,14 @@ export default async function DashboardPage() {
 
   const rawOrgIds = await getUserOrganizationIds(payload, user)
   const organizationIds: number[] = rawOrgIds.map(Number)
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+
+  // Prefetch events data to warm the cache for when user navigates to /dash/events
+  // This uses React cache() which will deduplicate if the events page is also rendered
+  // The promise runs in parallel with rendering and doesn't block the page
+  getEvents(userId, organizationIds).catch(() => {
+    // Silently fail - this is just a performance optimization
+  })
 
   return (
     <div className="flex flex-1 flex-col h-full overflow-hidden">

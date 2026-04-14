@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -142,9 +143,9 @@ export function RegisterForm() {
 
           <div className="flex justify-center gap-1 text-sm text-muted-foreground">
             <p>Already a user?</p>
-            <a href="/login" className="font-medium text-primary hover:underline">
+            <Link href="/login" className="font-medium text-primary hover:underline">
               Login
-            </a>
+            </Link>
           </div>
         </div>
       </div>

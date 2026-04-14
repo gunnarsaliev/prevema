@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Loader2,
   ExternalLink,
@@ -128,9 +129,11 @@ export function ParticipantQuickView({ participantId, open, onClose, onDelete }:
               <div className="flex items-start gap-4">
                 {profileImageUrl ? (
                   <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 bg-background flex-shrink-0">
-                    <img
+                    <Image
                       src={profileImageUrl}
                       alt={participant.name}
+                      width={80}
+                      height={80}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -142,9 +145,9 @@ export function ParticipantQuickView({ participantId, open, onClose, onDelete }:
                 <div className="flex-1">
                   <h2 className="text-2xl font-semibold">{participant.name}</h2>
                   <p className="text-sm text-muted-foreground mt-1">
-                    <a href={`mailto:${participant.email}`} className="hover:underline">
+                    <Link href={`mailto:${participant.email}`} className="hover:underline">
                       {participant.email}
-                    </a>
+                    </Link>
                   </p>
                 </div>
               </div>
@@ -207,9 +210,11 @@ export function ParticipantQuickView({ participantId, open, onClose, onDelete }:
                   <div className="space-y-3">
                     {companyLogoUrl && (
                       <div className="w-16 h-16 rounded border bg-background p-2">
-                        <img
+                        <Image
                           src={companyLogoUrl}
                           alt="Company logo"
+                          width={64}
+                          height={64}
                           className="w-full h-full object-contain"
                         />
                       </div>
@@ -230,7 +235,7 @@ export function ParticipantQuickView({ participantId, open, onClose, onDelete }:
                       <div>
                         <dt className="text-xs font-medium text-muted-foreground">Website</dt>
                         <dd className="mt-1 text-sm">
-                          <a
+                          <Link
                             href={participant.companyWebsite}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -238,7 +243,7 @@ export function ParticipantQuickView({ participantId, open, onClose, onDelete }:
                           >
                             {participant.companyWebsite}
                             <ExternalLink className="h-3 w-3" />
-                          </a>
+                          </Link>
                         </dd>
                       </div>
                     )}
@@ -290,7 +295,7 @@ export function ParticipantQuickView({ participantId, open, onClose, onDelete }:
                   <h3 className="text-sm font-semibold mb-3">Social Links</h3>
                   <div className="flex flex-wrap gap-2">
                     {participant.socialLinks.map((link: any, index: number) => (
-                      <a
+                      <Link
                         key={index}
                         href={link.url}
                         target="_blank"
@@ -299,7 +304,7 @@ export function ParticipantQuickView({ participantId, open, onClose, onDelete }:
                       >
                         {link.platform.charAt(0).toUpperCase() + link.platform.slice(1)}
                         <ExternalLink className="h-3 w-3" />
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 </div>
