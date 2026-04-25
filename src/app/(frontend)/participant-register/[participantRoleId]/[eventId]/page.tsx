@@ -66,8 +66,8 @@ export default async function RegisterPage({ params }: Props) {
       }
 
       // Extract event image if available
-      if (fetchedEvent.eventImage && typeof fetchedEvent.eventImage === 'object') {
-        eventImage = fetchedEvent.eventImage.url || null
+      if (fetchedEvent.image && typeof fetchedEvent.image === 'object') {
+        eventImage = (fetchedEvent.image as { url?: string | null }).url || null
       }
     } else {
       // Event doesn't belong to org or isn't open/planning

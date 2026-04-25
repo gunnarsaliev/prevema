@@ -31,8 +31,7 @@ export const getDashboardEvents = cache(async (userId: number, organizationIds: 
       const { docs } = await payload.find({
         collection: 'events',
         overrideAccess: true,
-        where:
-          organizationIds.length > 0 ? { organization: { in: organizationIds } } : undefined,
+        where: organizationIds.length > 0 ? { organization: { in: organizationIds } } : undefined,
         depth: 1,
         limit: 200,
         sort: '-startDate',
@@ -44,6 +43,37 @@ export const getDashboardEvents = cache(async (userId: number, organizationIds: 
     {
       revalidate: 30,
       tags,
+    },
+  )
+
+  return cachedFetch()
+})
+
+/**
+ * Fetch a single event by ID with persistent caching.
+ * Cache key includes userId to prevent cross-user leakage.
+ */
+export const getDashboardEvent = cache(async (eventId: string, userId: number) => {
+  const cachedFetch = unstable_cache(
+    async () => {
+      const payload = await getPayload({ config: await config })
+
+      try {
+        const event = await payload.findByID({
+          collection: 'events',
+          id: eventId,
+          overrideAccess: true,
+          depth: 1,
+        })
+        return event as Event
+      } catch {
+        return null
+      }
+    },
+    ['dashboard-event', eventId, userId.toString()],
+    {
+      revalidate: 60,
+      tags: [`event-${eventId}`, `dashboard-event-${eventId}`],
     },
   )
 
