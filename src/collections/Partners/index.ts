@@ -10,10 +10,10 @@ import { handleEmailAutomation } from './hooks/handleEmailAutomation'
 import { handleSocialPostGeneration } from './hooks/handleSocialPostGeneration'
 import { defaultEventValue } from '@/fields/defaultEventValue'
 import { makeOrgCacheRevalidator } from '@/hooks/revalidateOrgCache'
-import { orgCountsTag } from '@/lib/cached-queries'
+import { orgCountsTag, orgPartnersTag } from '@/lib/cached-queries'
 
 const { afterChange: revalidateCounts, afterDelete: revalidateCountsOnDelete } =
-  makeOrgCacheRevalidator([orgCountsTag])
+  makeOrgCacheRevalidator([orgCountsTag, orgPartnersTag])
 
 const setPartnerCreatedDate = ({
   value,

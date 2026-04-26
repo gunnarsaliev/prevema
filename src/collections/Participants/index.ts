@@ -14,10 +14,10 @@ import { handleEmailAutomation } from './hooks/handleEmailAutomation'
 import { handleSocialPostGeneration } from './hooks/handleSocialPostGeneration'
 import { defaultEventValue } from '@/fields/defaultEventValue'
 import { makeOrgCacheRevalidator } from '@/hooks/revalidateOrgCache'
-import { orgCountsTag } from '@/lib/cached-queries'
+import { orgCountsTag, orgParticipantsTag } from '@/lib/cached-queries'
 
 const { afterChange: revalidateCounts, afterDelete: revalidateCountsOnDelete } =
-  makeOrgCacheRevalidator([orgCountsTag])
+  makeOrgCacheRevalidator([orgCountsTag, orgParticipantsTag])
 
 export const Participants: CollectionConfig = {
   slug: 'participants',

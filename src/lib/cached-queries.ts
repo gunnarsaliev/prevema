@@ -28,6 +28,12 @@ export function orgRolesTag(organizationId: number | string) {
 export function orgPartnerTypesTag(organizationId: number | string) {
   return `org-${organizationId}-partner-types`
 }
+export function orgParticipantsTag(organizationId: number | string) {
+  return `org-${organizationId}-participants`
+}
+export function orgPartnersTag(organizationId: number | string) {
+  return `org-${organizationId}-partners`
+}
 
 /**
  * Cached dashboard counts scoped to the user's organizations.
