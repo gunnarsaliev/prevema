@@ -6,6 +6,8 @@ import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
 import { getCachedLayoutData } from '@/lib/cached-queries'
 import { PermissionsProvider } from '@/providers/Permissions'
+import { Separator } from '@/components/ui/separator'
+import { DashboardNav } from './components/DashboardNav'
 
 /**
  * Minimal server layout for /dashboard routes.
@@ -33,7 +35,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
       canAdmin={permissions.canAdmin}
       isOwner={permissions.isOwner}
     >
-      {children}
+      <div className="flex min-h-screen">
+        {/* Sidebar */}
+        <aside className="hidden w-56 shrink-0 border-r md:flex md:flex-col">
+          <div className="flex h-14 items-center px-6">
+            <span className="text-sm font-semibold tracking-tight">Dashboard</span>
+          </div>
+          <Separator />
+          <DashboardNav />
+        </aside>
+
+        {/* Main content */}
+        <div className="flex flex-1 flex-col overflow-hidden">{children}</div>
+      </div>
     </PermissionsProvider>
   )
 }
