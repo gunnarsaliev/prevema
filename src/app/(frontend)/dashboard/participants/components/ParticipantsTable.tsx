@@ -78,7 +78,7 @@ export function ParticipantsTable({ participants, canEdit }: Props) {
             <TableRow key={p.id}>
               <TableCell className="font-medium">
                 <Link
-                  href={`/dash/participants/${p.id}`}
+                  href={`/dashboard/participants/${p.id}`}
                   className="hover:underline underline-offset-4"
                 >
                   {p.name}

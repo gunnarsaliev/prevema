@@ -13,10 +13,7 @@ import { orgPartnersTag } from '@/lib/cached-queries'
  */
 export const getDashboardPartners = cache(
   async (userId: number, organizationIds: number[], eventId?: string) => {
-    const cacheKey = [
-      ...organizationIds.slice().sort((a, b) => a - b),
-      eventId ?? 'all',
-    ].join(',')
+    const cacheKey = [...organizationIds.slice().sort((a, b) => a - b), eventId ?? 'all'].join(',')
     const tags = organizationIds.map(orgPartnersTag)
 
     const cachedFetch = unstable_cache(
@@ -48,3 +45,30 @@ export const getDashboardPartners = cache(
     return cachedFetch()
   },
 )
+
+/**
+ * Fetch a single partner by ID with persistent caching.
+ */
+export const getDashboardPartner = cache(async (partnerId: string, userId: number) => {
+  const cachedFetch = unstable_cache(
+    async () => {
+      const payload = await getPayload({ config: await config })
+      try {
+        return await payload.findByID({
+          collection: 'partners',
+          id: partnerId,
+          overrideAccess: true,
+          depth: 1,
+        })
+      } catch {
+        return null
+      }
+    },
+    ['dashboard-partner', partnerId, userId.toString()],
+    {
+      revalidate: 60,
+      tags: [`partner-${partnerId}`, `dashboard-partner-${partnerId}`],
+    },
+  )
+  return cachedFetch()
+})

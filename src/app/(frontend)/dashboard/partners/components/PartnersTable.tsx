@@ -66,7 +66,7 @@ export function PartnersTable({ partners, canEdit }: Props) {
             <TableRow key={p.id}>
               <TableCell className="font-medium">
                 <Link
-                  href={`/dash/partners/${p.id}`}
+                  href={`/dashboard/partners/${p.id}`}
                   className="hover:underline underline-offset-4"
                 >
                   {p.companyName}
