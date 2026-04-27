@@ -18,6 +18,7 @@ interface SidebarRailProps {
   logoAlt?: string
   notificationBellSlot?: React.ReactNode
   userMenuSlot?: React.ReactNode
+  showToggle?: boolean
 }
 
 export function DubSidebarRail({
@@ -28,6 +29,7 @@ export function DubSidebarRail({
   logoAlt = 'Logo',
   notificationBellSlot,
   userMenuSlot,
+  showToggle = true,
 }: SidebarRailProps) {
   const { isPanelOpen, togglePanel } = useDubSidebar()
 
@@ -99,30 +101,32 @@ export function DubSidebarRail({
         )}
 
         {/* Toggle Panel Button */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-11 text-muted-foreground hover:bg-accent active:bg-accent/80"
-              onClick={togglePanel}
-              aria-label={isPanelOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-              aria-expanded={isPanelOpen}
-            >
-              {isPanelOpen ? (
-                <PanelLeftClose className="size-4" />
-              ) : (
-                <PanelLeft className="size-4" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={8}>
-            <span>{isPanelOpen ? 'Collapse' : 'Expand'}</span>
-            <kbd className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-              ⌘B
-            </kbd>
-          </TooltipContent>
-        </Tooltip>
+        {showToggle && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-11 text-muted-foreground hover:bg-accent active:bg-accent/80"
+                onClick={togglePanel}
+                aria-label={isPanelOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+                aria-expanded={isPanelOpen}
+              >
+                {isPanelOpen ? (
+                  <PanelLeftClose className="size-4" />
+                ) : (
+                  <PanelLeft className="size-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={8}>
+              <span>{isPanelOpen ? 'Collapse' : 'Expand'}</span>
+              <kbd className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                ⌘B
+              </kbd>
+            </TooltipContent>
+          </Tooltip>
+        )}
 
         {/* User Menu Slot */}
         {userMenuSlot && (

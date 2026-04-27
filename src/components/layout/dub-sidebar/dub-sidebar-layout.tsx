@@ -78,7 +78,7 @@ function DubSidebarContent({
             data-panel-state={isPanelOpen ? 'expanded' : 'collapsed'}
             data-has-content={hasContent}
           >
-            <nav className="grid size-full grid-cols-[64px_1fr]">
+            <nav className={cn('grid size-full', hasContent ? 'grid-cols-[64px_1fr]' : 'grid-cols-[64px]')}>
               {/* Rail */}
               <DubSidebarRail
                 railIcons={config.railIcons}
@@ -88,35 +88,38 @@ function DubSidebarContent({
                 logoAlt={logoAlt}
                 notificationBellSlot={notificationBellSlot}
                 userMenuSlot={userMenuSlot}
+                showToggle={hasContent}
               />
 
               {/* Panel */}
-              <div
-                className={cn(
-                  'relative size-full overflow-hidden py-2 transition-opacity duration-300',
-                  !showPanel && 'opacity-0',
-                )}
-              >
+              {hasContent && (
                 <div
                   className={cn(
-                    'top-0 left-0 flex size-full flex-col transition-[opacity,transform] duration-300',
-                    showPanel
-                      ? 'relative opacity-100'
-                      : 'pointer-events-none absolute opacity-0 -translate-x-full',
+                    'relative size-full overflow-hidden py-2 transition-opacity duration-300',
+                    !showPanel && 'opacity-0',
                   )}
-                  aria-hidden={!showPanel}
-                  inert={!showPanel ? true : undefined}
                 >
-                  {activeModule && (
-                    <DubSidebarPanel
-                      module={activeModule}
-                      utilities={config.utilities}
-                      topSlot={topSlot}
-                      customContent={customPanelContent}
-                    />
-                  )}
+                  <div
+                    className={cn(
+                      'top-0 left-0 flex size-full flex-col transition-[opacity,transform] duration-300',
+                      showPanel
+                        ? 'relative opacity-100'
+                        : 'pointer-events-none absolute opacity-0 -translate-x-full',
+                    )}
+                    aria-hidden={!showPanel}
+                    inert={!showPanel ? true : undefined}
+                  >
+                    {activeModule && (
+                      <DubSidebarPanel
+                        module={activeModule}
+                        utilities={config.utilities}
+                        topSlot={topSlot}
+                        customContent={customPanelContent}
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </nav>
           </aside>
         </TooltipProvider>
