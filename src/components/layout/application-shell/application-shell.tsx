@@ -175,7 +175,6 @@ export function ApplicationShell({
   children,
   modules,
   activeModuleId,
-  onModuleChange,
   user,
   logo = { src: '/logo.png', alt: 'Logo' },
   headerContent,
