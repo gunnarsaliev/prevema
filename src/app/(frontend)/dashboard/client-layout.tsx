@@ -1,7 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
-import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
   Calendar,
@@ -39,15 +37,7 @@ export function DashboardClientLayout({
   children: React.ReactNode
   permissions: Permissions
 }) {
-  const pathname = usePathname()
   const { user } = useAuth()
-
-  const activeModuleId = useMemo(() => {
-    const sorted = [...dashboardModules]
-      .filter((m) => m.path)
-      .sort((a, b) => (b.path?.length ?? 0) - (a.path?.length ?? 0))
-    return sorted.find((m) => m.path && pathname.startsWith(m.path))?.id ?? 'overview'
-  }, [pathname])
 
   const profileImageUrl =
     user?.profileImage && typeof user.profileImage === 'object'
@@ -67,7 +57,7 @@ export function DashboardClientLayout({
     >
       <ApplicationShell
         modules={dashboardModules}
-        activeModuleId={activeModuleId}
+        activeModuleId=""
         onModuleChange={() => {}}
         user={userData}
         logo={{ src: '/logo.png', alt: 'Logo', href: '/dashboard' }}
