@@ -19,7 +19,6 @@ import type { SidebarModule } from './types'
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   modules: SidebarModule[]
   activeModuleId: string
-  onModuleChange: (moduleId: string) => void
   logo?: {
     src: string
     alt: string
@@ -30,7 +29,6 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 export function AppSidebar({
   modules,
   activeModuleId,
-  onModuleChange,
   logo = { src: '/logo.png', alt: 'Logo', href: '/dash' },
   ...props
 }: AppSidebarProps) {
@@ -69,7 +67,6 @@ export function AppSidebar({
                 <Link
                   key={module.id}
                   href={module.path}
-                  onClick={() => onModuleChange(module.id)}
                   className={itemClass}
                   aria-label={module.label}
                   title={module.label}
@@ -80,7 +77,6 @@ export function AppSidebar({
                 <button
                   key={module.id}
                   type="button"
-                  onClick={() => onModuleChange(module.id)}
                   className={itemClass}
                   aria-label={module.label}
                   title={module.label}
