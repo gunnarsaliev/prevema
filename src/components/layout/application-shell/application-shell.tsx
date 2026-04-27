@@ -129,10 +129,9 @@ function UserMenu({ user }: UserMenuProps) {
 interface MobileBottomNavProps {
   modules: SidebarModule[]
   activeModuleId: string
-  onModuleChange: (moduleId: string) => void
 }
 
-function MobileBottomNav({ modules, activeModuleId, onModuleChange }: MobileBottomNavProps) {
+function MobileBottomNav({ modules, activeModuleId }: MobileBottomNavProps) {
   const pathname = usePathname()
 
   const derivedActiveId = React.useMemo(() => {
@@ -159,25 +158,13 @@ function MobileBottomNav({ modules, activeModuleId, onModuleChange }: MobileBott
             <Link
               key={module.id}
               href={module.path}
-              onClick={() => onModuleChange(module.id)}
               className={itemClass}
               aria-label={module.label}
             >
               <Icon className="size-5" />
               <span className="mt-1 text-[10px]">{module.label}</span>
             </Link>
-          ) : (
-            <button
-              key={module.id}
-              type="button"
-              onClick={() => onModuleChange(module.id)}
-              className={itemClass}
-              aria-label={module.label}
-            >
-              <Icon className="size-5" />
-              <span className="mt-1 text-[10px]">{module.label}</span>
-            </button>
-          )
+          ) : null
         })}
       </div>
     </nav>
@@ -211,7 +198,6 @@ export function ApplicationShell({
       <AppSidebar
         modules={modules}
         activeModuleId={activeModuleId}
-        onModuleChange={onModuleChange}
         logo={logo}
       />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -264,7 +250,6 @@ export function ApplicationShell({
         <MobileBottomNav
           modules={modules}
           activeModuleId={activeModuleId}
-          onModuleChange={onModuleChange}
         />
       )}
     </SidebarProvider>
