@@ -2,7 +2,7 @@ import { unstable_cache } from 'next/cache'
 import { cache } from 'react'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import type { Event } from '@/payload-types'
+import type { Event, User } from '@/payload-types'
 import { getUserOrganizationIds } from '@/access/utilities'
 
 /**
@@ -443,13 +443,16 @@ export const getCachedEvents = cache(async (userId: number, organizationIds: num
  * unstable_cache persists across requests for 60 s.
  */
 export const getCachedUserOrgIds = cache(async (userId: number): Promise<number[]> => {
+  const cacheKey = String(userId)
+  const tags = [`user-${userId}-orgs`]
+
   return unstable_cache(
     async () => {
       const payload = await getPayload({ config: await config })
-      const ids = await getUserOrganizationIds(payload, { id: userId } as any)
+      const ids = await getUserOrganizationIds(payload, { id: userId } as User)
       return ids.map(Number)
     },
-    ['user-orgs', String(userId)],
-    { revalidate: 60, tags: [`user-${userId}-orgs`] },
+    ['user-orgs', cacheKey],
+    { revalidate: 60, tags },
   )()
 })
