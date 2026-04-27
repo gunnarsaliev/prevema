@@ -11,7 +11,12 @@ import { Heading } from '@/components/catalyst/heading'
 import { Input, InputGroup } from '@/components/catalyst/input'
 import { Link } from '@/components/catalyst/link'
 import { Select } from '@/components/catalyst/select'
-import { getEvents } from '../../data'
+import { headers as getHeaders } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { getPayload } from 'payload'
+import config from '@/payload.config'
+import { getCachedUserOrgIds } from '@/lib/cached-queries'
+import { getTwDashEvents, mapEventToCatalyst } from './data'
 import { EllipsisVerticalIcon, MagnifyingGlassIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
@@ -20,7 +25,17 @@ export const metadata: Metadata = {
 }
 
 export default async function Events() {
-  let events = await getEvents()
+  const headers = await getHeaders()
+  const payload = await getPayload({ config: await config })
+  const { user } = await payload.auth({ headers })
+
+  if (!user) redirect('/admin/login')
+
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const organizationIds = await getCachedUserOrgIds(userId)
+
+  const rawEvents = await getTwDashEvents(userId, organizationIds)
+  const events = rawEvents.map(mapEventToCatalyst)
 
   return (
     <>
@@ -61,10 +76,13 @@ export default async function Events() {
                     <Link href={event.url}>{event.name}</Link>
                   </div>
                   <div className="text-xs/6 text-zinc-500">
-                    {event.date} at {event.time} <span aria-hidden="true">·</span> {event.location}
-                  </div>
-                  <div className="text-xs/6 text-zinc-600">
-                    {event.ticketsSold}/{event.ticketsAvailable} tickets sold
+                    {event.date}
+                    {event.location && (
+                      <>
+                        {' '}
+                        <span aria-hidden="true">·</span> {event.location}
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

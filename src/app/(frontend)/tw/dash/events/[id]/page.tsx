@@ -1,42 +1,58 @@
-import { Stat } from '../../../stat'
 import { Badge } from '@/components/catalyst/badge'
 import { Button } from '@/components/catalyst/button'
-import { Heading, Subheading } from '@/components/catalyst/heading'
+import { Heading } from '@/components/catalyst/heading'
 import { Link } from '@/components/catalyst/link'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/catalyst/table'
-import { getEvent, getEventOrders } from '../../../data'
+import { headers as getHeaders } from 'next/headers'
+import { getPayload } from 'payload'
+import config from '@/payload.config'
+import { getCachedUserOrgIds } from '@/lib/cached-queries'
+import { getTwDashEvent, mapEventToCatalyst } from '../data'
 import { ChevronLeftIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
-  let { id } = await params
-  let event = await getEvent(id)
+  const { id } = await params
+  const headers = await getHeaders()
+  const payload = await getPayload({ config: await config })
+  const { user } = await payload.auth({ headers })
+  if (!user) return {}
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const event = await getTwDashEvent(id, userId)
 
   return {
     title: event?.name,
   }
 }
 
-export default async function Event({ params }: { params: Promise<{ id: string }> }) {
-  let { id } = await params
-  let event = await getEvent(id)
-  let orders = await getEventOrders(id)
+export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
 
-  if (!event) {
-    notFound()
-  }
+  const headers = await getHeaders()
+  const payload = await getPayload({ config: await config })
+  const { user } = await payload.auth({ headers })
+
+  if (!user) redirect('/admin/login')
+
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const organizationIds = await getCachedUserOrgIds(userId)
+
+  if (organizationIds.length === 0) notFound()
+
+  const rawEvent = await getTwDashEvent(id, userId)
+  if (!rawEvent) notFound()
+
+  const eventOrgId =
+    typeof rawEvent.organization === 'object' && rawEvent.organization !== null
+      ? rawEvent.organization.id
+      : rawEvent.organization
+  if (!organizationIds.includes(Number(eventOrgId))) notFound()
+
+  const event = mapEventToCatalyst(rawEvent)
 
   return (
     <>
@@ -60,7 +76,13 @@ export default async function Event({ params }: { params: Promise<{ id: string }
               <Badge color={event.status === 'On Sale' ? 'lime' : 'zinc'}>{event.status}</Badge>
             </div>
             <div className="mt-2 text-sm/6 text-zinc-500">
-              {event.date} at {event.time} <span aria-hidden="true">·</span> {event.location}
+              {event.date}
+              {event.location && (
+                <>
+                  {' '}
+                  <span aria-hidden="true">·</span> {event.location}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -69,36 +91,6 @@ export default async function Event({ params }: { params: Promise<{ id: string }
           <Button>View</Button>
         </div>
       </div>
-      <div className="mt-8 grid gap-8 sm:grid-cols-3">
-        <Stat title="Total revenue" value={event.totalRevenue} change={event.totalRevenueChange} />
-        <Stat
-          title="Tickets sold"
-          value={`${event.ticketsSold}/${event.ticketsAvailable}`}
-          change={event.ticketsSoldChange}
-        />
-        <Stat title="Pageviews" value={event.pageViews} change={event.pageViewsChange} />
-      </div>
-      <Subheading className="mt-12">Recent orders</Subheading>
-      <Table className="mt-4 [--gutter:--spacing(6)] lg:[--gutter:--spacing(10)]">
-        <TableHead>
-          <TableRow>
-            <TableHeader>Order number</TableHeader>
-            <TableHeader>Purchase date</TableHeader>
-            <TableHeader>Customer</TableHeader>
-            <TableHeader className="text-right">Amount</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {orders.map((order) => (
-            <TableRow key={order.id} href={order.url} title={`Order #${order.id}`}>
-              <TableCell>{order.id}</TableCell>
-              <TableCell className="text-zinc-500">{order.date}</TableCell>
-              <TableCell>{order.customer.name}</TableCell>
-              <TableCell className="text-right">US{order.amount.usd}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
     </>
   )
 }
