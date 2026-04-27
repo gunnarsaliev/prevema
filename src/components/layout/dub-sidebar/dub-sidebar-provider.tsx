@@ -17,11 +17,13 @@ export function useDubSidebar() {
 
 interface DubSidebarProviderProps {
   defaultOpen?: boolean
+  disableKeyboard?: boolean
   children: React.ReactNode
 }
 
 export function DubSidebarProvider({
   defaultOpen = true,
+  disableKeyboard = false,
   children,
 }: DubSidebarProviderProps) {
   const [isPanelOpen, setIsPanelOpen] = React.useState(defaultOpen)
@@ -36,19 +38,16 @@ export function DubSidebarProvider({
 
   // Keyboard shortcut (Cmd+B / Ctrl+B)
   React.useEffect(() => {
+    if (disableKeyboard) return
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-        (event.metaKey || event.ctrlKey)
-      ) {
+      if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
         event.preventDefault()
         togglePanel()
       }
     }
-
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [togglePanel])
+  }, [togglePanel, disableKeyboard])
 
   const panelState = isPanelOpen ? 'expanded' : 'collapsed'
 

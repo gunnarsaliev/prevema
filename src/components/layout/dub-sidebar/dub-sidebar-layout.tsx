@@ -176,12 +176,10 @@ function PanelLayout({
 }
 
 export function DubSidebarLayout(props: DubSidebarLayoutProps) {
-  if (props.config.modules.length === 0) {
-    return <RailOnlyLayout {...props} />
-  }
+  const hasPanel = props.config.modules.length > 0
   return (
-    <DubSidebarProvider>
-      <PanelLayout {...props} />
+    <DubSidebarProvider defaultOpen={false} disableKeyboard={!hasPanel}>
+      {hasPanel ? <PanelLayout {...props} /> : <RailOnlyLayout {...props} />}
     </DubSidebarProvider>
   )
 }
