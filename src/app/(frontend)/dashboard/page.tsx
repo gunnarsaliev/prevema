@@ -7,8 +7,7 @@ import { Calendar, Users, Handshake, MapPin, ArrowRight } from 'lucide-react'
 import { format } from 'date-fns'
 
 import config from '@/payload.config'
-import { getUserOrganizationIds } from '@/access/utilities'
-import { getCachedDashboardCounts, getCachedUpcomingEvent } from '@/lib/cached-queries'
+import { getCachedDashboardCounts, getCachedUpcomingEvent, getCachedUserOrgIds } from '@/lib/cached-queries'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -125,8 +124,8 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/admin/login')
 
-  const rawOrgIds = await getUserOrganizationIds(payload, user)
-  const organizationIds = rawOrgIds.map(Number)
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const organizationIds = await getCachedUserOrgIds(userId)
 
   return (
     <div className="flex flex-1 flex-col">

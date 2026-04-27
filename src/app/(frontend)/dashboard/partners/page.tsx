@@ -4,8 +4,7 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 
 import config from '@/payload.config'
-import { getUserOrganizationIds } from '@/access/utilities'
-import { getCachedLayoutData } from '@/lib/cached-queries'
+import { getCachedLayoutData, getCachedUserOrgIds } from '@/lib/cached-queries'
 
 import { getDashboardPartners } from './data'
 import { PartnersTable } from './components/PartnersTable'
@@ -36,9 +35,8 @@ export default async function DashboardPartnersPage({
 
   if (!user) redirect('/admin/login')
 
-  const rawOrgIds = await getUserOrganizationIds(payload, user)
-  const organizationIds = rawOrgIds.map(Number)
   const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const organizationIds = await getCachedUserOrgIds(userId)
 
   const { permissions } = await getCachedLayoutData(userId, organizationIds)
 

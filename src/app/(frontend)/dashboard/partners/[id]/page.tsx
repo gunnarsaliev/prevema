@@ -7,7 +7,7 @@ import { getPayload } from 'payload'
 import { ArrowLeft, Building2, Globe, Mail, Phone, Handshake } from 'lucide-react'
 
 import config from '@/payload.config'
-import { getUserOrganizationIds } from '@/access/utilities'
+import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import type { Media } from '@/payload-types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -205,10 +205,9 @@ export default async function PartnerDetailPage({
 
   if (!user) redirect('/admin/login')
 
-  const rawOrgIds = await getUserOrganizationIds(payload, user)
-  if (rawOrgIds.length === 0) notFound()
-
   const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const organizationIds = await getCachedUserOrgIds(userId)
+  if (organizationIds.length === 0) notFound()
 
   return (
     <div className="flex flex-1 flex-col">
