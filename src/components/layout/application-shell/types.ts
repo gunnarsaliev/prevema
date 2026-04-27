@@ -34,6 +34,7 @@ export interface ApplicationShellProps {
   logo?: {
     src: string
     alt: string
+    href?: string
   }
   headerContent?: React.ReactNode
   mobileNavigation?: boolean

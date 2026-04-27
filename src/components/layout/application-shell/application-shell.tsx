@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import {
   BadgeCheck,
@@ -132,6 +133,15 @@ interface MobileBottomNavProps {
 }
 
 function MobileBottomNav({ modules, activeModuleId, onModuleChange }: MobileBottomNavProps) {
+  const pathname = usePathname()
+
+  const derivedActiveId = React.useMemo(() => {
+    const sorted = [...modules]
+      .filter((m) => m.path)
+      .sort((a, b) => (b.path?.length ?? 0) - (a.path?.length ?? 0))
+    return sorted.find((m) => m.path && pathname.startsWith(m.path))?.id ?? activeModuleId
+  }, [pathname, modules, activeModuleId])
+
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur md:hidden">
       <div
@@ -140,16 +150,28 @@ function MobileBottomNav({ modules, activeModuleId, onModuleChange }: MobileBott
       >
         {modules.slice(0, 5).map((module) => {
           const Icon = module.icon
-          const isActive = activeModuleId === module.id
-          return (
+          const isActive = derivedActiveId === module.id
+          const itemClass = cn(
+            'flex flex-col items-center justify-center py-3 text-xs',
+            isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+          )
+          return module.path ? (
+            <Link
+              key={module.id}
+              href={module.path}
+              onClick={() => onModuleChange(module.id)}
+              className={itemClass}
+              aria-label={module.label}
+            >
+              <Icon className="size-5" />
+              <span className="mt-1 text-[10px]">{module.label}</span>
+            </Link>
+          ) : (
             <button
               key={module.id}
               type="button"
               onClick={() => onModuleChange(module.id)}
-              className={cn(
-                'flex flex-col items-center justify-center py-3 text-xs',
-                isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
-              )}
+              className={itemClass}
               aria-label={module.label}
             >
               <Icon className="size-5" />
