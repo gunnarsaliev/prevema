@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Heading } from '@/components/catalyst/heading'
 import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -6,10 +7,24 @@ import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { getTwDashParticipants } from './data'
 import { ParticipantsList } from './ParticipantsList'
+import { ParticipantsListSkeleton } from './ParticipantsListSkeleton'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Participants',
+}
+
+async function ParticipantsData({
+  userId,
+  organizationIds,
+  eventId,
+}: {
+  userId: number
+  organizationIds: number[]
+  eventId?: string
+}) {
+  const participants = await getTwDashParticipants(userId, organizationIds, eventId)
+  return <ParticipantsList participants={participants} />
 }
 
 export default async function ParticipantsPage({
@@ -28,8 +43,6 @@ export default async function ParticipantsPage({
   const userId = typeof user.id === 'number' ? user.id : Number(user.id)
   const organizationIds = await getCachedUserOrgIds(userId)
 
-  const participants = await getTwDashParticipants(userId, organizationIds, eventId)
-
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -37,7 +50,9 @@ export default async function ParticipantsPage({
           <Heading>Participants</Heading>
         </div>
       </div>
-      <ParticipantsList participants={participants} />
+      <Suspense fallback={<ParticipantsListSkeleton />}>
+        <ParticipantsData userId={userId} organizationIds={organizationIds} eventId={eventId} />
+      </Suspense>
     </>
   )
 }

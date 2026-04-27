@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { notFound, redirect } from 'next/navigation'
 import { headers as getHeaders } from 'next/headers'
 import Image from 'next/image'
@@ -9,7 +10,6 @@ import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import type { Media } from '@/payload-types'
 
 import { Badge } from '@/components/catalyst/badge'
-import { Button } from '@/components/catalyst/button'
 import { Divider } from '@/components/catalyst/divider'
 import { Link } from '@/components/catalyst/link'
 import { Subheading } from '@/components/catalyst/heading'
@@ -22,6 +22,7 @@ import { ChevronLeftIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 import { getTwDashParticipant } from '../data'
+import { ParticipantDetailSkeleton } from './ParticipantDetailSkeleton'
 
 const STATUS_COLOR: Record<string, 'green' | 'zinc' | 'red' | 'yellow'> = {
   approved: 'green',
@@ -60,29 +61,19 @@ export async function generateMetadata({
   return { title: participant?.name }
 }
 
-export default async function ParticipantDetailPage({
-  params,
+async function ParticipantDetail({
+  participantId,
+  userId,
 }: {
-  params: Promise<{ id: string }>
+  participantId: string
+  userId: number
 }) {
-  const { id } = await params
-
-  const headers = await getHeaders()
-  const payload = await getPayload({ config: await config })
-  const { user } = await payload.auth({ headers })
-
-  if (!user) redirect('/admin/login')
-
-  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
-  const organizationIds = await getCachedUserOrgIds(userId)
-  if (organizationIds.length === 0) notFound()
-
-  const participant = await getTwDashParticipant(id, userId)
+  const participant = await getTwDashParticipant(participantId, userId)
   if (!participant) notFound()
 
   const imageUrl =
     participant.imageUrl && typeof participant.imageUrl === 'object'
-      ? (participant.imageUrl as Media).url ?? null
+      ? ((participant.imageUrl as Media).url ?? null)
       : null
 
   const eventName = rel(participant.event)
@@ -101,19 +92,8 @@ export default async function ParticipantDetailPage({
   )
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 pb-16">
-      <div className="max-lg:hidden">
-        <Link
-          href="/tw/dash/participants"
-          className="inline-flex items-center gap-2 text-sm/6 text-zinc-500 dark:text-zinc-400"
-        >
-          <ChevronLeftIcon className="size-4 fill-zinc-400 dark:fill-zinc-500" />
-          Participants
-        </Link>
-      </div>
-
+    <>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-        {/* Avatar */}
         <div className="md:col-span-1">
           {imageUrl ? (
             <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
@@ -146,7 +126,6 @@ export default async function ParticipantDetailPage({
           )}
         </div>
 
-        {/* Core info */}
         <div className="md:col-span-2 space-y-4">
           <div className="flex flex-wrap gap-2">
             {participant.status && (
@@ -297,6 +276,41 @@ export default async function ParticipantDetailPage({
           </div>
         </>
       )}
+    </>
+  )
+}
+
+export default async function ParticipantDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+
+  const headers = await getHeaders()
+  const payload = await getPayload({ config: await config })
+  const { user } = await payload.auth({ headers })
+
+  if (!user) redirect('/admin/login')
+
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const organizationIds = await getCachedUserOrgIds(userId)
+  if (organizationIds.length === 0) notFound()
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-8 pb-16">
+      <div className="max-lg:hidden">
+        <Link
+          href="/tw/dash/participants"
+          className="inline-flex items-center gap-2 text-sm/6 text-zinc-500 dark:text-zinc-400"
+        >
+          <ChevronLeftIcon className="size-4 fill-zinc-400 dark:fill-zinc-500" />
+          Participants
+        </Link>
+      </div>
+      <Suspense fallback={<ParticipantDetailSkeleton />}>
+        <ParticipantDetail participantId={id} userId={userId} />
+      </Suspense>
     </div>
   )
 }

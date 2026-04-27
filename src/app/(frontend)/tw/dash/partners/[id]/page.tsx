@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { notFound, redirect } from 'next/navigation'
 import { headers as getHeaders } from 'next/headers'
 import Image from 'next/image'
@@ -20,6 +21,7 @@ import { ChevronLeftIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 import { getTwDashPartner } from '../data'
+import { PartnerDetailSkeleton } from './PartnerDetailSkeleton'
 
 const STATUS_COLOR: Record<string, 'zinc' | 'blue' | 'green' | 'red'> = {
   default: 'zinc',
@@ -66,24 +68,8 @@ export async function generateMetadata({
   return { title: partner?.companyName }
 }
 
-export default async function PartnerDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await params
-
-  const headers = await getHeaders()
-  const payload = await getPayload({ config: await config })
-  const { user } = await payload.auth({ headers })
-
-  if (!user) redirect('/admin/login')
-
-  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
-  const organizationIds = await getCachedUserOrgIds(userId)
-  if (organizationIds.length === 0) notFound()
-
-  const partner = await getTwDashPartner(id, userId)
+async function PartnerDetail({ partnerId, userId }: { partnerId: string; userId: number }) {
+  const partner = await getTwDashPartner(partnerId, userId)
   if (!partner) notFound()
 
   const logoUrl = mediaUrl(partner.companyLogo) ?? partner.companyLogoUrl ?? null
@@ -92,19 +78,8 @@ export default async function PartnerDetailPage({
   const tierName = rel(partner.tier)
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 pb-16">
-      <div className="max-lg:hidden">
-        <Link
-          href="/tw/dash/partners"
-          className="inline-flex items-center gap-2 text-sm/6 text-zinc-500 dark:text-zinc-400"
-        >
-          <ChevronLeftIcon className="size-4 fill-zinc-400 dark:fill-zinc-500" />
-          Partners
-        </Link>
-      </div>
-
+    <>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-        {/* Logo */}
         <div className="md:col-span-1">
           {logoUrl ? (
             <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
@@ -137,7 +112,6 @@ export default async function PartnerDetailPage({
           )}
         </div>
 
-        {/* Core info */}
         <div className="md:col-span-2 space-y-4">
           <div className="flex flex-wrap gap-2">
             {partner.status && (
@@ -189,8 +163,19 @@ export default async function PartnerDetailPage({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-sm/6 text-zinc-500 hover:underline underline-offset-4 dark:text-zinc-400"
             >
-              <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+              <svg
+                className="size-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"
+                />
               </svg>
               {partner.companyWebsiteUrl}
             </a>
@@ -240,6 +225,37 @@ export default async function PartnerDetailPage({
           </div>
         </>
       )}
+    </>
+  )
+}
+
+export default async function PartnerDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
+  const headers = await getHeaders()
+  const payload = await getPayload({ config: await config })
+  const { user } = await payload.auth({ headers })
+
+  if (!user) redirect('/admin/login')
+
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const organizationIds = await getCachedUserOrgIds(userId)
+  if (organizationIds.length === 0) notFound()
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-8 pb-16">
+      <div className="max-lg:hidden">
+        <Link
+          href="/tw/dash/partners"
+          className="inline-flex items-center gap-2 text-sm/6 text-zinc-500 dark:text-zinc-400"
+        >
+          <ChevronLeftIcon className="size-4 fill-zinc-400 dark:fill-zinc-500" />
+          Partners
+        </Link>
+      </div>
+      <Suspense fallback={<PartnerDetailSkeleton />}>
+        <PartnerDetail partnerId={id} userId={userId} />
+      </Suspense>
     </div>
   )
 }

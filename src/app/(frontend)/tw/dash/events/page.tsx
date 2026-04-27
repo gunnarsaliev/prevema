@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Button } from '@/components/catalyst/button'
 import { Heading } from '@/components/catalyst/heading'
 import { Input, InputGroup } from '@/components/catalyst/input'
@@ -9,11 +10,24 @@ import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { getTwDashEvents, mapEventToCatalyst } from './data'
 import { EventsList } from './EventsList'
+import { EventsListSkeleton } from './EventsListSkeleton'
 import { MagnifyingGlassIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Events',
+}
+
+async function EventsData({
+  userId,
+  organizationIds,
+}: {
+  userId: number
+  organizationIds: number[]
+}) {
+  const rawEvents = await getTwDashEvents(userId, organizationIds)
+  const events = rawEvents.map(mapEventToCatalyst)
+  return <EventsList events={events} />
 }
 
 export default async function Events() {
@@ -25,9 +39,6 @@ export default async function Events() {
 
   const userId = typeof user.id === 'number' ? user.id : Number(user.id)
   const organizationIds = await getCachedUserOrgIds(userId)
-
-  const rawEvents = await getTwDashEvents(userId, organizationIds)
-  const events = rawEvents.map(mapEventToCatalyst)
 
   return (
     <>
@@ -52,7 +63,9 @@ export default async function Events() {
         </div>
         <Button>Create event</Button>
       </div>
-      <EventsList events={events} />
+      <Suspense fallback={<EventsListSkeleton />}>
+        <EventsData userId={userId} organizationIds={organizationIds} />
+      </Suspense>
     </>
   )
 }
