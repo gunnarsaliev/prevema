@@ -92,8 +92,16 @@ export interface CatalystEvent {
   name: string
   imgUrl: string
   date: string
+  endDate?: string
+  timezone?: string
   location: string
+  eventType?: 'physical' | 'online'
   status: 'On Sale' | 'Closed'
+  description?: string
+  why?: string
+  what?: string
+  who?: string
+  theme?: string
 }
 
 export function mapEventToCatalyst(event: Event): CatalystEvent {
@@ -105,13 +113,23 @@ export function mapEventToCatalyst(event: Event): CatalystEvent {
   const date = event.startDate ? format(new Date(event.startDate), 'PPP') : ''
   const location = event.where || event.address || ''
 
+  const endDate = event.endDate ? format(new Date(event.endDate), 'PPP') : undefined
+
   return {
     id: String(event.id),
     url: `/tw/dash/events/${event.id}`,
     name: event.name,
     imgUrl: image,
     date,
+    endDate,
+    timezone: event.timezone ?? undefined,
     location,
+    eventType: event.eventType ?? undefined,
     status: event.status === 'open' ? 'On Sale' : 'Closed',
+    description: event.description ?? undefined,
+    why: event.why ?? undefined,
+    what: event.what ?? undefined,
+    who: event.who ?? undefined,
+    theme: event.theme ?? undefined,
   }
 }

@@ -1,15 +1,6 @@
-import { Badge } from '@/components/catalyst/badge'
 import { Button } from '@/components/catalyst/button'
-import { Divider } from '@/components/catalyst/divider'
-import {
-  Dropdown,
-  DropdownButton,
-  DropdownItem,
-  DropdownMenu,
-} from '@/components/catalyst/dropdown'
 import { Heading } from '@/components/catalyst/heading'
 import { Input, InputGroup } from '@/components/catalyst/input'
-import { Link } from '@/components/catalyst/link'
 import { Select } from '@/components/catalyst/select'
 import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -17,7 +8,8 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { getTwDashEvents, mapEventToCatalyst } from './data'
-import { EllipsisVerticalIcon, MagnifyingGlassIcon } from '@heroicons/react/16/solid'
+import { EventsList } from './EventsList'
+import { MagnifyingGlassIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -60,54 +52,7 @@ export default async function Events() {
         </div>
         <Button>Create event</Button>
       </div>
-      <ul className="mt-10">
-        {events.map((event, index) => (
-          <li key={event.id}>
-            <Divider soft={index > 0} />
-            <div className="flex items-center justify-between">
-              <div key={event.id} className="flex gap-6 py-6">
-                <div className="w-32 shrink-0">
-                  <Link href={event.url} aria-hidden="true">
-                    <img className="aspect-3/2 rounded-lg shadow-sm" src={event.imgUrl} alt="" />
-                  </Link>
-                </div>
-                <div className="space-y-1.5">
-                  <div className="text-base/6 font-semibold">
-                    <Link href={event.url}>{event.name}</Link>
-                  </div>
-                  <div className="text-xs/6 text-zinc-500">
-                    {event.date}
-                    {event.location && (
-                      <>
-                        {' '}
-                        <span aria-hidden="true">·</span> {event.location}
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <Badge
-                  className="max-sm:hidden"
-                  color={event.status === 'On Sale' ? 'lime' : 'zinc'}
-                >
-                  {event.status}
-                </Badge>
-                <Dropdown>
-                  <DropdownButton plain aria-label="More options">
-                    <EllipsisVerticalIcon />
-                  </DropdownButton>
-                  <DropdownMenu anchor="bottom end">
-                    <DropdownItem href={event.url}>View</DropdownItem>
-                    <DropdownItem>Edit</DropdownItem>
-                    <DropdownItem>Delete</DropdownItem>
-                  </DropdownMenu>
-                </Dropdown>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <EventsList events={events} />
     </>
   )
 }
