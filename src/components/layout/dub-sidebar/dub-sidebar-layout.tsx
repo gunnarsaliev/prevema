@@ -25,7 +25,49 @@ interface DubSidebarLayoutProps {
   hideTopbar?: boolean
 }
 
-function DubSidebarContent({
+// Rail-only layout — no panel, no provider, no keyboard shortcut, no width transitions.
+function RailOnlyLayout({
+  config,
+  activeModuleId,
+  onModuleChange,
+  children,
+  notificationBellSlot,
+  userMenuSlot,
+  logoSrc,
+  logoAlt,
+}: DubSidebarLayoutProps) {
+  return (
+    <div className="flex h-screen flex-col overflow-hidden bg-sidebar dark:bg-black">
+      <div className="flex min-h-0 flex-1">
+        <TooltipProvider delayDuration={0}>
+          <aside
+            id="dub-sidebar"
+            className="sticky top-0 z-40 h-screen"
+            style={{ width: SIDEBAR_RAIL_WIDTH } as React.CSSProperties}
+          >
+            <DubSidebarRail
+              railIcons={config.railIcons}
+              activeModuleId={activeModuleId}
+              onModuleChange={onModuleChange}
+              logoSrc={logoSrc}
+              logoAlt={logoAlt}
+              notificationBellSlot={notificationBellSlot}
+              userMenuSlot={userMenuSlot}
+              showToggle={false}
+            />
+          </aside>
+        </TooltipProvider>
+
+        <main className="flex min-h-0 flex-1 flex-col overflow-auto bg-sidebar">
+          {children}
+        </main>
+      </div>
+    </div>
+  )
+}
+
+// Full layout with expandable panel — requires DubSidebarProvider.
+function PanelLayout({
   config,
   activeModuleId,
   onModuleChange,
@@ -36,7 +78,6 @@ function DubSidebarContent({
   logoSrc,
   logoAlt,
   customPanelContent,
-  hideTopbar,
 }: DubSidebarLayoutProps) {
   const { isPanelOpen } = useDubSidebar()
 
@@ -45,8 +86,7 @@ function DubSidebarContent({
     [config.modules, activeModuleId],
   )
 
-  const hasContent = activeModule !== null
-  const showPanel = hasContent && isPanelOpen
+  const showPanel = !!activeModule && isPanelOpen
 
   return (
     <div
@@ -58,9 +98,7 @@ function DubSidebarContent({
         } as React.CSSProperties
       }
     >
-      {/* Main Layout Grid */}
       <div className="flex min-h-0 flex-1">
-        {/* Sidebar */}
         <TooltipProvider delayDuration={0}>
           <aside
             id="dub-sidebar"
@@ -76,10 +114,8 @@ function DubSidebarContent({
               } as React.CSSProperties
             }
             data-panel-state={isPanelOpen ? 'expanded' : 'collapsed'}
-            data-has-content={hasContent}
           >
-            <nav className={cn('grid size-full', hasContent ? 'grid-cols-[64px_1fr]' : 'grid-cols-[64px]')}>
-              {/* Rail */}
+            <nav className="grid size-full grid-cols-[64px_1fr]">
               <DubSidebarRail
                 railIcons={config.railIcons}
                 activeModuleId={activeModuleId}
@@ -88,60 +124,47 @@ function DubSidebarContent({
                 logoAlt={logoAlt}
                 notificationBellSlot={notificationBellSlot}
                 userMenuSlot={userMenuSlot}
-                showToggle={hasContent}
+                showToggle
               />
 
-              {/* Panel */}
-              {hasContent && (
+              <div
+                className={cn(
+                  'relative size-full overflow-hidden py-2 transition-opacity duration-300',
+                  !showPanel && 'opacity-0',
+                )}
+              >
                 <div
                   className={cn(
-                    'relative size-full overflow-hidden py-2 transition-opacity duration-300',
-                    !showPanel && 'opacity-0',
+                    'top-0 left-0 flex size-full flex-col transition-[opacity,transform] duration-300',
+                    showPanel
+                      ? 'relative opacity-100'
+                      : 'pointer-events-none absolute opacity-0 -translate-x-full',
                   )}
+                  aria-hidden={!showPanel}
+                  inert={!showPanel ? true : undefined}
                 >
-                  <div
-                    className={cn(
-                      'top-0 left-0 flex size-full flex-col transition-[opacity,transform] duration-300',
-                      showPanel
-                        ? 'relative opacity-100'
-                        : 'pointer-events-none absolute opacity-0 -translate-x-full',
-                    )}
-                    aria-hidden={!showPanel}
-                    inert={!showPanel ? true : undefined}
-                  >
-                    {activeModule && (
-                      <DubSidebarPanel
-                        module={activeModule}
-                        utilities={config.utilities}
-                        topSlot={topSlot}
-                        customContent={customPanelContent}
-                      />
-                    )}
-                  </div>
+                  {activeModule && (
+                    <DubSidebarPanel
+                      module={activeModule}
+                      utilities={config.utilities}
+                      topSlot={topSlot}
+                      customContent={customPanelContent}
+                    />
+                  )}
                 </div>
-              )}
+              </div>
             </nav>
           </aside>
         </TooltipProvider>
 
-        {/* Content Area */}
         <div className="flex min-h-0 flex-1 flex-col md:py-2 md:pr-2">
           <div className="relative flex min-h-0 flex-1 flex-col">
-            {/* Corner fills for visual effect */}
-            {/* <div
-              className={cn(
-                'absolute top-0 -left-2 z-0 hidden h-3 w-5 bg-[var(--shell-panel)] transition-opacity duration-300 md:block',
-                showPanel ? 'opacity-100' : 'opacity-0',
-              )}
-            /> */}
             <div
               className={cn(
                 'absolute bottom-0 -left-2 z-0 hidden h-3 w-5 bg-[var(--shell-panel)] transition-opacity duration-300 md:block',
                 showPanel ? 'opacity-100' : 'opacity-0',
               )}
             />
-
-            {/* Main Content */}
             <main className="z-10 flex min-h-0 flex-1 flex-col overflow-auto bg-sidebar">
               {children}
             </main>
@@ -153,9 +176,12 @@ function DubSidebarContent({
 }
 
 export function DubSidebarLayout(props: DubSidebarLayoutProps) {
+  if (props.config.modules.length === 0) {
+    return <RailOnlyLayout {...props} />
+  }
   return (
     <DubSidebarProvider>
-      <DubSidebarContent {...props} />
+      <PanelLayout {...props} />
     </DubSidebarProvider>
   )
 }
