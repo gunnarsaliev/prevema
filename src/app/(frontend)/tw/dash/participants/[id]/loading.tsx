@@ -4,7 +4,7 @@ import { ParticipantDetailSkeleton } from './ParticipantDetailSkeleton'
 
 export default function Loading() {
   return (
-    <div className="mx-auto max-w-3xl space-y-8 pb-16">
+    <>
       <div className="max-lg:hidden">
         <Link
           href="/tw/dash/participants"
@@ -15,6 +15,6 @@ export default function Loading() {
         </Link>
       </div>
       <ParticipantDetailSkeleton />
-    </div>
+    </>
   )
 }

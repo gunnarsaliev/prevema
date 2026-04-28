@@ -1,52 +1,38 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Divider } from '@/components/catalyst/divider'
+import { Subheading } from '@/components/catalyst/heading'
+import {
+  DescriptionList,
+  DescriptionTerm,
+  DescriptionDetails,
+} from '@/components/catalyst/description-list'
 
 export function ParticipantDetailSkeleton() {
   return (
-    <div className="space-y-8 pb-16">
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-        <div className="md:col-span-1">
-          <Skeleton className="aspect-square w-full rounded-xl" />
+    <>
+      <div className="mt-4 lg:mt-8">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-5 w-20 rounded-full" />
+          <Skeleton className="h-5 w-24 rounded-full" />
         </div>
-
-        <div className="md:col-span-2 space-y-4">
-          <div className="flex gap-2">
-            <Skeleton className="h-5 w-20 rounded-full" />
-            <Skeleton className="h-5 w-24 rounded-full" />
-          </div>
-          <Skeleton className="h-9 w-2/3" />
-          <div className="grid grid-cols-2 gap-4 pt-1">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="space-y-1.5">
-                <Skeleton className="h-3 w-16" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-            ))}
-          </div>
+        <div className="mt-2.5 flex flex-wrap gap-x-10 gap-y-4 py-1.5">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-4 w-32" />
         </div>
       </div>
 
-      <Divider />
-
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-5/6" />
-        <Skeleton className="h-4 w-3/4" />
+      <div className="mt-12">
+        <Subheading>Details</Subheading>
+        <Divider className="mt-4" />
+        <DescriptionList>
+          <DescriptionTerm>Email</DescriptionTerm>
+          <DescriptionDetails>
+            <Skeleton className="h-4 w-48" />
+          </DescriptionDetails>
+        </DescriptionList>
       </div>
-
-      <Divider />
-
-      <div className="space-y-4">
-        <Skeleton className="h-5 w-24" />
-        <div className="grid grid-cols-2 gap-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="space-y-1.5">
-              <Skeleton className="h-3 w-16" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    </>
   )
 }
