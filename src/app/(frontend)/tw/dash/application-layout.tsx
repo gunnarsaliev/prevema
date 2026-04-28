@@ -39,7 +39,6 @@ import {
   QuestionMarkCircleIcon,
   SparklesIcon,
   Square2StackIcon,
-  TicketIcon,
   UserGroupIcon,
   BuildingOfficeIcon,
 } from '@heroicons/react/20/solid'
@@ -135,10 +134,6 @@ export function ApplicationLayout({
               <SidebarItem href="/tw/dash/events" current={pathname.startsWith('/tw/dash/events')}>
                 <Square2StackIcon />
                 <SidebarLabel>Events</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem href="/tw/dash/orders" current={pathname.startsWith('/tw/dash/orders')}>
-                <TicketIcon />
-                <SidebarLabel>Orders</SidebarLabel>
               </SidebarItem>
               <SidebarItem
                 href="/tw/dash/participants"
