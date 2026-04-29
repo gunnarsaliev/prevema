@@ -3,7 +3,6 @@ import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import type { Metadata } from 'next'
 import { OrganizationForm } from './OrganizationForm'
-import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Organization',
@@ -24,17 +23,14 @@ export default async function OrganizationPage() {
   const org = docs[0] ?? null
 
   return (
-    <>
-      <Link href={'/tw/settings'}> Go back to settings</Link>
-      <OrganizationForm
-        defaultValues={{
-          name: org?.name ?? '',
-          senderName: org?.emailConfig?.senderName ?? '',
-          fromEmail: org?.emailConfig?.fromEmail ?? '',
-          replyToEmail: org?.emailConfig?.replyToEmail ?? '',
-          resendApiKey: org?.emailConfig?.resendApiKey ?? '',
-        }}
-      />
-    </>
+    <OrganizationForm
+      defaultValues={{
+        name: org?.name ?? '',
+        senderName: org?.emailConfig?.senderName ?? '',
+        fromEmail: org?.emailConfig?.fromEmail ?? '',
+        replyToEmail: org?.emailConfig?.replyToEmail ?? '',
+        resendApiKey: org?.emailConfig?.resendApiKey ?? '',
+      }}
+    />
   )
 }

@@ -28,9 +28,8 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   Cog8ToothIcon,
-  LightBulbIcon,
+  CreditCardIcon,
   PlusIcon,
-  ShieldCheckIcon,
   UserCircleIcon,
 } from '@heroicons/react/16/solid'
 import {
@@ -41,24 +40,31 @@ import {
   Square2StackIcon,
   UserGroupIcon,
   BuildingOfficeIcon,
+  AdjustmentsHorizontalIcon,
 } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
+import { useAuth } from '@/providers/Auth'
+import { useMemo } from 'react'
+import type { Media } from '@/payload-types'
 
 function AccountDropdownMenu({ anchor }: { anchor: 'top start' | 'bottom end' }) {
   return (
     <DropdownMenu className="min-w-64" anchor={anchor}>
-      <DropdownItem href="#">
+      <DropdownItem href="/tw/settings/profile">
         <UserCircleIcon />
-        <DropdownLabel>My account</DropdownLabel>
+        <DropdownLabel>Profile</DropdownLabel>
       </DropdownItem>
-      <DropdownDivider />
-      <DropdownItem href="#">
-        <ShieldCheckIcon />
-        <DropdownLabel>Privacy policy</DropdownLabel>
+      <DropdownItem href="/tw/settings/organization">
+        <Cog8ToothIcon />
+        <DropdownLabel>Organization</DropdownLabel>
       </DropdownItem>
-      <DropdownItem href="#">
-        <LightBulbIcon />
-        <DropdownLabel>Share feedback</DropdownLabel>
+      <DropdownItem href="/tw/settings/billing">
+        <CreditCardIcon />
+        <DropdownLabel>Billing</DropdownLabel>
+      </DropdownItem>
+      <DropdownItem href="/tw/settings/preferences">
+        <AdjustmentsHorizontalIcon />
+        <DropdownLabel>Preferences</DropdownLabel>
       </DropdownItem>
       <DropdownDivider />
       <DropdownItem href="/login">
@@ -77,6 +83,19 @@ export function ApplicationLayout({
   children: React.ReactNode
 }) {
   let pathname = usePathname()
+  const { user } = useAuth()
+
+  const { profileImageUrl, displayName, displayEmail } = useMemo(() => {
+    const img =
+      user?.profileImage && typeof user.profileImage === 'object'
+        ? ((user.profileImage as Media).url ?? undefined)
+        : undefined
+    return {
+      profileImageUrl: img,
+      displayName: user?.name ?? user?.email ?? '',
+      displayEmail: user?.email ?? '',
+    }
+  }, [user])
 
   return (
     <SidebarLayout
@@ -86,7 +105,11 @@ export function ApplicationLayout({
           <NavbarSection>
             <Dropdown>
               <DropdownButton as={NavbarItem}>
-                <Avatar src="/users/erica.jpg" square />
+                <Avatar
+                  src={profileImageUrl}
+                  initials={displayName.charAt(0).toUpperCase()}
+                  square
+                />
               </DropdownButton>
               <AccountDropdownMenu anchor="bottom end" />
             </Dropdown>
@@ -182,13 +205,19 @@ export function ApplicationLayout({
             <Dropdown>
               <DropdownButton as={SidebarItem}>
                 <span className="flex min-w-0 items-center gap-3">
-                  <Avatar src="/users/erica.jpg" className="size-10" square alt="" />
+                  <Avatar
+                    src={profileImageUrl}
+                    initials={displayName.charAt(0).toUpperCase()}
+                    className="size-10"
+                    square
+                    alt=""
+                  />
                   <span className="min-w-0">
                     <span className="block truncate text-sm/5 font-medium text-zinc-950 dark:text-white">
-                      Erica
+                      {displayName}
                     </span>
                     <span className="block truncate text-xs/5 font-normal text-zinc-500 dark:text-zinc-400">
-                      erica@example.com
+                      {displayEmail}
                     </span>
                   </span>
                 </span>

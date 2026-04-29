@@ -20,15 +20,12 @@ export default async function ProfilePage() {
       : null
 
   return (
-    <>
-      <Link href={'/tw/settings'}>Go back to settings</Link>
-      <ProfileForm
-        defaultValues={{
-          name: user?.name ?? '',
-          email: user?.email ?? '',
-          avatarUrl,
-        }}
-      />
-    </>
+    <ProfileForm
+      defaultValues={{
+        name: user?.name ?? '',
+        email: user?.email ?? '',
+        avatarUrl,
+      }}
+    />
   )
 }
