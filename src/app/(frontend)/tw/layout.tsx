@@ -1,14 +1,8 @@
-import '@/app/(frontend)/styles.css'
-import type { Metadata } from 'next'
+import { getEvents } from './data'
+import { ApplicationLayout } from './application-layout'
 
-export const metadata: Metadata = {
-  title: {
-    template: '%s - Catalyst',
-    default: 'Catalyst',
-  },
-  description: '',
-}
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  let events = await getEvents()
 
-export default async function TwLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  return <ApplicationLayout events={events}>{children}</ApplicationLayout>
 }

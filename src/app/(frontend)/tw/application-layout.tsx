@@ -22,7 +22,7 @@ import {
   SidebarSpacer,
 } from '@/components/catalyst/sidebar'
 import { SidebarLayout } from '@/components/catalyst/sidebar-layout'
-import { getEvents } from '../data'
+import { getEvents } from './data'
 import {
   ArrowRightStartOnRectangleIcon,
   ChevronDownIcon,
@@ -149,10 +149,7 @@ export function ApplicationLayout({
                 <BuildingOfficeIcon />
                 <SidebarLabel>Partners</SidebarLabel>
               </SidebarItem>
-              <SidebarItem
-                href="/tw/dash/settings"
-                current={pathname.startsWith('/tw/dash/settings')}
-              >
+              <SidebarItem href="/tw/settings" current={pathname.startsWith('/tw/dash/settings')}>
                 <Cog6ToothIcon />
                 <SidebarLabel>Settings</SidebarLabel>
               </SidebarItem>

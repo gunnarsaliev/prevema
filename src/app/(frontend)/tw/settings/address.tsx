@@ -2,7 +2,7 @@
 
 import { Input } from '@/components/catalyst/input'
 import { Listbox, ListboxLabel, ListboxOption } from '@/components/catalyst/listbox'
-import { getCountries } from '../../data'
+import { getCountries } from '../data'
 import { useState } from 'react'
 
 export function Address() {

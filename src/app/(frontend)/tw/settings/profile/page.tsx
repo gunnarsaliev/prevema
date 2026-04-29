@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import type { Metadata } from 'next'
 import { ProfileForm } from './ProfileForm'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Profile',
@@ -19,12 +20,15 @@ export default async function ProfilePage() {
       : null
 
   return (
-    <ProfileForm
-      defaultValues={{
-        name: user?.name ?? '',
-        email: user?.email ?? '',
-        avatarUrl,
-      }}
-    />
+    <>
+      <Link href={'/tw/settings'}>Go back to settings</Link>
+      <ProfileForm
+        defaultValues={{
+          name: user?.name ?? '',
+          email: user?.email ?? '',
+          avatarUrl,
+        }}
+      />
+    </>
   )
 }
