@@ -45,6 +45,8 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '@/providers/Auth'
 import { useMemo } from 'react'
 import type { Media } from '@/payload-types'
+import { Logo } from './logo'
+import Image from 'next/image'
 
 function AccountDropdownMenu({ anchor }: { anchor: 'top start' | 'bottom end' }) {
   return (
@@ -117,7 +119,11 @@ export function ApplicationLayout({
       }
       sidebar={
         <Sidebar>
-          <SidebarHeader>
+          <div className="flex items-center border-b p-2">
+            <Image src="/logo.png" alt="Prevema" width={60} height={60} />
+            <span className="ml-2 text-lg font-semibold">Prevema</span>
+          </div>
+          {/* <SidebarHeader>
             <Dropdown>
               <DropdownButton as={SidebarItem}>
                 <Avatar src="/teams/catalyst.svg" />
@@ -145,7 +151,7 @@ export function ApplicationLayout({
                 </DropdownItem>
               </DropdownMenu>
             </Dropdown>
-          </SidebarHeader>
+          </SidebarHeader> */}
 
           <SidebarBody>
             <SidebarSection>
@@ -182,10 +188,10 @@ export function ApplicationLayout({
                 <QuestionMarkCircleIcon />
                 <SidebarLabel>Support</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href="#">
+              {/* <SidebarItem href="#">
                 <SparklesIcon />
                 <SidebarLabel>Changelog</SidebarLabel>
-              </SidebarItem>
+              </SidebarItem> */}
             </SidebarSection>
           </SidebarBody>
 
