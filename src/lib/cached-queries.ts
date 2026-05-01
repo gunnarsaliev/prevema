@@ -200,7 +200,11 @@ export function getCachedLayoutData(userId: number, organizationIds: number[]) {
           : Promise.resolve({ docs: [] as any[] }),
       ])
 
-      const events = eventsResult.docs.map((doc) => ({ id: String(doc.id), name: doc.name }))
+      const events = eventsResult.docs.map((doc) => ({
+        id: String(doc.id),
+        name: doc.name,
+        url: `/tw/dash/events/${doc.id}`,
+      }))
 
       const rawRole = (membershipResult.docs[0]?.role as string | undefined) ?? null
       const validRoles = ['owner', 'admin', 'editor', 'viewer'] as const

@@ -15,14 +15,13 @@ import {
   SidebarBody,
   SidebarFooter,
   SidebarHeader,
-  SidebarHeading,
   SidebarItem,
   SidebarLabel,
   SidebarSection,
   SidebarSpacer,
 } from '@/components/catalyst/sidebar'
 import { SidebarLayout } from '@/components/catalyst/sidebar-layout'
-import { getEvents } from './data'
+import { UpcomingEvents } from '@/components/upcoming-events'
 import {
   ArrowRightStartOnRectangleIcon,
   ChevronDownIcon,
@@ -79,7 +78,7 @@ export function ApplicationLayout({
   events,
   children,
 }: {
-  events: Awaited<ReturnType<typeof getEvents>>
+  events: { id: string; name: string; url: string }[]
   children: React.ReactNode
 }) {
   let pathname = usePathname()
@@ -172,20 +171,9 @@ export function ApplicationLayout({
                 <BuildingOfficeIcon />
                 <SidebarLabel>Partners</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href="/tw/settings" current={pathname.startsWith('/tw/dash/settings')}>
-                <Cog6ToothIcon />
-                <SidebarLabel>Settings</SidebarLabel>
-              </SidebarItem>
             </SidebarSection>
 
-            <SidebarSection className="max-lg:hidden">
-              <SidebarHeading>Upcoming Events</SidebarHeading>
-              {events.map((event) => (
-                <SidebarItem key={event.id} href={event.url}>
-                  {event.name}
-                </SidebarItem>
-              ))}
-            </SidebarSection>
+            <UpcomingEvents events={events} />
 
             <SidebarSpacer />
 

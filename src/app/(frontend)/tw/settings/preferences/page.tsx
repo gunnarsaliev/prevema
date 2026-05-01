@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 export default function PreferencesPage() {
   return (
     <>
-      <Link href="/tw/settings">Go back to settings</Link>
       <PreferencesForm />
     </>
   )
