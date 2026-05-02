@@ -61,7 +61,7 @@ export default async function Events() {
             </div>
           </div>
         </div>
-        <Button>Create event</Button>
+        <Button href="/tw/dash/events/create">Create event</Button>
       </div>
       <Suspense fallback={<EventsListSkeleton />}>
         <EventsData userId={userId} organizationIds={organizationIds} />

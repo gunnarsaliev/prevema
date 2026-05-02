@@ -67,9 +67,11 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       </div>
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-wrap items-center gap-6">
-          <div className="w-32 shrink-0">
-            <img className="aspect-3/2 rounded-lg shadow-sm" src={event.imgUrl} alt="" />
-          </div>
+          {event.imgUrl && (
+            <div className="w-32 shrink-0">
+              <img className="aspect-3/2 rounded-lg shadow-sm" src={event.imgUrl} alt="" />
+            </div>
+          )}
           <div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <Heading>{event.name}</Heading>

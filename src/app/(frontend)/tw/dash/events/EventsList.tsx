@@ -24,6 +24,11 @@ import type { CatalystEvent } from './data'
 
 function EventImage({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false)
+
+  if (!src) {
+    return <div className="aspect-3/2 w-full rounded-lg bg-zinc-100 dark:bg-zinc-800" />
+  }
+
   return (
     <div className="relative aspect-3/2 w-full">
       {!loaded && <Skeleton className="absolute inset-0 rounded-lg" />}
