@@ -46,7 +46,8 @@ export default async function EventPartnersPage({ params }: { params: Promise<{ 
   if (organizationIds.length === 0) notFound()
 
   const rawEvent = await getTwDashEvent(id, userId)
-  const eventName = rawEvent?.name ?? id
+  if (!rawEvent) notFound()
+  const eventName = rawEvent.name
 
   return (
     <>
