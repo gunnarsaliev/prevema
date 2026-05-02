@@ -1,3 +1,4 @@
+import React from 'react'
 import { Home } from 'lucide-react'
 import {
   Breadcrumb,
@@ -22,7 +23,7 @@ export function DashBreadcrumb({ items }: { items: Item[] }) {
         {items.map((item, i) => {
           const isLast = i === items.length - 1
           return (
-            <span key={item.label} className="contents">
+            <React.Fragment key={i}>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {!isLast && item.href ? (
@@ -31,7 +32,7 @@ export function DashBreadcrumb({ items }: { items: Item[] }) {
                   <BreadcrumbPage>{item.label}</BreadcrumbPage>
                 )}
               </BreadcrumbItem>
-            </span>
+            </React.Fragment>
           )
         })}
       </BreadcrumbList>
