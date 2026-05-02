@@ -7,6 +7,8 @@ import type { Metadata } from 'next'
 import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
+import { getTwDashEvent } from '../../../data'
 import { getTwDashPartner } from '../../../../partners/data'
 import { PartnerDetail } from '../../../../partners/_components/PartnerDetail'
 import { PartnerDetailSkeleton } from '../../../../partners/[id]/PartnerDetailSkeleton'
@@ -43,14 +45,29 @@ export default async function EventPartnerDetailPage({
   const organizationIds = await getCachedUserOrgIds(userId)
   if (organizationIds.length === 0) notFound()
 
+  const rawEvent = await getTwDashEvent(id, userId)
+  const eventName = rawEvent?.name ?? id
+  const partner = await getTwDashPartner(partnerId, userId)
+  const partnerName = partner?.companyName ?? partnerId
+
   return (
-    <Suspense fallback={<PartnerDetailSkeleton />}>
-      <PartnerDetail
-        partnerId={partnerId}
-        userId={userId}
-        backHref={`/tw/dash/events/${id}/partners`}
-        backLabel="Partners"
+    <>
+      <DashBreadcrumb
+        items={[
+          { label: 'Events', href: '/tw/dash/events' },
+          { label: eventName, href: `/tw/dash/events/${id}` },
+          { label: 'Partners', href: `/tw/dash/events/${id}/partners` },
+          { label: partnerName },
+        ]}
       />
-    </Suspense>
+      <Suspense fallback={<PartnerDetailSkeleton />}>
+        <PartnerDetail
+          partnerId={partnerId}
+          userId={userId}
+          backHref={`/tw/dash/events/${id}/partners`}
+          backLabel="Partners"
+        />
+      </Suspense>
+    </>
   )
 }

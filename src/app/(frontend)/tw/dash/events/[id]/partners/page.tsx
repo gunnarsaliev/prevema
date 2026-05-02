@@ -11,6 +11,8 @@ import { Heading } from '@/components/catalyst/heading'
 import { Link } from '@/components/catalyst/link'
 import { ChevronLeftIcon } from '@heroicons/react/16/solid'
 
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
+import { getTwDashEvent } from '../../data'
 import { getTwDashPartners } from '../../../partners/data'
 import { PartnersList } from '../../../partners/PartnersList'
 import { PartnersListSkeleton } from '../../../partners/PartnersListSkeleton'
@@ -43,8 +45,18 @@ export default async function EventPartnersPage({ params }: { params: Promise<{ 
   const organizationIds = await getCachedUserOrgIds(userId)
   if (organizationIds.length === 0) notFound()
 
+  const rawEvent = await getTwDashEvent(id, userId)
+  const eventName = rawEvent?.name ?? id
+
   return (
     <>
+      <DashBreadcrumb
+        items={[
+          { label: 'Events', href: '/tw/dash/events' },
+          { label: eventName, href: `/tw/dash/events/${id}` },
+          { label: 'Partners' },
+        ]}
+      />
       <div className="max-lg:hidden">
         <Link
           href={`/tw/dash/events/${id}`}

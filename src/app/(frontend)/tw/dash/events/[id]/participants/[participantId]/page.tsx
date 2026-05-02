@@ -7,6 +7,8 @@ import type { Metadata } from 'next'
 import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
+import { getTwDashEvent } from '../../../data'
 import { getTwDashParticipant } from '../../../../participants/data'
 import { ParticipantDetail } from '../../../../participants/_components/ParticipantDetail'
 import { ParticipantDetailSkeleton } from '../../../../participants/[id]/ParticipantDetailSkeleton'
@@ -43,14 +45,29 @@ export default async function EventParticipantDetailPage({
   const organizationIds = await getCachedUserOrgIds(userId)
   if (organizationIds.length === 0) notFound()
 
+  const rawEvent = await getTwDashEvent(id, userId)
+  const eventName = rawEvent?.name ?? id
+  const participant = await getTwDashParticipant(participantId, userId)
+  const participantName = participant?.name ?? participantId
+
   return (
-    <Suspense fallback={<ParticipantDetailSkeleton />}>
-      <ParticipantDetail
-        participantId={participantId}
-        userId={userId}
-        backHref={`/tw/dash/events/${id}/participants`}
-        backLabel="Participants"
+    <>
+      <DashBreadcrumb
+        items={[
+          { label: 'Events', href: '/tw/dash/events' },
+          { label: eventName, href: `/tw/dash/events/${id}` },
+          { label: 'Participants', href: `/tw/dash/events/${id}/participants` },
+          { label: participantName },
+        ]}
       />
-    </Suspense>
+      <Suspense fallback={<ParticipantDetailSkeleton />}>
+        <ParticipantDetail
+          participantId={participantId}
+          userId={userId}
+          backHref={`/tw/dash/events/${id}/participants`}
+          backLabel="Participants"
+        />
+      </Suspense>
+    </>
   )
 }
