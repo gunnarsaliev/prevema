@@ -9,7 +9,7 @@ import {
   DescriptionTerm,
   DescriptionDetails,
 } from '@/components/catalyst/description-list'
-import { ChevronLeftIcon, EnvelopeIcon, GlobeAltIcon, UserIcon } from '@heroicons/react/16/solid'
+import { EnvelopeIcon, GlobeAltIcon, UserIcon } from '@heroicons/react/16/solid'
 import type { Media } from '@/payload-types'
 
 import { getTwDashPartner } from '../data'
@@ -47,13 +47,9 @@ function mediaUrl(value: unknown): string | null {
 export async function PartnerDetail({
   partnerId,
   userId,
-  backHref,
-  backLabel,
 }: {
   partnerId: string
   userId: number
-  backHref: string
-  backLabel: string
 }) {
   const partner = await getTwDashPartner(partnerId, userId)
   if (!partner) notFound()
@@ -65,16 +61,6 @@ export async function PartnerDetail({
 
   return (
     <>
-      <div className="max-lg:hidden">
-        <Link
-          href={backHref}
-          className="inline-flex items-center gap-2 text-sm/6 text-zinc-500 dark:text-zinc-400"
-        >
-          <ChevronLeftIcon className="size-4 fill-zinc-400 dark:fill-zinc-500" />
-          {backLabel}
-        </Link>
-      </div>
-
       <div className="mt-4 lg:mt-8">
         <div className="flex flex-wrap items-start gap-6">
           {logoUrl && (

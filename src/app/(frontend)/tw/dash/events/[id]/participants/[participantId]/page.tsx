@@ -64,8 +64,6 @@ export default async function EventParticipantDetailPage({
         <ParticipantDetail
           participantId={participantId}
           userId={userId}
-          backHref={`/tw/dash/events/${id}/participants`}
-          backLabel="Participants"
         />
       </Suspense>
     </>

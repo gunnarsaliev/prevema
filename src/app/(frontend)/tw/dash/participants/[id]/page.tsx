@@ -59,8 +59,6 @@ export default async function ParticipantDetailPage({
         <ParticipantDetail
           participantId={id}
           userId={userId}
-          backHref="/tw/dash/participants"
-          backLabel="Participants"
         />
       </Suspense>
     </>

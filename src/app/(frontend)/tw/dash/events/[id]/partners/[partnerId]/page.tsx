@@ -64,8 +64,6 @@ export default async function EventPartnerDetailPage({
         <PartnerDetail
           partnerId={partnerId}
           userId={userId}
-          backHref={`/tw/dash/events/${id}/partners`}
-          backLabel="Partners"
         />
       </Suspense>
     </>

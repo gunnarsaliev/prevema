@@ -8,8 +8,6 @@ import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { Button } from '@/components/catalyst/button'
 import { Heading } from '@/components/catalyst/heading'
-import { Link } from '@/components/catalyst/link'
-import { ChevronLeftIcon } from '@heroicons/react/16/solid'
 
 import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 import { getTwDashEvent } from '../../data'
@@ -62,15 +60,6 @@ export default async function EventParticipantsPage({
           { label: 'Participants' },
         ]}
       />
-      <div className="max-lg:hidden">
-        <Link
-          href={`/tw/dash/events/${id}`}
-          className="inline-flex items-center gap-2 text-sm/6 text-zinc-500 dark:text-zinc-400"
-        >
-          <ChevronLeftIcon className="size-4 fill-zinc-400 dark:fill-zinc-500" />
-          Event
-        </Link>
-      </div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-sm:w-full sm:flex-1">
           <Heading>Participants</Heading>

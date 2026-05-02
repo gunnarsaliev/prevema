@@ -55,8 +55,6 @@ export default async function PartnerDetailPage({ params }: { params: Promise<{ 
         <PartnerDetail
           partnerId={id}
           userId={userId}
-          backHref="/tw/dash/partners"
-          backLabel="Partners"
         />
       </Suspense>
     </>

@@ -1,13 +1,11 @@
 import { Badge } from '@/components/catalyst/badge'
 import { Button } from '@/components/catalyst/button'
 import { Heading } from '@/components/catalyst/heading'
-import { Link } from '@/components/catalyst/link'
 import { headers as getHeaders } from 'next/headers'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { getTwDashEvent, mapEventToCatalyst } from '../data'
-import { ChevronLeftIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
 import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 import { notFound, redirect } from 'next/navigation'
@@ -63,15 +61,6 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
           { label: event.name },
         ]}
       />
-      <div className="max-lg:hidden">
-        <Link
-          href="/tw/dash/events"
-          className="inline-flex items-center gap-2 text-sm/6 text-zinc-500 dark:text-zinc-400"
-        >
-          <ChevronLeftIcon className="size-4 fill-zinc-400 dark:fill-zinc-500" />
-          Events
-        </Link>
-      </div>
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-wrap items-center gap-6">
           {event.imgUrl && (

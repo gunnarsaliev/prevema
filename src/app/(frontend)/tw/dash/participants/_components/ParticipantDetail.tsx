@@ -12,7 +12,6 @@ import {
 } from '@/components/catalyst/description-list'
 import {
   CalendarIcon,
-  ChevronLeftIcon,
   EnvelopeIcon,
   MapPinIcon,
   PhoneIcon,
@@ -53,13 +52,9 @@ function mediaUrl(value: unknown): string | null {
 export async function ParticipantDetail({
   participantId,
   userId,
-  backHref,
-  backLabel,
 }: {
   participantId: string
   userId: number
-  backHref: string
-  backLabel: string
 }) {
   const participant = await getTwDashParticipant(participantId, userId)
   if (!participant) notFound()
@@ -82,16 +77,6 @@ export async function ParticipantDetail({
 
   return (
     <>
-      <div className="max-lg:hidden">
-        <Link
-          href={backHref}
-          className="inline-flex items-center gap-2 text-sm/6 text-zinc-500 dark:text-zinc-400"
-        >
-          <ChevronLeftIcon className="size-4 fill-zinc-400 dark:fill-zinc-500" />
-          {backLabel}
-        </Link>
-      </div>
-
       <div className="mt-4 lg:mt-8">
         <div className="flex flex-wrap items-start gap-6">
           {photoUrl && (
