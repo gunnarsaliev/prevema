@@ -116,6 +116,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
     "@playwright/test": "1.56.1",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.1.0",
     "@types/archiver": "^7.0.0",
     "@types/dompurify": "^3.2.0",
