@@ -153,7 +153,7 @@ async function ParticipantDetail({
                 <Button outline href={`mailto:${participant.email}`}>
                   Email
                 </Button>
-                <Button href={`/admin/collections/participants/${participant.id}`}>Edit</Button>
+                <Button href={`/tw/dash/participants/${participant.id}/edit`}>Edit</Button>
               </div>
             </div>
           </div>
