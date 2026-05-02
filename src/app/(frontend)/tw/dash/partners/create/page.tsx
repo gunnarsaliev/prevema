@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { PartnerForm } from './PartnerForm'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -68,14 +69,17 @@ export default async function CreatePartnerPage({
   ])
 
   return (
-    <div className="px-8 py-8">
-      <PartnerForm
-        mode="create"
-        eventId={Number(eventId)}
-        eventName={event.name}
-        partnerTypes={partnerTypes.map((t) => ({ id: t.id, name: t.name }))}
-        tiers={tiers.map((t) => ({ id: t.id, name: t.name }))}
-      />
-    </div>
+    <>
+      <DashBreadcrumb items={[{ label: 'Partners', href: '/tw/dash/partners' }, { label: 'Create' }]} />
+      <div className="px-8 py-8">
+        <PartnerForm
+          mode="create"
+          eventId={Number(eventId)}
+          eventName={event.name}
+          partnerTypes={partnerTypes.map((t) => ({ id: t.id, name: t.name }))}
+          tiers={tiers.map((t) => ({ id: t.id, name: t.name }))}
+        />
+      </div>
+    </>
   )
 }

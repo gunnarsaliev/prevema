@@ -10,6 +10,7 @@ import type { Metadata } from 'next'
 import { getTwDashPartner } from '../data'
 import { PartnerDetail } from '../_components/PartnerDetail'
 import { PartnerDetailSkeleton } from './PartnerDetailSkeleton'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 
 export async function generateMetadata({
   params,
@@ -39,14 +40,25 @@ export default async function PartnerDetailPage({ params }: { params: Promise<{ 
   const organizationIds = await getCachedUserOrgIds(userId)
   if (organizationIds.length === 0) notFound()
 
+  const partner = await getTwDashPartner(id, userId)
+  const partnerName = partner?.companyName ?? id
+
   return (
-    <Suspense fallback={<PartnerDetailSkeleton />}>
-      <PartnerDetail
-        partnerId={id}
-        userId={userId}
-        backHref="/tw/dash/partners"
-        backLabel="Partners"
+    <>
+      <DashBreadcrumb
+        items={[
+          { label: 'Partners', href: '/tw/dash/partners' },
+          { label: partnerName },
+        ]}
       />
-    </Suspense>
+      <Suspense fallback={<PartnerDetailSkeleton />}>
+        <PartnerDetail
+          partnerId={id}
+          userId={userId}
+          backHref="/tw/dash/partners"
+          backLabel="Partners"
+        />
+      </Suspense>
+    </>
   )
 }

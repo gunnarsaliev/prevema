@@ -9,6 +9,7 @@ import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { getTwDashPartners } from './data'
 import { PartnersList } from './PartnersList'
 import { PartnersListSkeleton } from './PartnersListSkeleton'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -46,6 +47,7 @@ export default async function PartnersPage({
 
   return (
     <>
+      <DashBreadcrumb items={[{ label: 'Partners' }]} />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-sm:w-full sm:flex-1">
           <Heading>Partners</Heading>

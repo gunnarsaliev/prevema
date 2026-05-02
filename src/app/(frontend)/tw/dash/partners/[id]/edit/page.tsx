@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { PartnerForm } from '../../create/PartnerForm'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 import type { PartnerFormValues } from '@/lib/schemas/partner'
 import type { Metadata } from 'next'
 
@@ -122,17 +123,26 @@ export default async function EditPartnerPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <div className="px-8 py-8">
-      <PartnerForm
-        mode="edit"
-        partnerId={id}
-        eventId={eventId}
-        eventName={eventName}
-        partnerTypes={partnerTypes.map((t) => ({ id: t.id, name: t.name }))}
-        tiers={tiers.map((t) => ({ id: t.id, name: t.name }))}
-        defaultValues={defaultValues}
-        existingLogoUrl={existingLogoUrl}
+    <>
+      <DashBreadcrumb
+        items={[
+          { label: 'Partners', href: '/tw/dash/partners' },
+          { label: partner.companyName, href: `/tw/dash/partners/${id}` },
+          { label: 'Edit' },
+        ]}
       />
-    </div>
+      <div className="px-8 py-8">
+        <PartnerForm
+          mode="edit"
+          partnerId={id}
+          eventId={eventId}
+          eventName={eventName}
+          partnerTypes={partnerTypes.map((t) => ({ id: t.id, name: t.name }))}
+          tiers={tiers.map((t) => ({ id: t.id, name: t.name }))}
+          defaultValues={defaultValues}
+          existingLogoUrl={existingLogoUrl}
+        />
+      </div>
+    </>
   )
 }
