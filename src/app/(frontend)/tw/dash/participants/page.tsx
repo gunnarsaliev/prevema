@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { Button } from '@/components/catalyst/button'
 import { Heading } from '@/components/catalyst/heading'
 import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -49,6 +50,9 @@ export default async function ParticipantsPage({
         <div className="max-sm:w-full sm:flex-1">
           <Heading>Participants</Heading>
         </div>
+        <Button href={eventId ? `/tw/dash/participants/create?eventId=${eventId}` : '/tw/dash/participants/create'}>
+          Create participant
+        </Button>
       </div>
       <Suspense fallback={<ParticipantsListSkeleton />}>
         <ParticipantsData userId={userId} organizationIds={organizationIds} eventId={eventId} />

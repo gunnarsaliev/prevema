@@ -1,7 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/catalyst/badge'
+import { Button } from '@/components/catalyst/button'
+import { Alert, AlertActions, AlertDescription, AlertTitle } from '@/components/catalyst/alert'
+import {
+  Dropdown,
+  DropdownButton,
+  DropdownItem,
+  DropdownMenu,
+} from '@/components/catalyst/dropdown'
 import {
   Table,
   TableBody,
@@ -15,10 +24,12 @@ import {
   EnvelopeIcon,
   BuildingOffice2Icon,
   CalendarIcon,
+  EllipsisVerticalIcon,
 } from '@heroicons/react/16/solid'
 import type { Partner, Media } from '@/payload-types'
 import { QuickViewDrawer } from '../components/QuickViewDrawer'
 import type { QuickViewItem } from '../components/QuickViewDrawer'
+import { deletePartner } from './create/actions'
 
 const STATUS_COLOR: Record<string, 'zinc' | 'blue' | 'green' | 'red'> = {
   default: 'zinc',
@@ -103,7 +114,21 @@ function partnerToItem(p: Partner): QuickViewItem {
 }
 
 export function PartnersList({ partners }: { partners: Partner[] }) {
+  const router = useRouter()
   const [selected, setSelected] = useState<QuickViewItem | null>(null)
+  const [toDelete, setToDelete] = useState<Partner | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!toDelete) return
+    setDeleting(true)
+    const result = await deletePartner(String(toDelete.id))
+    setDeleting(false)
+    if (result.success) {
+      setToDelete(null)
+      router.refresh()
+    }
+  }
 
   if (partners.length === 0) {
     return (
@@ -127,6 +152,7 @@ export function PartnersList({ partners }: { partners: Partner[] }) {
             <TableHeader>Type</TableHeader>
             <TableHeader>Status</TableHeader>
             <TableHeader>Event</TableHeader>
+            <TableHeader className="relative w-0"><span className="sr-only">Actions</span></TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -158,12 +184,38 @@ export function PartnersList({ partners }: { partners: Partner[] }) {
               <TableCell className="text-sm text-zinc-500 dark:text-zinc-400">
                 {relationName(p.event)}
               </TableCell>
+              <TableCell>
+                <Dropdown>
+                  <DropdownButton plain aria-label="More options">
+                    <EllipsisVerticalIcon />
+                  </DropdownButton>
+                  <DropdownMenu anchor="bottom end">
+                    <DropdownItem href={`/tw/dash/partners/${p.id}`}>View</DropdownItem>
+                    <DropdownItem onClick={() => setSelected(partnerToItem(p))}>Preview</DropdownItem>
+                    <DropdownItem href={`/tw/dash/partners/${p.id}/edit`}>Edit</DropdownItem>
+                    <DropdownItem onClick={() => setToDelete(p)}>Delete</DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
 
       <QuickViewDrawer item={selected} onClose={() => setSelected(null)} />
+
+      <Alert open={toDelete !== null} onClose={() => setToDelete(null)}>
+        <AlertTitle>Delete partner?</AlertTitle>
+        <AlertDescription>This action cannot be undone.</AlertDescription>
+        <AlertActions>
+          <Button plain onClick={() => setToDelete(null)} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button color="red" onClick={handleDelete} disabled={deleting}>
+            {deleting ? 'Deleting…' : 'Delete partner'}
+          </Button>
+        </AlertActions>
+      </Alert>
     </>
   )
 }

@@ -1,7 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/catalyst/badge'
+import { Button } from '@/components/catalyst/button'
+import { Alert, AlertActions, AlertDescription, AlertTitle } from '@/components/catalyst/alert'
+import {
+  Dropdown,
+  DropdownButton,
+  DropdownItem,
+  DropdownMenu,
+} from '@/components/catalyst/dropdown'
 import {
   Table,
   TableBody,
@@ -10,10 +19,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/catalyst/table'
-import { EnvelopeIcon, PhoneIcon, GlobeAltIcon, CalendarIcon } from '@heroicons/react/16/solid'
+import {
+  EnvelopeIcon,
+  PhoneIcon,
+  GlobeAltIcon,
+  CalendarIcon,
+  EllipsisVerticalIcon,
+} from '@heroicons/react/16/solid'
 import type { Participant, Media } from '@/payload-types'
 import { QuickViewDrawer } from '../components/QuickViewDrawer'
 import type { QuickViewItem } from '../components/QuickViewDrawer'
+import { deleteParticipant } from './create/actions'
 
 const STATUS_COLOR: Record<string, 'green' | 'zinc' | 'red' | 'yellow'> = {
   approved: 'green',
@@ -90,7 +106,21 @@ function participantToItem(p: Participant): QuickViewItem {
 }
 
 export function ParticipantsList({ participants }: { participants: Participant[] }) {
+  const router = useRouter()
   const [selected, setSelected] = useState<QuickViewItem | null>(null)
+  const [toDelete, setToDelete] = useState<Participant | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!toDelete) return
+    setDeleting(true)
+    const result = await deleteParticipant(String(toDelete.id))
+    setDeleting(false)
+    if (result.success) {
+      setToDelete(null)
+      router.refresh()
+    }
+  }
 
   if (participants.length === 0) {
     return (
@@ -113,6 +143,7 @@ export function ParticipantsList({ participants }: { participants: Participant[]
             <TableHeader>Status</TableHeader>
             <TableHeader>Role</TableHeader>
             <TableHeader>Event</TableHeader>
+            <TableHeader className="relative w-0"><span className="sr-only">Actions</span></TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -143,12 +174,38 @@ export function ParticipantsList({ participants }: { participants: Participant[]
               <TableCell className="text-sm text-zinc-500 dark:text-zinc-400">
                 {relationName(p.event)}
               </TableCell>
+              <TableCell>
+                <Dropdown>
+                  <DropdownButton plain aria-label="More options">
+                    <EllipsisVerticalIcon />
+                  </DropdownButton>
+                  <DropdownMenu anchor="bottom end">
+                    <DropdownItem href={`/tw/dash/participants/${p.id}`}>View</DropdownItem>
+                    <DropdownItem onClick={() => setSelected(participantToItem(p))}>Preview</DropdownItem>
+                    <DropdownItem href={`/tw/dash/participants/${p.id}/edit`}>Edit</DropdownItem>
+                    <DropdownItem onClick={() => setToDelete(p)}>Delete</DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
 
       <QuickViewDrawer item={selected} onClose={() => setSelected(null)} />
+
+      <Alert open={toDelete !== null} onClose={() => setToDelete(null)}>
+        <AlertTitle>Delete participant?</AlertTitle>
+        <AlertDescription>This action cannot be undone.</AlertDescription>
+        <AlertActions>
+          <Button plain onClick={() => setToDelete(null)} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button color="red" onClick={handleDelete} disabled={deleting}>
+            {deleting ? 'Deleting…' : 'Delete participant'}
+          </Button>
+        </AlertActions>
+      </Alert>
     </>
   )
 }
