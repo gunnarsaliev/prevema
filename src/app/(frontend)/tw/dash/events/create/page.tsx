@@ -5,6 +5,7 @@ import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
 import { EventForm } from './EventForm'
 import type { Metadata } from 'next'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 
 export const metadata: Metadata = {
   title: 'Create Event',
@@ -34,8 +35,11 @@ export default async function CreateEventPage() {
   const organizations = orgs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
-    <div className="px-8 py-8">
-      <EventForm organizations={organizations} />
-    </div>
+    <>
+      <DashBreadcrumb items={[{ label: 'Events', href: '/tw/dash/events' }, { label: 'Create' }]} />
+      <div className="px-8 py-8">
+        <EventForm organizations={organizations} />
+      </div>
+    </>
   )
 }

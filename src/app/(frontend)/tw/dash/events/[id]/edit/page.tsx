@@ -6,6 +6,7 @@ import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { EventForm } from '../../create/EventForm'
 import type { EventFormValues } from '@/lib/schemas/event'
 import type { Metadata } from 'next'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 
 export async function generateMetadata({
   params,
@@ -84,13 +85,22 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
   }
 
   return (
-    <div className="px-8 py-8">
-      <EventForm
-        mode="edit"
-        eventId={id}
-        defaultValues={defaultValues}
-        existingImageUrl={imageUrl}
+    <>
+      <DashBreadcrumb
+        items={[
+          { label: 'Events', href: '/tw/dash/events' },
+          { label: event.name, href: `/tw/dash/events/${id}` },
+          { label: 'Edit' },
+        ]}
       />
-    </div>
+      <div className="px-8 py-8">
+        <EventForm
+          mode="edit"
+          eventId={id}
+          defaultValues={defaultValues}
+          existingImageUrl={imageUrl}
+        />
+      </div>
+    </>
   )
 }

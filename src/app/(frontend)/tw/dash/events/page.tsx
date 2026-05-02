@@ -13,6 +13,7 @@ import { EventsList } from './EventsList'
 import { EventsListSkeleton } from './EventsListSkeleton'
 import { MagnifyingGlassIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 
 export const metadata: Metadata = {
   title: 'Events',
@@ -42,6 +43,7 @@ export default async function Events() {
 
   return (
     <>
+      <DashBreadcrumb items={[{ label: 'Events' }]} />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-sm:w-full sm:flex-1">
           <Heading>Events</Heading>

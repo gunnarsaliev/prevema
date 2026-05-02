@@ -9,6 +9,7 @@ import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { getTwDashEvent, mapEventToCatalyst } from '../data'
 import { ChevronLeftIcon } from '@heroicons/react/16/solid'
 import type { Metadata } from 'next'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 import { notFound, redirect } from 'next/navigation'
 
 export async function generateMetadata({
@@ -56,6 +57,12 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
   return (
     <>
+      <DashBreadcrumb
+        items={[
+          { label: 'Events', href: '/tw/dash/events' },
+          { label: event.name },
+        ]}
+      />
       <div className="max-lg:hidden">
         <Link
           href="/tw/dash/events"
