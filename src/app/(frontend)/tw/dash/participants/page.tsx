@@ -9,6 +9,7 @@ import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { getTwDashParticipants } from './data'
 import { ParticipantsList } from './ParticipantsList'
 import { ParticipantsListSkeleton } from './ParticipantsListSkeleton'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -46,6 +47,7 @@ export default async function ParticipantsPage({
 
   return (
     <>
+      <DashBreadcrumb items={[{ label: 'Participants' }]} />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-sm:w-full sm:flex-1">
           <Heading>Participants</Heading>

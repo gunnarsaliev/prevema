@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { ParticipantForm } from '../../create/ParticipantForm'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 import type { ParticipantFormValues } from '@/lib/schemas/participant'
 import type { Metadata } from 'next'
 
@@ -114,16 +115,25 @@ export default async function EditParticipantPage({
   }
 
   return (
-    <div className="px-8 py-8">
-      <ParticipantForm
-        mode="edit"
-        participantId={id}
-        eventId={eventId}
-        eventName={eventName}
-        participantRoles={participantRoles.map((r) => ({ id: r.id, name: r.name }))}
-        defaultValues={defaultValues}
-        existingPhotoUrl={existingPhotoUrl}
+    <>
+      <DashBreadcrumb
+        items={[
+          { label: 'Participants', href: '/tw/dash/participants' },
+          { label: participant.name, href: `/tw/dash/participants/${id}` },
+          { label: 'Edit' },
+        ]}
       />
-    </div>
+      <div className="px-8 py-8">
+        <ParticipantForm
+          mode="edit"
+          participantId={id}
+          eventId={eventId}
+          eventName={eventName}
+          participantRoles={participantRoles.map((r) => ({ id: r.id, name: r.name }))}
+          defaultValues={defaultValues}
+          existingPhotoUrl={existingPhotoUrl}
+        />
+      </div>
+    </>
   )
 }

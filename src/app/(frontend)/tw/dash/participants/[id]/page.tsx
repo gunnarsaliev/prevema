@@ -10,6 +10,7 @@ import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { getTwDashParticipant } from '../data'
 import { ParticipantDetail } from '../_components/ParticipantDetail'
 import { ParticipantDetailSkeleton } from './ParticipantDetailSkeleton'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 
 export async function generateMetadata({
   params,
@@ -43,14 +44,25 @@ export default async function ParticipantDetailPage({
   const organizationIds = await getCachedUserOrgIds(userId)
   if (organizationIds.length === 0) notFound()
 
+  const participant = await getTwDashParticipant(id, userId)
+  const participantName = participant?.name ?? id
+
   return (
-    <Suspense fallback={<ParticipantDetailSkeleton />}>
-      <ParticipantDetail
-        participantId={id}
-        userId={userId}
-        backHref="/tw/dash/participants"
-        backLabel="Participants"
+    <>
+      <DashBreadcrumb
+        items={[
+          { label: 'Participants', href: '/tw/dash/participants' },
+          { label: participantName },
+        ]}
       />
-    </Suspense>
+      <Suspense fallback={<ParticipantDetailSkeleton />}>
+        <ParticipantDetail
+          participantId={id}
+          userId={userId}
+          backHref="/tw/dash/participants"
+          backLabel="Participants"
+        />
+      </Suspense>
+    </>
   )
 }

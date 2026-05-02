@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { ParticipantForm } from './ParticipantForm'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -57,13 +58,16 @@ export default async function CreateParticipantPage({
   })
 
   return (
-    <div className="px-8 py-8">
-      <ParticipantForm
-        mode="create"
-        eventId={Number(eventId)}
-        eventName={event.name}
-        participantRoles={participantRoles.map((r) => ({ id: r.id, name: r.name }))}
-      />
-    </div>
+    <>
+      <DashBreadcrumb items={[{ label: 'Participants', href: '/tw/dash/participants' }, { label: 'Create' }]} />
+      <div className="px-8 py-8">
+        <ParticipantForm
+          mode="create"
+          eventId={Number(eventId)}
+          eventName={event.name}
+          participantRoles={participantRoles.map((r) => ({ id: r.id, name: r.name }))}
+        />
+      </div>
+    </>
   )
 }
