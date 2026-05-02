@@ -27,7 +27,7 @@ async function ParticipantsData({
   eventId: string
 }) {
   const participants = await getTwDashParticipants(userId, organizationIds, eventId)
-  return <ParticipantsList participants={participants} />
+  return <ParticipantsList participants={participants} eventId={eventId} />
 }
 
 export default async function EventParticipantsPage({

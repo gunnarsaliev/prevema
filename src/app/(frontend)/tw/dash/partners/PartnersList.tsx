@@ -61,7 +61,10 @@ function mediaUrl(value: unknown): string | null {
   return null
 }
 
-function partnerToItem(p: Partner): QuickViewItem {
+function partnerToItem(p: Partner, eventId?: string): QuickViewItem {
+  const baseHref = eventId
+    ? `/tw/dash/events/${eventId}/partners/${p.id}`
+    : `/tw/dash/partners/${p.id}`
   const logoUrl = mediaUrl(p.companyLogo) ?? p.companyLogoUrl ?? null
 
   const typeName = relationName(p.partnerType)
@@ -109,11 +112,11 @@ function partnerToItem(p: Partner): QuickViewItem {
     badges,
     fields,
     sections,
-    detailHref: `/tw/dash/partners/${p.id}`,
+    detailHref: baseHref,
   }
 }
 
-export function PartnersList({ partners }: { partners: Partner[] }) {
+export function PartnersList({ partners, eventId }: { partners: Partner[]; eventId?: string }) {
   const router = useRouter()
   const [selected, setSelected] = useState<QuickViewItem | null>(null)
   const [toDelete, setToDelete] = useState<Partner | null>(null)
@@ -161,7 +164,7 @@ export function PartnersList({ partners }: { partners: Partner[] }) {
               <TableCell className="font-medium">
                 <button
                   type="button"
-                  onClick={() => setSelected(partnerToItem(p))}
+                  onClick={() => setSelected(partnerToItem(p, eventId))}
                   className="text-left hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 rounded"
                 >
                   {p.companyName}
@@ -190,8 +193,8 @@ export function PartnersList({ partners }: { partners: Partner[] }) {
                     <EllipsisVerticalIcon />
                   </DropdownButton>
                   <DropdownMenu anchor="bottom end">
-                    <DropdownItem href={`/tw/dash/partners/${p.id}`}>View</DropdownItem>
-                    <DropdownItem onClick={() => setSelected(partnerToItem(p))}>Preview</DropdownItem>
+                    <DropdownItem href={eventId ? `/tw/dash/events/${eventId}/partners/${p.id}` : `/tw/dash/partners/${p.id}`}>View</DropdownItem>
+                    <DropdownItem onClick={() => setSelected(partnerToItem(p, eventId))}>Preview</DropdownItem>
                     <DropdownItem href={`/tw/dash/partners/${p.id}/edit`}>Edit</DropdownItem>
                     <DropdownItem onClick={() => setToDelete(p)}>Delete</DropdownItem>
                   </DropdownMenu>

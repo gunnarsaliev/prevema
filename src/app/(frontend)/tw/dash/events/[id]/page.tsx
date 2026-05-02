@@ -1,14 +1,15 @@
-import { Badge } from '@/components/catalyst/badge'
-import { Button } from '@/components/catalyst/button'
-import { Heading } from '@/components/catalyst/heading'
+import { Suspense } from 'react'
+import { notFound, redirect } from 'next/navigation'
 import { headers as getHeaders } from 'next/headers'
 import { getPayload } from 'payload'
+import type { Metadata } from 'next'
+
 import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
-import { getTwDashEvent, mapEventToCatalyst } from '../data'
-import type { Metadata } from 'next'
+import { getTwDashEvent } from '../data'
+import { EventDetail } from '../_components/EventDetail'
+import { EventDetailSkeleton } from './EventDetailSkeleton'
 import { DashBreadcrumb } from '@/components/dash-breadcrumb'
-import { notFound, redirect } from 'next/navigation'
 
 export async function generateMetadata({
   params,
@@ -22,10 +23,7 @@ export async function generateMetadata({
   if (!user) return {}
   const userId = typeof user.id === 'number' ? user.id : Number(user.id)
   const event = await getTwDashEvent(id, userId)
-
-  return {
-    title: event?.name,
-  }
+  return { title: event?.name }
 }
 
 export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
@@ -39,67 +37,22 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
   const userId = typeof user.id === 'number' ? user.id : Number(user.id)
   const organizationIds = await getCachedUserOrgIds(userId)
-
   if (organizationIds.length === 0) notFound()
 
-  const rawEvent = await getTwDashEvent(id, userId)
-  if (!rawEvent) notFound()
-
-  const eventOrgId =
-    typeof rawEvent.organization === 'object' && rawEvent.organization !== null
-      ? rawEvent.organization.id
-      : rawEvent.organization
-  if (!organizationIds.includes(Number(eventOrgId))) notFound()
-
-  const event = mapEventToCatalyst(rawEvent)
+  const event = await getTwDashEvent(id, userId)
+  const eventName = event?.name ?? id
 
   return (
     <>
       <DashBreadcrumb
         items={[
           { label: 'Events', href: '/tw/dash/events' },
-          { label: event.name },
+          { label: eventName },
         ]}
       />
-      <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-6">
-          {event.imgUrl && (
-            <div className="w-32 shrink-0">
-              <img className="aspect-3/2 rounded-lg shadow-sm" src={event.imgUrl} alt="" />
-            </div>
-          )}
-          <div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <Heading>{event.name}</Heading>
-              <Badge color={event.status === 'On Sale' ? 'lime' : 'zinc'}>{event.status}</Badge>
-            </div>
-            <div className="mt-2 text-sm/6 text-zinc-500">
-              {event.date}
-              {event.location && (
-                <>
-                  {' '}
-                  <span aria-hidden="true">·</span> {event.location}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-4">
-          <Button outline href={`/tw/dash/events/${id}/edit`}>
-            Edit
-          </Button>
-          <Button>View</Button>
-        </div>
-      </div>
-
-      <div className="mt-8 flex flex-wrap gap-3">
-        <Button outline href={`/tw/dash/events/${id}/partners`}>
-          Partners
-        </Button>
-        <Button outline href={`/tw/dash/events/${id}/participants`}>
-          Participants
-        </Button>
-      </div>
+      <Suspense fallback={<EventDetailSkeleton />}>
+        <EventDetail eventId={id} userId={userId} organizationIds={organizationIds} />
+      </Suspense>
     </>
   )
 }

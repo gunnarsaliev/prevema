@@ -27,7 +27,7 @@ async function PartnersData({
   eventId: string
 }) {
   const partners = await getTwDashPartners(userId, organizationIds, eventId)
-  return <PartnersList partners={partners} />
+  return <PartnersList partners={partners} eventId={eventId} />
 }
 
 export default async function EventPartnersPage({ params }: { params: Promise<{ id: string }> }) {

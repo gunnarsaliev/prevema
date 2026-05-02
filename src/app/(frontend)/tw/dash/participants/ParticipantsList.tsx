@@ -53,7 +53,10 @@ function relationName(rel: unknown): string {
   return '—'
 }
 
-function participantToItem(p: Participant): QuickViewItem {
+function participantToItem(p: Participant, eventId?: string): QuickViewItem {
+  const baseHref = eventId
+    ? `/tw/dash/events/${eventId}/participants/${p.id}`
+    : `/tw/dash/participants/${p.id}`
   const imageUrl =
     p.imageUrl && typeof p.imageUrl === 'object' ? ((p.imageUrl as Media).url ?? null) : null
 
@@ -101,11 +104,17 @@ function participantToItem(p: Participant): QuickViewItem {
     badges,
     fields,
     sections,
-    detailHref: `/tw/dash/participants/${p.id}`,
+    detailHref: baseHref,
   }
 }
 
-export function ParticipantsList({ participants }: { participants: Participant[] }) {
+export function ParticipantsList({
+  participants,
+  eventId,
+}: {
+  participants: Participant[]
+  eventId?: string
+}) {
   const router = useRouter()
   const [selected, setSelected] = useState<QuickViewItem | null>(null)
   const [toDelete, setToDelete] = useState<Participant | null>(null)
@@ -152,7 +161,7 @@ export function ParticipantsList({ participants }: { participants: Participant[]
               <TableCell className="font-medium">
                 <button
                   type="button"
-                  onClick={() => setSelected(participantToItem(p))}
+                  onClick={() => setSelected(participantToItem(p, eventId))}
                   className="text-left hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 rounded"
                 >
                   {p.name}
@@ -180,8 +189,8 @@ export function ParticipantsList({ participants }: { participants: Participant[]
                     <EllipsisVerticalIcon />
                   </DropdownButton>
                   <DropdownMenu anchor="bottom end">
-                    <DropdownItem href={`/tw/dash/participants/${p.id}`}>View</DropdownItem>
-                    <DropdownItem onClick={() => setSelected(participantToItem(p))}>Preview</DropdownItem>
+                    <DropdownItem href={eventId ? `/tw/dash/events/${eventId}/participants/${p.id}` : `/tw/dash/participants/${p.id}`}>View</DropdownItem>
+                    <DropdownItem onClick={() => setSelected(participantToItem(p, eventId))}>Preview</DropdownItem>
                     <DropdownItem href={`/tw/dash/participants/${p.id}/edit`}>Edit</DropdownItem>
                     <DropdownItem onClick={() => setToDelete(p)}>Delete</DropdownItem>
                   </DropdownMenu>
