@@ -1,10 +1,12 @@
 import { Stat } from '../stat'
 import { Heading, Subheading } from '@/components/catalyst/heading'
 import { Select } from '@/components/catalyst/select'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 
 export default async function Home() {
   return (
     <>
+      <DashBreadcrumb items={[]} />
       <Heading>Good afternoon, Erica</Heading>
       <div className="mt-8 flex items-end justify-between">
         <Subheading>Overview</Subheading>
