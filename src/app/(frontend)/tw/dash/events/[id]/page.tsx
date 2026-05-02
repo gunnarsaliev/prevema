@@ -95,6 +95,15 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
           <Button>View</Button>
         </div>
       </div>
+
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Button outline href={`/tw/dash/events/${id}/partners`}>
+          Partners
+        </Button>
+        <Button outline href={`/tw/dash/events/${id}/participants`}>
+          Participants
+        </Button>
+      </div>
     </>
   )
 }

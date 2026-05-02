@@ -2,32 +2,36 @@ import { Suspense } from 'react'
 import { notFound, redirect } from 'next/navigation'
 import { headers as getHeaders } from 'next/headers'
 import { getPayload } from 'payload'
+import type { Metadata } from 'next'
 
 import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
-import type { Metadata } from 'next'
 
-import { getTwDashPartner } from '../data'
-import { PartnerDetail } from '../_components/PartnerDetail'
-import { PartnerDetailSkeleton } from './PartnerDetailSkeleton'
+import { getTwDashParticipant } from '../../../../participants/data'
+import { ParticipantDetail } from '../../../../participants/_components/ParticipantDetail'
+import { ParticipantDetailSkeleton } from '../../../../participants/[id]/ParticipantDetailSkeleton'
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string; participantId: string }>
 }): Promise<Metadata> {
-  const { id } = await params
+  const { participantId } = await params
   const headers = await getHeaders()
   const payload = await getPayload({ config: await config })
   const { user } = await payload.auth({ headers })
   if (!user) return {}
   const userId = typeof user.id === 'number' ? user.id : Number(user.id)
-  const partner = await getTwDashPartner(id, userId)
-  return { title: partner?.companyName }
+  const participant = await getTwDashParticipant(participantId, userId)
+  return { title: participant?.name }
 }
 
-export default async function PartnerDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export default async function EventParticipantDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string; participantId: string }>
+}) {
+  const { id, participantId } = await params
 
   const headers = await getHeaders()
   const payload = await getPayload({ config: await config })
@@ -40,12 +44,12 @@ export default async function PartnerDetailPage({ params }: { params: Promise<{ 
   if (organizationIds.length === 0) notFound()
 
   return (
-    <Suspense fallback={<PartnerDetailSkeleton />}>
-      <PartnerDetail
-        partnerId={id}
+    <Suspense fallback={<ParticipantDetailSkeleton />}>
+      <ParticipantDetail
+        participantId={participantId}
         userId={userId}
-        backHref="/tw/dash/partners"
-        backLabel="Partners"
+        backHref={`/tw/dash/events/${id}/participants`}
+        backLabel="Participants"
       />
     </Suspense>
   )
