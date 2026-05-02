@@ -9,7 +9,14 @@ describe('DashBreadcrumb', () => {
   })
 
   it('renders a linked item', () => {
-    render(<DashBreadcrumb items={[{ label: 'Events', href: '/tw/dash/events' }]} />)
+    render(
+      <DashBreadcrumb
+        items={[
+          { label: 'Events', href: '/tw/dash/events' },
+          { label: 'My Event' },
+        ]}
+      />,
+    )
     const link = screen.getByRole('link', { name: 'Events' })
     expect(link).toHaveAttribute('href', '/tw/dash/events')
   })
@@ -26,5 +33,20 @@ describe('DashBreadcrumb', () => {
     const lastItem = screen.getByText('My Event')
     expect(lastItem.tagName).not.toBe('A')
     expect(lastItem).not.toHaveAttribute('href')
+  })
+
+  it('renders last item as non-clickable even when href is provided', () => {
+    render(
+      <DashBreadcrumb
+        items={[
+          { label: 'Events', href: '/tw/dash/events' },
+          { label: 'My Event', href: '/tw/dash/events/1' },
+        ]}
+      />,
+    )
+    const lastItem = screen.getByText('My Event')
+    expect(lastItem.tagName).not.toBe('A')
+    expect(lastItem).not.toHaveAttribute('href')
+    expect(screen.getByRole('link', { name: 'Events' })).toHaveAttribute('href', '/tw/dash/events')
   })
 })

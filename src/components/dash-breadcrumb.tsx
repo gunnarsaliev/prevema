@@ -25,7 +25,7 @@ export function DashBreadcrumb({ items }: { items: Item[] }) {
             <span key={item.label} className="contents">
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                {item.href ? (
+                {!isLast && item.href ? (
                   <BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
                 ) : (
                   <BreadcrumbPage>{item.label}</BreadcrumbPage>
