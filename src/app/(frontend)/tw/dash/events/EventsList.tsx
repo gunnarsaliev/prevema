@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/catalyst/badge'
+import { Button } from '@/components/catalyst/button'
 import { Divider } from '@/components/catalyst/divider'
 import {
   Dropdown,
@@ -9,6 +11,7 @@ import {
   DropdownItem,
   DropdownMenu,
 } from '@/components/catalyst/dropdown'
+import { Alert, AlertActions, AlertDescription, AlertTitle } from '@/components/catalyst/alert'
 import {
   EllipsisVerticalIcon,
   CalendarIcon,
@@ -21,6 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { QuickViewDrawer } from './QuickViewDrawer'
 import type { QuickViewItem } from './QuickViewDrawer'
 import type { CatalystEvent } from './data'
+import { deleteEvent } from './create/actions'
 
 function EventImage({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false)
@@ -102,7 +106,21 @@ function eventToItem(event: CatalystEvent): QuickViewItem {
 }
 
 export function EventsList({ events }: { events: CatalystEvent[] }) {
+  const router = useRouter()
   const [selected, setSelected] = useState<QuickViewItem | null>(null)
+  const [toDelete, setToDelete] = useState<CatalystEvent | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (!toDelete) return
+    setDeleting(true)
+    const result = await deleteEvent(toDelete.id)
+    setDeleting(false)
+    if (result.success) {
+      setToDelete(null)
+      router.refresh()
+    }
+  }
 
   return (
     <>
@@ -159,8 +177,8 @@ export function EventsList({ events }: { events: CatalystEvent[] }) {
                     <DropdownItem onClick={() => setSelected(eventToItem(event))}>
                       Preview
                     </DropdownItem>
-                    <DropdownItem>Edit</DropdownItem>
-                    <DropdownItem>Delete</DropdownItem>
+                    <DropdownItem href={`/tw/dash/events/${event.id}/edit`}>Edit</DropdownItem>
+                    <DropdownItem onClick={() => setToDelete(event)}>Delete</DropdownItem>
                   </DropdownMenu>
                 </Dropdown>
               </div>
@@ -170,6 +188,19 @@ export function EventsList({ events }: { events: CatalystEvent[] }) {
       </ul>
 
       <QuickViewDrawer item={selected} onClose={() => setSelected(null)} />
+
+      <Alert open={toDelete !== null} onClose={() => setToDelete(null)}>
+        <AlertTitle>Delete event?</AlertTitle>
+        <AlertDescription>This action cannot be undone.</AlertDescription>
+        <AlertActions>
+          <Button plain onClick={() => setToDelete(null)} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button color="red" onClick={handleDelete} disabled={deleting}>
+            {deleting ? 'Deleting…' : 'Delete event'}
+          </Button>
+        </AlertActions>
+      </Alert>
     </>
   )
 }

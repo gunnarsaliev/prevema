@@ -170,3 +170,50 @@ export async function updateEvent(
     return { success: false, message }
   }
 }
+
+export async function deleteEvent(
+  eventId: string,
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: configPromise })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) return { success: false, message: 'Unauthorized. Please log in.' }
+
+    const existing = await payload.findByID({
+      collection: 'events',
+      id: eventId,
+      depth: 0,
+      overrideAccess: false,
+      user,
+    })
+
+    await payload.delete({
+      collection: 'events',
+      id: eventId,
+      user,
+      overrideAccess: false,
+    })
+
+    revalidatePath('/tw/dash/events')
+    revalidatePath(`/tw/dash/events/${eventId}`)
+
+    const orgId =
+      existing.organization &&
+      (typeof existing.organization === 'object'
+        ? (existing.organization as { id: number }).id
+        : existing.organization)
+
+    if (orgId) {
+      revalidateTag(orgEventsTag(orgId))
+      revalidateTag(orgLayoutTag(orgId))
+      revalidateTag(orgCountsTag(orgId))
+    }
+
+    return { success: true }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to delete event.'
+    return { success: false, message }
+  }
+}
