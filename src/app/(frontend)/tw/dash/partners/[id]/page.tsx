@@ -135,7 +135,7 @@ async function PartnerDetail({ partnerId, userId }: { partnerId: string; userId:
                     Email
                   </Button>
                 )}
-                <Button href={`/admin/collections/partners/${partner.id}`}>Edit</Button>
+                <Button href={`/tw/dash/partners/${partner.id}/edit`}>Edit</Button>
               </div>
             </div>
           </div>
