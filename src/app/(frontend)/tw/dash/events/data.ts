@@ -96,7 +96,7 @@ export interface CatalystEvent {
   timezone?: string
   location: string
   eventType?: 'physical' | 'online'
-  status: 'On Sale' | 'Closed'
+  status: 'planning' | 'open' | 'closed' | 'archived'
   description?: string
   why?: string
   what?: string
@@ -125,7 +125,7 @@ export function mapEventToCatalyst(event: Event): CatalystEvent {
     timezone: event.timezone ?? undefined,
     location,
     eventType: event.eventType ?? undefined,
-    status: event.status === 'open' ? 'On Sale' : 'Closed',
+    status: (event.status ?? 'planning') as CatalystEvent['status'],
     description: event.description ?? undefined,
     why: event.why ?? undefined,
     what: event.what ?? undefined,

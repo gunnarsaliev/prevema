@@ -78,7 +78,17 @@ function eventToItem(event: CatalystEvent): QuickViewItem {
   if (event.who) sections.push({ title: 'Who', content: event.who })
 
   const badges: NonNullable<QuickViewItem['badges']> = [
-    { label: event.status, color: event.status === 'On Sale' ? 'lime' : 'zinc' },
+    {
+      label: event.status.charAt(0).toUpperCase() + event.status.slice(1),
+      color:
+        event.status === 'open'
+          ? 'lime'
+          : event.status === 'planning'
+            ? 'yellow'
+            : event.status === 'archived'
+              ? 'zinc'
+              : 'red',
+    },
   ]
   if (event.eventType) {
     badges.push({
@@ -164,9 +174,17 @@ export function EventsList({ events }: { events: CatalystEvent[] }) {
               <div className="flex items-center gap-4">
                 <Badge
                   className="max-sm:hidden"
-                  color={event.status === 'On Sale' ? 'lime' : 'zinc'}
+                  color={
+                    event.status === 'open'
+                      ? 'lime'
+                      : event.status === 'planning'
+                        ? 'yellow'
+                        : event.status === 'archived'
+                          ? 'zinc'
+                          : 'red'
+                  }
                 >
-                  {event.status}
+                  {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
                 </Badge>
                 <Dropdown>
                   <DropdownButton plain aria-label="More options">
