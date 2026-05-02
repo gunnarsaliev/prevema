@@ -30,11 +30,7 @@ export async function generateMetadata({
   return { title: event?.name ?? 'Edit Event' }
 }
 
-export default async function EditEventPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
   const headers = await getHeaders()
