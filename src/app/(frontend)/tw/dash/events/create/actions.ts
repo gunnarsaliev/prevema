@@ -15,7 +15,55 @@ export type CreateEventState = {
   errors?: Partial<Record<keyof EventFormValues, string[]>>
 }
 
-export async function createEvent(data: EventFormValues): Promise<CreateEventState> {
+export type UploadImageState =
+  | { success: true; imageId: number }
+  | { success: false; message: string }
+
+export async function uploadEventImage(formData: FormData): Promise<UploadImageState> {
+  try {
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: configPromise })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) return { success: false, message: 'Unauthorized. Please log in.' }
+
+    const file = formData.get('image') as File | null
+    if (!file || file.size === 0) return { success: false, message: 'No file provided.' }
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg']
+    if (!allowed.includes(file.type)) {
+      return { success: false, message: 'Only JPG, PNG, or WebP images are accepted.' }
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      return { success: false, message: 'Image must be smaller than 5 MB.' }
+    }
+
+    const result = await payload.create({
+      collection: 'media',
+      data: { alt: file.name },
+      file: {
+        data: Buffer.from(await file.arrayBuffer()),
+        name: file.name,
+        mimetype: file.type,
+        size: file.size,
+      },
+      user,
+      overrideAccess: false,
+    })
+
+    const imageId = typeof result.id === 'number' ? result.id : Number(result.id)
+    return { success: true, imageId }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to upload image.'
+    return { success: false, message }
+  }
+}
+
+export async function createEvent(
+  data: EventFormValues,
+  imageId?: number,
+): Promise<CreateEventState> {
   try {
     const validated = eventSchema.safeParse(data)
 
@@ -36,9 +84,12 @@ export async function createEvent(data: EventFormValues): Promise<CreateEventSta
       return { success: false, message: 'Unauthorized. Please log in.' }
     }
 
+    const eventData: any = { ...validated.data }
+    if (imageId) eventData.image = imageId
+
     await payload.create({
       collection: 'events',
-      data: validated.data as any,
+      data: eventData,
       user,
       overrideAccess: false,
     })
@@ -58,6 +109,64 @@ export async function createEvent(data: EventFormValues): Promise<CreateEventSta
 
     const message =
       error instanceof Error ? error.message : 'Failed to create event. Please try again.'
+    return { success: false, message }
+  }
+}
+
+export async function updateEvent(
+  eventId: string,
+  data: EventFormValues,
+  imageId?: number | null,
+): Promise<CreateEventState> {
+  try {
+    const validated = eventSchema.safeParse(data)
+
+    if (!validated.success) {
+      return {
+        success: false,
+        errors: validated.error.flatten().fieldErrors as Partial<
+          Record<keyof EventFormValues, string[]>
+        >,
+      }
+    }
+
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: configPromise })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) {
+      return { success: false, message: 'Unauthorized. Please log in.' }
+    }
+
+    const updateData: any = { ...validated.data }
+    if (imageId !== undefined) {
+      updateData.image = imageId
+    }
+
+    await payload.update({
+      collection: 'events',
+      id: eventId,
+      data: updateData,
+      user,
+      overrideAccess: false,
+    })
+
+    revalidatePath('/tw/dash/events')
+    revalidatePath(`/tw/dash/events/${eventId}`)
+
+    const orgId = validated.data.organization
+    if (orgId) {
+      revalidateTag(orgEventsTag(orgId))
+      revalidateTag(orgLayoutTag(orgId))
+      revalidateTag(orgCountsTag(orgId))
+    }
+
+    redirect(`/tw/dash/events/${eventId}`)
+  } catch (error) {
+    if (isRedirectError(error)) throw error
+
+    const message =
+      error instanceof Error ? error.message : 'Failed to update event. Please try again.'
     return { success: false, message }
   }
 }

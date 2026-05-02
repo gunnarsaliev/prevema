@@ -2,7 +2,7 @@
 
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useTransition, useState } from 'react'
+import { useTransition, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/catalyst/button'
 import { Divider } from '@/components/catalyst/divider'
@@ -13,18 +13,83 @@ import { Select } from '@/components/catalyst/select'
 import { Textarea } from '@/components/catalyst/textarea'
 import { Text } from '@/components/catalyst/text'
 import { eventSchema, type EventFormValues } from '@/lib/schemas/event'
-import { createEvent } from './actions'
+import { createEvent, updateEvent, uploadEventImage } from './actions'
 
 type OrgOption = { id: number; name: string }
 
-interface EventFormProps {
-  organizations: OrgOption[]
+type EventFormProps =
+  | { mode: 'create'; organizations: OrgOption[] }
+  | {
+      mode: 'edit'
+      eventId: string
+      defaultValues: EventFormValues
+      existingImageUrl?: string | null
+    }
+
+function sanitizeEventData(data: EventFormValues): EventFormValues {
+  return {
+    ...data,
+    endDate: data.endDate === '' ? null : data.endDate,
+    timezone: data.timezone === '' ? null : data.timezone,
+    description: data.description === '' ? null : data.description,
+    address: data.address === '' ? null : data.address,
+    why: data.why === '' ? null : data.why,
+    what: data.what === '' ? null : data.what,
+    where: data.where === '' ? null : data.where,
+    who: data.who === '' ? null : data.who,
+    theme: data.theme === '' ? null : data.theme,
+  }
 }
 
-export function EventForm({ organizations }: EventFormProps) {
+export function EventForm(props: EventFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [serverMessage, setServerMessage] = useState<string | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    props.mode === 'edit' ? (props.existingImageUrl ?? null) : null,
+  )
+  const [existingImageRemoved, setExistingImageRemoved] = useState(false)
+  const [imageError, setImageError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const organizations = props.mode === 'create' ? props.organizations : []
+  const defaultValues: EventFormValues =
+    props.mode === 'edit'
+      ? props.defaultValues
+      : {
+          name: '',
+          status: 'planning',
+          startDate: '',
+          endDate: null,
+          timezone: null,
+          eventType: 'online',
+          address: null,
+          description: null,
+          why: null,
+          what: null,
+          where: null,
+          who: null,
+          theme: null,
+          organization: organizations.length === 1 ? organizations[0].id : undefined,
+        }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImageError(null)
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+    setExistingImageRemoved(false)
+    e.target.value = ''
+  }
+
+  const removeImage = () => {
+    setImageFile(null)
+    setImagePreview(null)
+    setExistingImageRemoved(true)
+    setImageError(null)
+  }
 
   const {
     register,
@@ -35,47 +100,67 @@ export function EventForm({ organizations }: EventFormProps) {
     formState: { errors },
   } = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
-    defaultValues: {
-      name: '',
-      status: 'planning',
-      startDate: '',
-      endDate: null,
-      timezone: null,
-      eventType: 'online',
-      address: null,
-      description: null,
-      why: null,
-      what: null,
-      where: null,
-      who: null,
-      theme: null,
-      organization: organizations.length === 1 ? organizations[0].id : undefined,
-    },
+    defaultValues,
   })
 
   const eventType = watch('eventType')
 
   const onSubmit = (data: EventFormValues) => {
     setServerMessage(null)
+    setImageError(null)
+    const sanitized = sanitizeEventData(data)
+
     startTransition(async () => {
-      const result = await createEvent(data)
-      if (!result.success) {
-        if (result.errors) {
-          Object.entries(result.errors).forEach(([field, messages]) => {
-            setError(field as keyof EventFormValues, {
-              type: 'server',
-              message: messages?.[0],
-            })
-          })
+      let imageId: number | null | undefined = undefined
+
+      if (imageFile) {
+        const fd = new FormData()
+        fd.set('image', imageFile)
+        const uploadResult = await uploadEventImage(fd)
+        if (!uploadResult.success) {
+          setImageError(uploadResult.message)
+          return
         }
-        setServerMessage(result.message ?? 'Something went wrong. Please try again.')
+        imageId = uploadResult.imageId
+      } else if (props.mode === 'edit' && existingImageRemoved) {
+        imageId = null
+      }
+
+      if (props.mode === 'create') {
+        const result = await createEvent(sanitized, imageId ?? undefined)
+        if (!result.success) {
+          if (result.errors) {
+            Object.entries(result.errors).forEach(([field, messages]) => {
+              setError(field as keyof EventFormValues, {
+                type: 'server',
+                message: messages?.[0],
+              })
+            })
+          }
+          setServerMessage(result.message ?? 'Something went wrong. Please try again.')
+        }
+      } else {
+        const result = await updateEvent(props.eventId, sanitized, imageId)
+        if (!result.success) {
+          if (result.errors) {
+            Object.entries(result.errors).forEach(([field, messages]) => {
+              setError(field as keyof EventFormValues, {
+                type: 'server',
+                message: messages?.[0],
+              })
+            })
+          }
+          setServerMessage(result.message ?? 'Something went wrong. Please try again.')
+        }
       }
     })
   }
 
+  const cancelHref = props.mode === 'edit' ? `/tw/dash/events/${props.eventId}` : '/tw/dash/events'
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-4xl">
-      <Heading>New Event</Heading>
+      <Heading>{props.mode === 'edit' ? 'Edit Event' : 'New Event'}</Heading>
       <Divider className="my-10 mt-6" />
 
       {serverMessage && (
@@ -84,8 +169,63 @@ export function EventForm({ organizations }: EventFormProps) {
         </div>
       )}
 
-      {/* Organization — only shown when user belongs to 2+ orgs */}
-      {organizations.length >= 2 && (
+      {/* Event Image */}
+      <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+        <div className="space-y-1">
+          <Subheading>Event Image</Subheading>
+          <Text>Upload a cover image for your event. JPG, PNG or WebP · Max 5 MB.</Text>
+        </div>
+        <div>
+          {imagePreview ? (
+            <div className="flex items-start gap-4">
+              <img
+                src={imagePreview}
+                alt="Event image"
+                className="size-24 rounded-lg object-cover"
+              />
+              <div className="space-y-2">
+                <Button
+                  type="button"
+                  outline
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isPending}
+                >
+                  Change image
+                </Button>
+                <div>
+                  <Button type="button" plain onClick={removeImage} disabled={isPending}>
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              outline
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isPending}
+            >
+              Upload image
+            </Button>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handleImageChange}
+          />
+          {imageError && (
+            <p className="mt-2 text-sm text-red-600 dark:text-red-400">{imageError}</p>
+          )}
+        </div>
+      </section>
+
+      <Divider className="my-10" soft />
+
+      {/* Organization — only shown in create mode when user belongs to 2+ orgs */}
+      {props.mode === 'create' && organizations.length >= 2 && (
         <>
           <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
             <div className="space-y-1">
@@ -289,16 +429,17 @@ export function EventForm({ organizations }: EventFormProps) {
       <Divider className="my-10" soft />
 
       <div className="flex justify-end gap-4">
-        <Button
-          type="button"
-          plain
-          onClick={() => router.push('/tw/dash/events')}
-          disabled={isPending}
-        >
+        <Button type="button" plain onClick={() => router.push(cancelHref)} disabled={isPending}>
           Cancel
         </Button>
         <Button type="submit" disabled={isPending}>
-          {isPending ? 'Creating…' : 'Create event'}
+          {isPending
+            ? props.mode === 'edit'
+              ? 'Saving…'
+              : 'Creating…'
+            : props.mode === 'edit'
+              ? 'Save changes'
+              : 'Create event'}
         </Button>
       </div>
     </form>

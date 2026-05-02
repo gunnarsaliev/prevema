@@ -89,7 +89,9 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
         <div className="flex gap-4">
-          <Button outline>Edit</Button>
+          <Button outline href={`/tw/dash/events/${id}/edit`}>
+            Edit
+          </Button>
           <Button>View</Button>
         </div>
       </div>
