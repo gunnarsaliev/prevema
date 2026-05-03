@@ -56,8 +56,8 @@ export async function EventDetail({
       ? ((event.image as Media).url ?? null)
       : null
 
-  const startDate = event.startDate ? format(new Date(event.startDate), 'PPP') : null
-  const endDate = event.endDate ? format(new Date(event.endDate), 'PPP') : null
+  const startDate = event.startDate ? format(new Date(event.startDate), 'PPP p') : null
+  const endDate = event.endDate ? format(new Date(event.endDate), 'PPP p') : null
   const location = event.where || event.address || null
 
   return (
@@ -205,7 +205,11 @@ export async function EventDetail({
                     .toUpperCase()
                   return (
                     <Avatar key={p.id} className="size-8 ring-2 ring-background">
-                      <AvatarImage src={logoUrl} alt={p.companyName} className="object-contain p-1" />
+                      <AvatarImage
+                        src={logoUrl}
+                        alt={p.companyName}
+                        className="object-contain p-1"
+                      />
                       <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                     </Avatar>
                   )
