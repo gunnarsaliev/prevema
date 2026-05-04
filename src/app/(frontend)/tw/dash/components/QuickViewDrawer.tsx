@@ -143,19 +143,19 @@ export function QuickViewDrawer({ item, onClose }: QuickViewDrawerProps) {
 
                         {/* Cover image */}
                         {displayItem.imageUrl && (
-                          <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                          <div className="relative w-full shrink-0 overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                             {!imageLoaded && <Skeleton className="absolute inset-0" />}
                             <img
                               src={displayItem.imageUrl}
                               alt=""
                               onLoad={() => setImageLoaded(true)}
-                              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                              className={`h-full w-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                             />
                           </div>
                         )}
 
                         {/* Body */}
-                        <div className="flex flex-1 flex-col gap-5 px-5 py-5">
+                        <div className="flex flex-1 flex-col gap-5 px-5 pt-4 pb-5">
                           {displayItem.fields && displayItem.fields.length > 0 && (
                             <dl className="space-y-2.5">
                               {displayItem.fields.map((field, i) => (

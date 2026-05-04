@@ -5,27 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/catalyst/badge'
 import { Button } from '@/components/catalyst/button'
 import { Alert, AlertActions, AlertDescription, AlertTitle } from '@/components/catalyst/alert'
-import {
-  Dropdown,
-  DropdownButton,
-  DropdownItem,
-  DropdownMenu,
-} from '@/components/catalyst/dropdown'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/catalyst/table'
-import {
-  EnvelopeIcon,
-  PhoneIcon,
-  GlobeAltIcon,
-  CalendarIcon,
-  EllipsisVerticalIcon,
-} from '@heroicons/react/16/solid'
+import { EnvelopeIcon, PhoneIcon, GlobeAltIcon, CalendarIcon } from '@heroicons/react/16/solid'
+import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import type { Participant, Media } from '@/payload-types'
 import { QuickViewDrawer } from '../components/QuickViewDrawer'
 import type { QuickViewItem } from '../components/QuickViewDrawer'
@@ -144,62 +125,71 @@ export function ParticipantsList({
 
   return (
     <>
-      <Table className="mt-8 [--gutter:--spacing(6)] lg:[--gutter:--spacing(10)]">
-        <TableHead>
-          <TableRow>
-            <TableHeader>Name</TableHeader>
-            <TableHeader>Email</TableHeader>
-            <TableHeader>Status</TableHeader>
-            <TableHeader>Role</TableHeader>
-            <TableHeader>Event</TableHeader>
-            <TableHeader className="relative w-0"><span className="sr-only">Actions</span></TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {participants.map((p) => (
-            <TableRow key={p.id}>
-              <TableCell className="font-medium">
-                <button
-                  type="button"
-                  onClick={() => setSelected(participantToItem(p, eventId))}
-                  className="text-left hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 rounded"
-                >
-                  {p.name}
-                </button>
-              </TableCell>
-              <TableCell className="text-zinc-500 dark:text-zinc-400">{p.email}</TableCell>
-              <TableCell>
-                {p.status ? (
-                  <Badge color={STATUS_COLOR[p.status] ?? 'zinc'}>
-                    {STATUS_LABEL[p.status] ?? p.status}
-                  </Badge>
+      <ul role="list" className="mt-8 divide-y divide-gray-100 dark:divide-white/5">
+        {participants.map((p) => {
+          const imageUrl =
+            p.imageUrl && typeof p.imageUrl === 'object'
+              ? ((p.imageUrl as Media).url ?? null)
+              : null
+          const roleName = relationName(p.participantRole)
+          const detailHref = eventId
+            ? `/tw/dash/events/${eventId}/participants/${p.id}`
+            : `/tw/dash/participants/${p.id}`
+          return (
+            <li
+              key={p.id}
+              className="relative flex justify-between gap-x-6 py-5 hover:bg-gray-50 dark:hover:bg-white/2.5"
+            >
+              <div className="flex min-w-0 gap-x-4">
+                {imageUrl ? (
+                  <img
+                    alt=""
+                    src={imageUrl}
+                    className="size-12 flex-none rounded-full object-cover bg-gray-50 dark:bg-gray-800 dark:outline dark:-outline-offset-1 dark:outline-white/10"
+                  />
                 ) : (
-                  <span className="text-zinc-400">—</span>
+                  <span className="flex size-12 flex-none items-center justify-center rounded-full bg-zinc-100 text-sm font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                    {p.name?.charAt(0).toUpperCase() ?? '?'}
+                  </span>
                 )}
-              </TableCell>
-              <TableCell className="text-sm text-zinc-500 dark:text-zinc-400">
-                {relationName(p.participantRole)}
-              </TableCell>
-              <TableCell className="text-sm text-zinc-500 dark:text-zinc-400">
-                {relationName(p.event)}
-              </TableCell>
-              <TableCell>
-                <Dropdown>
-                  <DropdownButton plain aria-label="More options">
-                    <EllipsisVerticalIcon />
-                  </DropdownButton>
-                  <DropdownMenu anchor="bottom end">
-                    <DropdownItem href={eventId ? `/tw/dash/events/${eventId}/participants/${p.id}` : `/tw/dash/participants/${p.id}`}>View</DropdownItem>
-                    <DropdownItem onClick={() => setSelected(participantToItem(p, eventId))}>Preview</DropdownItem>
-                    <DropdownItem href={`/tw/dash/participants/${p.id}/edit`}>Edit</DropdownItem>
-                    <DropdownItem onClick={() => setToDelete(p)}>Delete</DropdownItem>
-                  </DropdownMenu>
-                </Dropdown>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                <div className="min-w-0 flex-auto">
+                  <p className="text-sm/6 font-semibold text-gray-900 dark:text-white">
+                    <button
+                      type="button"
+                      onClick={() => setSelected(participantToItem(p, eventId))}
+                      className="focus:outline-none"
+                    >
+                      <span className="absolute inset-x-0 -top-px bottom-0" />
+                      {p.name}
+                    </button>
+                  </p>
+                  <p className="mt-1 flex text-xs/5 text-gray-500 dark:text-gray-400">
+                    <a href={`mailto:${p.email}`} className="relative truncate hover:underline">
+                      {p.email}
+                    </a>
+                  </p>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-x-4">
+                <div className="hidden sm:flex sm:flex-col sm:items-end">
+                  {roleName !== '—' && (
+                    <p className="text-sm/6 text-gray-900 dark:text-white">{roleName}</p>
+                  )}
+                  {p.status && (
+                    <div className="mt-1">
+                      <Badge color={STATUS_COLOR[p.status] ?? 'zinc'}>{p.status}</Badge>
+                    </div>
+                  )}
+                </div>
+                <ChevronRightIcon
+                  aria-hidden="true"
+                  className="size-5 flex-none text-gray-400 dark:text-gray-500"
+                />
+              </div>
+            </li>
+          )
+        })}
+      </ul>
 
       <QuickViewDrawer item={selected} onClose={() => setSelected(null)} />
 

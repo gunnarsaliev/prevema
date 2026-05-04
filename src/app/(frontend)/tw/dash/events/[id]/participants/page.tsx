@@ -12,7 +12,7 @@ import { Heading } from '@/components/catalyst/heading'
 import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 import { getTwDashEvent } from '../../data'
 import { getTwDashParticipants } from '../../../participants/data'
-import { ParticipantsList } from '../../../participants/ParticipantsList'
+import ParticipantsGrid from './participants-grid'
 import { ParticipantsListSkeleton } from '../../../participants/ParticipantsListSkeleton'
 
 export const metadata: Metadata = { title: 'Participants' }
@@ -27,7 +27,7 @@ async function ParticipantsData({
   eventId: string
 }) {
   const participants = await getTwDashParticipants(userId, organizationIds, eventId)
-  return <ParticipantsList participants={participants} eventId={eventId} />
+  return <ParticipantsGrid participants={participants} eventId={eventId} />
 }
 
 export default async function EventParticipantsPage({
