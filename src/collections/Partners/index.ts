@@ -6,6 +6,7 @@ import {
 import { publicPartnerCreate, publicPartnerRead } from '../../access/publicPartnerAccess'
 import { checkRole } from '@/access/utilities'
 import { populateOrganizationFromEvent } from './hooks/populateOrganizationFromEvent'
+import { prefillFromPriorRegistration } from './hooks/prefillFromPriorRegistration'
 import { handleEmailAutomation } from './hooks/handleEmailAutomation'
 import { handleSocialPostGeneration } from './hooks/handleSocialPostGeneration'
 import { defaultEventValue } from '@/fields/defaultEventValue'
@@ -76,7 +77,7 @@ export const Partners: CollectionConfig = {
       name: 'event',
       type: 'relationship',
       relationTo: 'events',
-      required: true,
+      required: false,
       defaultValue: defaultEventValue,
       access: {
         create: () => true,
@@ -282,7 +283,7 @@ export const Partners: CollectionConfig = {
     },
   ],
   hooks: {
-    beforeChange: [populateOrganizationFromEvent],
+    beforeChange: [populateOrganizationFromEvent, prefillFromPriorRegistration],
     afterChange: [handleEmailAutomation, handleSocialPostGeneration, revalidateCounts],
     afterDelete: [revalidateCountsOnDelete],
   },

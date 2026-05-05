@@ -10,6 +10,7 @@ import {
 import { checkRole } from '@/access/utilities'
 import { populateOrganizationFromEvent } from './hooks/populateOrganizationFromEvent'
 import { setDefaultStatus } from './hooks/setDefaultStatus'
+import { prefillFromPriorRegistration } from './hooks/prefillFromPriorRegistration'
 import { handleEmailAutomation } from './hooks/handleEmailAutomation'
 import { handleSocialPostGeneration } from './hooks/handleSocialPostGeneration'
 import { defaultEventValue } from '@/fields/defaultEventValue'
@@ -83,7 +84,7 @@ export const Participants: CollectionConfig = {
       name: 'event',
       type: 'relationship',
       relationTo: 'events',
-      required: true,
+      required: false,
       defaultValue: defaultEventValue,
       access: {
         create: () => true,
@@ -252,7 +253,7 @@ export const Participants: CollectionConfig = {
     },
   ],
   hooks: {
-    beforeChange: [setDefaultStatus, populateOrganizationFromEvent],
+    beforeChange: [setDefaultStatus, populateOrganizationFromEvent, prefillFromPriorRegistration],
     afterChange: [handleEmailAutomation, handleSocialPostGeneration, revalidateCounts],
     afterDelete: [revalidateCountsOnDelete],
   },

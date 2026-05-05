@@ -31,7 +31,7 @@ async function ParticipantsData({ eventId }: { eventId?: string }) {
       depth: 1,
       limit: 500,
       sort: 'name',
-      ...(eventId ? { where: { event: { equals: Number(eventId) } } } : {}),
+      where: eventId ? { event: { equals: Number(eventId) } } : { event: { exists: true } },
     }),
     payload.find({
       collection: 'events',
@@ -41,6 +41,7 @@ async function ParticipantsData({ eventId }: { eventId?: string }) {
       limit: 200,
       sort: 'name',
       select: { name: true },
+      where: { status: { not_equals: 'archived' } },
     }),
     payload.find({
       collection: 'participant-roles',

@@ -7,6 +7,7 @@ import {
 } from '../../access/organizationAwareAccess'
 import { checkRole } from '@/access/utilities'
 import { populateCreatedBy } from './hooks/populateCreatedBy'
+import { cascadeArchive } from './hooks/cascadeArchive'
 import { autoSelectOrganization } from '@/hooks/autoSelectOrganization'
 import { makeOrgCacheRevalidator } from '@/hooks/revalidateOrgCache'
 import { orgEventsTag, orgLayoutTag, orgCountsTag } from '@/lib/cached-queries'
@@ -32,7 +33,7 @@ export const Events: CollectionConfig = {
   hooks: {
     beforeValidate: [autoSelectOrganization],
     beforeChange: [populateCreatedBy],
-    afterChange: [revalidateCache],
+    afterChange: [revalidateCache, cascadeArchive],
     afterDelete: [revalidateCacheOnDelete],
   },
   fields: [

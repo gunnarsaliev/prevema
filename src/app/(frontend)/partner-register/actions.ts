@@ -20,10 +20,11 @@ function parsePayloadError(err: unknown): string {
   try {
     const parsed = JSON.parse(msg) as { errors?: Array<{ message?: string }> }
     if (parsed.errors?.length) {
-      const emailErr = parsed.errors.find(
-        (e) => e.message?.toLowerCase().includes('email'),
+      const uniqueEmailErr = parsed.errors.find(
+        (e) =>
+          e.message?.toLowerCase().includes('unique') && e.message?.toLowerCase().includes('email'),
       )
-      if (emailErr) return 'This email is already registered for this event'
+      if (uniqueEmailErr) return 'This email is already registered for this event'
       return parsed.errors.map((e) => e.message ?? 'Unknown error').join(', ')
     }
   } catch {

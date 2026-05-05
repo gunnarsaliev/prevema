@@ -810,7 +810,7 @@ export interface Participant {
   organization?: (number | null) | Organization;
   name: string;
   email: string;
-  event: number | Event;
+  event?: (number | null) | Event;
   participantRole: number | ParticipantRole;
   status?: ('not-approved' | 'approved' | 'need-info' | 'cancelled') | null;
   /**
@@ -942,7 +942,7 @@ export interface Partner {
    */
   organization?: (number | null) | Organization;
   companyName: string;
-  event: number | Event;
+  event?: (number | null) | Event;
   partnerType: number | PartnerType;
   contactPerson: string;
   contactEmail: string;
