@@ -4,17 +4,22 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { getTwDashParticipants } from '../participants/data'
-import { DataTable } from '@/components/ui/data-table'
-import { columns } from './columns'
-import { DashBreadcrumb } from '@/components/dash-breadcrumb'
-import { Heading } from '@/components/catalyst/heading'
+import { getTwDashEvents } from '../events/data'
+import { ParticipantsTable } from './ParticipantsTable'
 import type { Metadata } from 'next'
+import PageHeader from '../components/page-header'
 
 export const metadata: Metadata = {
   title: 'All Participants',
 }
 
-export default async function AllParticipantsPage() {
+export default async function AllParticipantsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ eventId?: string }>
+}) {
+  const { eventId } = await searchParams
+
   const headers = await getHeaders()
   const payload = await getPayload({ config: await config })
   const { user } = await payload.auth({ headers })
@@ -23,22 +28,24 @@ export default async function AllParticipantsPage() {
 
   const userId = typeof user.id === 'number' ? user.id : Number(user.id)
   const organizationIds = await getCachedUserOrgIds(userId)
-  const participants = await getTwDashParticipants(userId, organizationIds)
+
+  const [participants, events] = await Promise.all([
+    getTwDashParticipants(userId, organizationIds, eventId),
+    getTwDashEvents(userId, organizationIds),
+  ])
 
   return (
     <>
-      <DashBreadcrumb items={[{ label: 'All Participants' }]} />
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="max-sm:w-full sm:flex-1">
-          <Heading>All Participants</Heading>
-        </div>
-      </div>
+      <PageHeader
+        title="All Participants"
+        primaryAction={{ label: 'Generate with Prevema', href: '/tw/dash/events' }}
+        secondaryAction={{ label: '+ Add New', href: '/tw/dash/participants/create' }}
+      />
       <div className="mt-8">
-        <DataTable
-          columns={columns}
-          data={participants}
-          searchKey="name"
-          searchPlaceholder="Search participants…"
+        <ParticipantsTable
+          participants={participants}
+          events={events.map((e) => ({ id: String(e.id), name: e.name }))}
+          selectedEventId={eventId}
         />
       </div>
     </>
