@@ -18,12 +18,14 @@ import { uploadEventImage } from '../../events/create/actions'
 
 type TypeOption = { id: number; name: string }
 type TierOption = { id: number; name: string }
+type EventOption = { id: number; name: string }
 
 type PartnerFormProps =
   | {
       mode: 'create'
-      eventId: number
-      eventName: string
+      eventId?: number
+      eventName?: string
+      events?: EventOption[]
       partnerTypes: TypeOption[]
       tiers: TierOption[]
     }
@@ -68,8 +70,9 @@ export function PartnerForm(props: PartnerFormProps) {
       ? props.defaultValues
       : {
           companyName: '',
-          event: props.eventId,
-          partnerType: props.partnerTypes.length === 1 ? props.partnerTypes[0].id : (undefined as any),
+          event: props.eventId ?? (undefined as any),
+          partnerType:
+            props.partnerTypes.length === 1 ? props.partnerTypes[0].id : (undefined as any),
           contactPerson: '',
           contactEmail: '',
           email: null,
@@ -181,9 +184,18 @@ export function PartnerForm(props: PartnerFormProps) {
         <div>
           {logoPreview ? (
             <div className="flex items-start gap-4">
-              <img src={logoPreview} alt="Company logo" className="size-24 rounded-lg object-contain" />
+              <img
+                src={logoPreview}
+                alt="Company logo"
+                className="size-24 rounded-lg object-contain"
+              />
               <div className="space-y-2">
-                <Button type="button" outline onClick={() => fileInputRef.current?.click()} disabled={isPending}>
+                <Button
+                  type="button"
+                  outline
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isPending}
+                >
                   Change logo
                 </Button>
                 <div>
@@ -194,7 +206,12 @@ export function PartnerForm(props: PartnerFormProps) {
               </div>
             </div>
           ) : (
-            <Button type="button" outline onClick={() => fileInputRef.current?.click()} disabled={isPending}>
+            <Button
+              type="button"
+              outline
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isPending}
+            >
               Upload logo
             </Button>
           )}
@@ -211,15 +228,45 @@ export function PartnerForm(props: PartnerFormProps) {
 
       <Divider className="my-10" soft />
 
-      {/* Event (read-only display) */}
+      {/* Event */}
       <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
         <div className="space-y-1">
           <Subheading>Event</Subheading>
           <Text>The event this partner is associated with.</Text>
         </div>
         <div>
-          <input type="hidden" {...register('event', { valueAsNumber: true })} />
-          <p className="py-2 text-sm/6 text-zinc-950 dark:text-white">{props.eventName}</p>
+          {props.mode === 'create' && !props.eventId ? (
+            <Field>
+              <Label>Event *</Label>
+              <Controller
+                name="event"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                    }
+                    data-invalid={errors.event ? true : undefined}
+                  >
+                    <option value="">Select event</option>
+                    {(props.events ?? []).map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.name}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              />
+              {errors.event && <ErrorMessage>{errors.event.message}</ErrorMessage>}
+            </Field>
+          ) : (
+            <>
+              <input type="hidden" {...register('event', { valueAsNumber: true })} />
+              <p className="py-2 text-sm/6 text-zinc-950 dark:text-white">{props.eventName}</p>
+            </>
+          )}
         </div>
       </section>
 
@@ -308,7 +355,9 @@ export function PartnerForm(props: PartnerFormProps) {
               placeholder="Software development"
               data-invalid={errors.fieldOfExpertise ? true : undefined}
             />
-            {errors.fieldOfExpertise && <ErrorMessage>{errors.fieldOfExpertise.message}</ErrorMessage>}
+            {errors.fieldOfExpertise && (
+              <ErrorMessage>{errors.fieldOfExpertise.message}</ErrorMessage>
+            )}
           </Field>
 
           <Field>
@@ -318,7 +367,9 @@ export function PartnerForm(props: PartnerFormProps) {
               placeholder="https://example.com"
               data-invalid={errors.companyWebsiteUrl ? true : undefined}
             />
-            {errors.companyWebsiteUrl && <ErrorMessage>{errors.companyWebsiteUrl.message}</ErrorMessage>}
+            {errors.companyWebsiteUrl && (
+              <ErrorMessage>{errors.companyWebsiteUrl.message}</ErrorMessage>
+            )}
           </Field>
         </div>
       </section>
@@ -383,7 +434,9 @@ export function PartnerForm(props: PartnerFormProps) {
               rows={4}
               data-invalid={errors.companyDescription ? true : undefined}
             />
-            {errors.companyDescription && <ErrorMessage>{errors.companyDescription.message}</ErrorMessage>}
+            {errors.companyDescription && (
+              <ErrorMessage>{errors.companyDescription.message}</ErrorMessage>
+            )}
           </Field>
 
           <Field>
@@ -393,7 +446,9 @@ export function PartnerForm(props: PartnerFormProps) {
               placeholder="Gold, Silver…"
               data-invalid={errors.sponsorshipLevel ? true : undefined}
             />
-            {errors.sponsorshipLevel && <ErrorMessage>{errors.sponsorshipLevel.message}</ErrorMessage>}
+            {errors.sponsorshipLevel && (
+              <ErrorMessage>{errors.sponsorshipLevel.message}</ErrorMessage>
+            )}
           </Field>
 
           <Field>
@@ -404,7 +459,9 @@ export function PartnerForm(props: PartnerFormProps) {
               rows={3}
               data-invalid={errors.additionalNotes ? true : undefined}
             />
-            {errors.additionalNotes && <ErrorMessage>{errors.additionalNotes.message}</ErrorMessage>}
+            {errors.additionalNotes && (
+              <ErrorMessage>{errors.additionalNotes.message}</ErrorMessage>
+            )}
           </Field>
         </div>
       </section>

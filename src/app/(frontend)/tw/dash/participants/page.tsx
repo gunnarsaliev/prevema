@@ -1,35 +1,18 @@
-import { Suspense } from 'react'
-import { Button } from '@/components/catalyst/button'
-import { Heading } from '@/components/catalyst/heading'
 import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { getTwDashParticipants } from './data'
-import { ParticipantsList } from './ParticipantsList'
-import { ParticipantsListSkeleton } from './ParticipantsListSkeleton'
-import { DashBreadcrumb } from '@/components/dash-breadcrumb'
+import { getTwDashEvents } from '../events/data'
+import { ParticipantsTable } from './ParticipantsTable'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Participants',
+  title: 'All Participants',
 }
 
-async function ParticipantsData({
-  userId,
-  organizationIds,
-  eventId,
-}: {
-  userId: number
-  organizationIds: number[]
-  eventId?: string
-}) {
-  const participants = await getTwDashParticipants(userId, organizationIds, eventId)
-  return <ParticipantsList participants={participants} />
-}
-
-export default async function ParticipantsPage({
+export default async function AllParticipantsPage({
   searchParams,
 }: {
   searchParams: Promise<{ eventId?: string }>
@@ -45,20 +28,16 @@ export default async function ParticipantsPage({
   const userId = typeof user.id === 'number' ? user.id : Number(user.id)
   const organizationIds = await getCachedUserOrgIds(userId)
 
+  const [participants, events] = await Promise.all([
+    getTwDashParticipants(userId, organizationIds, eventId),
+    getTwDashEvents(userId, organizationIds),
+  ])
+
   return (
-    <>
-      <DashBreadcrumb items={[{ label: 'Participants' }]} />
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="max-sm:w-full sm:flex-1">
-          <Heading>Participants</Heading>
-        </div>
-        <Button href={eventId ? `/tw/dash/participants/create?eventId=${eventId}` : '/tw/dash/participants/create'}>
-          Create participant
-        </Button>
-      </div>
-      <Suspense fallback={<ParticipantsListSkeleton />}>
-        <ParticipantsData userId={userId} organizationIds={organizationIds} eventId={eventId} />
-      </Suspense>
-    </>
+    <ParticipantsTable
+      participants={participants}
+      events={events.map((e) => ({ id: String(e.id), name: e.name }))}
+      selectedEventId={eventId}
+    />
   )
 }

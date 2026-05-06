@@ -2,7 +2,7 @@
 
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useTransition, useState, useRef } from 'react'
+import { useTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/catalyst/button'
 import { Divider } from '@/components/catalyst/divider'
@@ -14,15 +14,16 @@ import { Textarea } from '@/components/catalyst/textarea'
 import { Text } from '@/components/catalyst/text'
 import { participantSchema, type ParticipantFormValues } from '@/lib/schemas/participant'
 import { createParticipant, updateParticipant } from './actions'
-import { uploadEventImage } from '../../events/create/actions'
 
 type RoleOption = { id: number; name: string }
+type EventOption = { id: number; name: string }
 
 type ParticipantFormProps =
   | {
       mode: 'create'
-      eventId: number
-      eventName: string
+      eventId?: number
+      eventName?: string
+      events?: EventOption[]
       participantRoles: RoleOption[]
     }
   | {
@@ -32,7 +33,6 @@ type ParticipantFormProps =
       eventName: string
       participantRoles: RoleOption[]
       defaultValues: ParticipantFormValues
-      existingPhotoUrl?: string | null
     }
 
 function sanitize(data: ParticipantFormValues): ParticipantFormValues {
@@ -55,13 +55,6 @@ export function ParticipantForm(props: ParticipantFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [serverMessage, setServerMessage] = useState<string | null>(null)
-  const [photoFile, setPhotoFile] = useState<File | null>(null)
-  const [photoPreview, setPhotoPreview] = useState<string | null>(
-    props.mode === 'edit' ? (props.existingPhotoUrl ?? null) : null,
-  )
-  const [existingPhotoRemoved, setExistingPhotoRemoved] = useState(false)
-  const [photoError, setPhotoError] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const defaultValues: ParticipantFormValues =
     props.mode === 'edit'
@@ -69,7 +62,7 @@ export function ParticipantForm(props: ParticipantFormProps) {
       : {
           name: '',
           email: '',
-          event: props.eventId,
+          event: props.eventId ?? (undefined as any),
           participantRole:
             props.participantRoles.length === 1
               ? props.participantRoles[0].id
@@ -100,60 +93,33 @@ export function ParticipantForm(props: ParticipantFormProps) {
     defaultValues,
   })
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setPhotoError(null)
-    setPhotoFile(file)
-    setPhotoPreview(URL.createObjectURL(file))
-    setExistingPhotoRemoved(false)
-    e.target.value = ''
-  }
-
-  const removePhoto = () => {
-    setPhotoFile(null)
-    setPhotoPreview(null)
-    setExistingPhotoRemoved(true)
-    setPhotoError(null)
-  }
-
   const onSubmit = (data: ParticipantFormValues) => {
     setServerMessage(null)
-    setPhotoError(null)
     const sanitized = sanitize(data)
 
     startTransition(async () => {
-      let imageId: number | null | undefined = undefined
-
-      if (photoFile) {
-        const fd = new FormData()
-        fd.set('image', photoFile)
-        const uploadResult = await uploadEventImage(fd)
-        if (!uploadResult.success) {
-          setPhotoError(uploadResult.message)
-          return
-        }
-        imageId = uploadResult.imageId
-      } else if (props.mode === 'edit' && existingPhotoRemoved) {
-        imageId = null
-      }
-
       if (props.mode === 'create') {
-        const result = await createParticipant(sanitized, imageId ?? undefined)
+        const result = await createParticipant(sanitized)
         if (!result.success) {
           if (result.errors) {
             Object.entries(result.errors).forEach(([field, messages]) => {
-              setError(field as keyof ParticipantFormValues, { type: 'server', message: messages?.[0] })
+              setError(field as keyof ParticipantFormValues, {
+                type: 'server',
+                message: messages?.[0],
+              })
             })
           }
           setServerMessage(result.message ?? 'Something went wrong. Please try again.')
         }
       } else {
-        const result = await updateParticipant(props.participantId, sanitized, imageId)
+        const result = await updateParticipant(props.participantId, sanitized)
         if (!result.success) {
           if (result.errors) {
             Object.entries(result.errors).forEach(([field, messages]) => {
-              setError(field as keyof ParticipantFormValues, { type: 'server', message: messages?.[0] })
+              setError(field as keyof ParticipantFormValues, {
+                type: 'server',
+                message: messages?.[0],
+              })
             })
           }
           setServerMessage(result.message ?? 'Something went wrong. Please try again.')
@@ -178,64 +144,55 @@ export function ParticipantForm(props: ParticipantFormProps) {
         </div>
       )}
 
-      {/* Photo */}
-      <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
-        <div className="space-y-1">
-          <Subheading>Profile Photo</Subheading>
-          <Text>Upload a headshot or profile photo. JPG, PNG or WebP · Max 5 MB.</Text>
-        </div>
-        <div>
-          {photoPreview ? (
-            <div className="flex items-start gap-4">
-              <img src={photoPreview} alt="Profile photo" className="size-24 rounded-full object-cover" />
-              <div className="space-y-2">
-                <Button type="button" outline onClick={() => fileInputRef.current?.click()} disabled={isPending}>
-                  Change photo
-                </Button>
-                <div>
-                  <Button type="button" plain onClick={removePhoto} disabled={isPending}>
-                    Remove
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <Button type="button" outline onClick={() => fileInputRef.current?.click()} disabled={isPending}>
-              Upload photo
-            </Button>
-          )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="hidden"
-            onChange={handlePhotoChange}
-          />
-          {photoError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{photoError}</p>}
-        </div>
-      </section>
-
-      <Divider className="my-10" soft />
-
-      {/* Event (read-only display) */}
+      {/* Event */}
       <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
         <div className="space-y-1">
           <Subheading>Event</Subheading>
-          <Text>The event this participant is registered for.</Text>
+          <Text>The event this participant is associated with.</Text>
         </div>
         <div>
-          <input type="hidden" {...register('event', { valueAsNumber: true })} />
-          <p className="py-2 text-sm/6 text-zinc-950 dark:text-white">{props.eventName}</p>
+          {props.mode === 'create' && !props.eventId ? (
+            <Field>
+              <Label>Event *</Label>
+              <Controller
+                name="event"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                    }
+                    data-invalid={errors.event ? true : undefined}
+                  >
+                    <option value="">Select event</option>
+                    {(props.events ?? []).map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.name}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              />
+              {errors.event && <ErrorMessage>{errors.event.message}</ErrorMessage>}
+            </Field>
+          ) : (
+            <>
+              <input type="hidden" {...register('event', { valueAsNumber: true })} />
+              <p className="py-2 text-sm/6 text-zinc-950 dark:text-white">{props.eventName}</p>
+            </>
+          )}
         </div>
       </section>
 
       <Divider className="my-10" soft />
 
-      {/* Identity */}
+      {/* Basics */}
       <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
         <div className="space-y-1">
-          <Subheading>Identity</Subheading>
-          <Text>Basic details about the participant.</Text>
+          <Subheading>Basics</Subheading>
+          <Text>Core identity and role information.</Text>
         </div>
         <div className="space-y-6">
           <Field>
@@ -268,7 +225,9 @@ export function ParticipantForm(props: ParticipantFormProps) {
                 <Select
                   {...field}
                   value={field.value ?? ''}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  onChange={(e) =>
+                    field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                  }
                   data-invalid={errors.participantRole ? true : undefined}
                 >
                   <option value="">Select role</option>
@@ -280,15 +239,17 @@ export function ParticipantForm(props: ParticipantFormProps) {
                 </Select>
               )}
             />
-            {errors.participantRole && <ErrorMessage>{errors.participantRole.message}</ErrorMessage>}
+            {errors.participantRole && (
+              <ErrorMessage>{errors.participantRole.message}</ErrorMessage>
+            )}
           </Field>
 
           <Field>
             <Label>Status</Label>
             <Select {...register('status')} data-invalid={errors.status ? true : undefined}>
-              <option value="not-approved">Not Approved</option>
+              <option value="not-approved">Not approved</option>
               <option value="approved">Approved</option>
-              <option value="need-info">Need Info</option>
+              <option value="need-info">Need info</option>
               <option value="cancelled">Cancelled</option>
             </Select>
             {errors.status && <ErrorMessage>{errors.status.message}</ErrorMessage>}
@@ -298,42 +259,31 @@ export function ParticipantForm(props: ParticipantFormProps) {
 
       <Divider className="my-10" soft />
 
-      {/* Profile */}
+      {/* Contact */}
       <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
         <div className="space-y-1">
-          <Subheading>Profile</Subheading>
-          <Text>Personal and contact details.</Text>
+          <Subheading>Contact</Subheading>
+          <Text>Optional contact details for this participant.</Text>
         </div>
         <div className="space-y-6">
-          <Field>
-            <Label>Country</Label>
-            <Input
-              {...register('country')}
-              placeholder="Germany"
-              data-invalid={errors.country ? true : undefined}
-            />
-            {errors.country && <ErrorMessage>{errors.country.message}</ErrorMessage>}
-          </Field>
-
           <Field>
             <Label>Phone number</Label>
             <Input
               {...register('phoneNumber')}
-              placeholder="+49 123 456789"
+              placeholder="+1 555 000 0000"
               data-invalid={errors.phoneNumber ? true : undefined}
             />
             {errors.phoneNumber && <ErrorMessage>{errors.phoneNumber.message}</ErrorMessage>}
           </Field>
 
           <Field>
-            <Label>Biography</Label>
-            <Textarea
-              {...register('biography')}
-              placeholder="A brief bio…"
-              rows={4}
-              data-invalid={errors.biography ? true : undefined}
+            <Label>Country</Label>
+            <Input
+              {...register('country')}
+              placeholder="United States"
+              data-invalid={errors.country ? true : undefined}
             />
-            {errors.biography && <ErrorMessage>{errors.biography.message}</ErrorMessage>}
+            {errors.country && <ErrorMessage>{errors.country.message}</ErrorMessage>}
           </Field>
         </div>
       </section>
@@ -344,7 +294,7 @@ export function ParticipantForm(props: ParticipantFormProps) {
       <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
         <div className="space-y-1">
           <Subheading>Company</Subheading>
-          <Text>Professional affiliation.</Text>
+          <Text>Affiliation details for this participant.</Text>
         </div>
         <div className="space-y-6">
           <Field>
@@ -361,20 +311,45 @@ export function ParticipantForm(props: ParticipantFormProps) {
             <Label>Position / title</Label>
             <Input
               {...register('companyPosition')}
-              placeholder="Software Engineer"
+              placeholder="CTO"
               data-invalid={errors.companyPosition ? true : undefined}
             />
-            {errors.companyPosition && <ErrorMessage>{errors.companyPosition.message}</ErrorMessage>}
+            {errors.companyPosition && (
+              <ErrorMessage>{errors.companyPosition.message}</ErrorMessage>
+            )}
           </Field>
 
           <Field>
-            <Label>Company website</Label>
+            <Label>Website</Label>
             <Input
               {...register('companyWebsite')}
               placeholder="https://example.com"
               data-invalid={errors.companyWebsite ? true : undefined}
             />
-            {errors.companyWebsite && <ErrorMessage>{errors.companyWebsite.message}</ErrorMessage>}
+            {errors.companyWebsite && (
+              <ErrorMessage>{errors.companyWebsite.message}</ErrorMessage>
+            )}
+          </Field>
+        </div>
+      </section>
+
+      <Divider className="my-10" soft />
+
+      {/* Biography */}
+      <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+        <div className="space-y-1">
+          <Subheading>Biography</Subheading>
+          <Text>Short bio shown on public profiles.</Text>
+        </div>
+        <div>
+          <Field>
+            <Textarea
+              {...register('biography')}
+              placeholder="Brief bio…"
+              rows={4}
+              data-invalid={errors.biography ? true : undefined}
+            />
+            {errors.biography && <ErrorMessage>{errors.biography.message}</ErrorMessage>}
           </Field>
         </div>
       </section>
@@ -385,56 +360,62 @@ export function ParticipantForm(props: ParticipantFormProps) {
       <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
         <div className="space-y-1">
           <Subheading>Presentation</Subheading>
-          <Text>Speaker or presenter details (if applicable).</Text>
+          <Text>Talk or session details, if applicable.</Text>
         </div>
         <div className="space-y-6">
           <Field>
             <Label>Topic</Label>
             <Input
               {...register('presentationTopic')}
-              placeholder="The future of AI"
+              placeholder="Topic title"
               data-invalid={errors.presentationTopic ? true : undefined}
             />
-            {errors.presentationTopic && <ErrorMessage>{errors.presentationTopic.message}</ErrorMessage>}
+            {errors.presentationTopic && (
+              <ErrorMessage>{errors.presentationTopic.message}</ErrorMessage>
+            )}
           </Field>
 
           <Field>
             <Label>Summary</Label>
             <Textarea
               {...register('presentationSummary')}
-              placeholder="A summary of the presentation…"
+              placeholder="Brief description of the presentation…"
               rows={3}
               data-invalid={errors.presentationSummary ? true : undefined}
             />
-            {errors.presentationSummary && <ErrorMessage>{errors.presentationSummary.message}</ErrorMessage>}
+            {errors.presentationSummary && (
+              <ErrorMessage>{errors.presentationSummary.message}</ErrorMessage>
+            )}
           </Field>
 
           <Field>
             <Label>Technical requirements</Label>
             <Textarea
               {...register('technicalRequirements')}
-              placeholder="HDMI adapter, whiteboard…"
+              placeholder="Microphone, projector…"
               rows={2}
               data-invalid={errors.technicalRequirements ? true : undefined}
             />
-            {errors.technicalRequirements && <ErrorMessage>{errors.technicalRequirements.message}</ErrorMessage>}
+            {errors.technicalRequirements && (
+              <ErrorMessage>{errors.technicalRequirements.message}</ErrorMessage>
+            )}
           </Field>
         </div>
       </section>
 
       <Divider className="my-10" soft />
 
-      {/* Internal */}
+      {/* Internal notes */}
       <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
         <div className="space-y-1">
           <Subheading>Internal notes</Subheading>
-          <Text>Not visible to the participant.</Text>
+          <Text>Private notes visible only to your team.</Text>
         </div>
         <div>
           <Field>
             <Textarea
               {...register('internalNotes')}
-              placeholder="Internal notes…"
+              placeholder="Any internal notes…"
               rows={3}
               data-invalid={errors.internalNotes ? true : undefined}
             />

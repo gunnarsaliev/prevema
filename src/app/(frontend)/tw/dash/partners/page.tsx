@@ -1,35 +1,18 @@
-import { Suspense } from 'react'
-import { Button } from '@/components/catalyst/button'
-import { Heading } from '@/components/catalyst/heading'
 import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getCachedUserOrgIds } from '@/lib/cached-queries'
 import { getTwDashPartners } from './data'
-import { PartnersList } from './PartnersList'
-import { PartnersListSkeleton } from './PartnersListSkeleton'
-import { DashBreadcrumb } from '@/components/dash-breadcrumb'
+import { getTwDashEvents } from '../events/data'
+import { PartnersTable } from './PartnersTable'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Partners',
+  title: 'All Partners',
 }
 
-async function PartnersData({
-  userId,
-  organizationIds,
-  eventId,
-}: {
-  userId: number
-  organizationIds: number[]
-  eventId?: string
-}) {
-  const partners = await getTwDashPartners(userId, organizationIds, eventId)
-  return <PartnersList partners={partners} />
-}
-
-export default async function PartnersPage({
+export default async function AllPartnersPage({
   searchParams,
 }: {
   searchParams: Promise<{ eventId?: string }>
@@ -45,20 +28,16 @@ export default async function PartnersPage({
   const userId = typeof user.id === 'number' ? user.id : Number(user.id)
   const organizationIds = await getCachedUserOrgIds(userId)
 
+  const [partners, events] = await Promise.all([
+    getTwDashPartners(userId, organizationIds, eventId),
+    getTwDashEvents(userId, organizationIds),
+  ])
+
   return (
-    <>
-      <DashBreadcrumb items={[{ label: 'Partners' }]} />
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="max-sm:w-full sm:flex-1">
-          <Heading>Partners</Heading>
-        </div>
-        <Button href={eventId ? `/tw/dash/partners/create?eventId=${eventId}` : '/tw/dash/partners/create'}>
-          Create partner
-        </Button>
-      </div>
-      <Suspense fallback={<PartnersListSkeleton />}>
-        <PartnersData userId={userId} organizationIds={organizationIds} eventId={eventId} />
-      </Suspense>
-    </>
+    <PartnersTable
+      partners={partners}
+      events={events.map((e) => ({ id: String(e.id), name: e.name }))}
+      selectedEventId={eventId}
+    />
   )
 }

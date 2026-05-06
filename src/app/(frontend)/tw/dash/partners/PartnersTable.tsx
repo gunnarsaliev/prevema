@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { makeColumns } from './columns'
-import type { Participant, Organization } from '@/payload-types'
+import type { Partner, Organization } from '@/payload-types'
 import PageHeader from '../components/page-header'
 import { GenerateWithPrevemaDrawer } from './GenerateWithPrevemaDrawer'
 
@@ -41,12 +41,12 @@ interface EventOption {
   name: string
 }
 
-export function ParticipantsTable({
-  participants,
+export function PartnersTable({
+  partners,
   events = [],
   selectedEventId,
 }: {
-  participants: Participant[]
+  partners: Partner[]
   events?: EventOption[]
   selectedEventId?: string
 }) {
@@ -75,7 +75,7 @@ export function ParticipantsTable({
   const columns = useMemo(() => makeColumns(setSelected), [])
 
   const table = useReactTable({
-    data: participants,
+    data: partners,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -88,9 +88,9 @@ export function ParticipantsTable({
   })
 
   const selectedRows = table.getFilteredSelectedRowModel().rows
-  const selectedParticipants = selectedRows.map((r) => r.original)
-  const selectedIds = selectedParticipants.map((p) => String(p.id))
-  const firstOrg = selectedParticipants.find((p) => p.organization)?.organization
+  const selectedPartners = selectedRows.map((r) => r.original)
+  const selectedIds = selectedPartners.map((p) => String(p.id))
+  const firstOrg = selectedPartners.find((p) => p.organization)?.organization
   const organizationId =
     firstOrg == null
       ? null
@@ -102,14 +102,19 @@ export function ParticipantsTable({
   return (
     <>
       <PageHeader
-        title="All Participants"
+        title="All Partners"
         primaryAction={{
           label: 'Generate with Prevema',
           onClick: () => setGenerateOpen(true),
           disabled: !hasSelection,
-          tooltip: !hasSelection ? 'Select participants first to generate with Prevema' : undefined,
+          tooltip: !hasSelection ? 'Select partners first to generate with Prevema' : undefined,
         }}
-        secondaryAction={{ label: '+ Add New', href: '/tw/dash/participants/create' }}
+        secondaryAction={{
+          label: '+ Add New',
+          href: selectedEventId
+            ? `/tw/dash/partners/create?eventId=${selectedEventId}`
+            : '/tw/dash/partners/create',
+        }}
       />
       <div className="mt-8 space-y-4">
         <div className="flex flex-col gap-3 py-2 sm:flex-row sm:flex-wrap sm:items-center">
@@ -129,21 +134,21 @@ export function ParticipantsTable({
             </Select>
           )}
           <Input
-            placeholder="Filter by name…"
-            value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-            onChange={(e) => table.getColumn('name')?.setFilterValue(e.target.value)}
+            placeholder="Filter by company name…"
+            value={(table.getColumn('companyName')?.getFilterValue() as string) ?? ''}
+            onChange={(e) => table.getColumn('companyName')?.setFilterValue(e.target.value)}
             className="w-full sm:max-w-xs"
           />
           <Input
-            placeholder="Filter by email…"
-            value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
-            onChange={(e) => table.getColumn('email')?.setFilterValue(e.target.value)}
+            placeholder="Filter by contact…"
+            value={(table.getColumn('contactPerson')?.getFilterValue() as string) ?? ''}
+            onChange={(e) => table.getColumn('contactPerson')?.setFilterValue(e.target.value)}
             className="w-full sm:max-w-xs"
           />
           <span className="text-sm text-muted-foreground sm:ml-auto">
             {table.getFilteredSelectedRowModel().rows.length > 0
               ? `${table.getFilteredSelectedRowModel().rows.length} of ${table.getFilteredRowModel().rows.length} selected`
-              : `${table.getFilteredRowModel().rows.length} participant${table.getFilteredRowModel().rows.length !== 1 ? 's' : ''}`}
+              : `${table.getFilteredRowModel().rows.length} partner${table.getFilteredRowModel().rows.length !== 1 ? 's' : ''}`}
           </span>
         </div>
 
@@ -176,7 +181,7 @@ export function ParticipantsTable({
               ) : (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No participants found.
+                    No partners found.
                   </TableCell>
                 </TableRow>
               )}
@@ -211,7 +216,7 @@ export function ParticipantsTable({
       <GenerateWithPrevemaDrawer
         open={generateOpen}
         onOpenChange={setGenerateOpen}
-        participantIds={selectedIds}
+        partnerIds={selectedIds}
         organizationId={organizationId}
       />
     </>
