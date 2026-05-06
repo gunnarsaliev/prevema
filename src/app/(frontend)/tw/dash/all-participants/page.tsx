@@ -7,7 +7,6 @@ import { getTwDashParticipants } from '../participants/data'
 import { getTwDashEvents } from '../events/data'
 import { ParticipantsTable } from './ParticipantsTable'
 import type { Metadata } from 'next'
-import PageHeader from '../components/page-header'
 
 export const metadata: Metadata = {
   title: 'All Participants',
@@ -35,19 +34,10 @@ export default async function AllParticipantsPage({
   ])
 
   return (
-    <>
-      <PageHeader
-        title="All Participants"
-        primaryAction={{ label: 'Generate with Prevema', href: '/tw/dash/events' }}
-        secondaryAction={{ label: '+ Add New', href: '/tw/dash/participants/create' }}
-      />
-      <div className="mt-8">
-        <ParticipantsTable
-          participants={participants}
-          events={events.map((e) => ({ id: String(e.id), name: e.name }))}
-          selectedEventId={eventId}
-        />
-      </div>
-    </>
+    <ParticipantsTable
+      participants={participants}
+      events={events.map((e) => ({ id: String(e.id), name: e.name }))}
+      selectedEventId={eventId}
+    />
   )
 }

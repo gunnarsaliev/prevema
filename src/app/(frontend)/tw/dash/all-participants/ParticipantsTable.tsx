@@ -32,7 +32,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { makeColumns } from './columns'
-import type { Participant } from '@/payload-types'
+import type { Participant, Organization } from '@/payload-types'
+import PageHeader from '../components/page-header'
+import { GenerateWithPrevemaDrawer } from './GenerateWithPrevemaDrawer'
 
 interface EventOption {
   id: string
@@ -52,6 +54,7 @@ export function ParticipantsTable({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [selected, setSelected] = useState<QuickViewItem | null>(null)
+  const [generateOpen, setGenerateOpen] = useState(false)
 
   const handleEventChange = useCallback(
     (value: string) => {
@@ -84,9 +87,31 @@ export function ParticipantsTable({
     state: { sorting, columnFilters, rowSelection },
   })
 
+  const selectedRows = table.getFilteredSelectedRowModel().rows
+  const selectedParticipants = selectedRows.map((r) => r.original)
+  const selectedIds = selectedParticipants.map((p) => String(p.id))
+  const firstOrg = selectedParticipants.find((p) => p.organization)?.organization
+  const organizationId =
+    firstOrg == null
+      ? null
+      : typeof firstOrg === 'object'
+        ? String((firstOrg as Organization).id)
+        : String(firstOrg)
+  const hasSelection = selectedIds.length > 0
+
   return (
     <>
-      <div className="space-y-4">
+      <PageHeader
+        title="All Participants"
+        primaryAction={{
+          label: 'Generate with Prevema',
+          onClick: () => setGenerateOpen(true),
+          disabled: !hasSelection,
+          tooltip: !hasSelection ? 'Select participants first to generate with Prevema' : undefined,
+        }}
+        secondaryAction={{ label: '+ Add New', href: '/tw/dash/participants/create' }}
+      />
+      <div className="mt-8 space-y-4">
         <div className="flex flex-col gap-3 py-2 sm:flex-row sm:flex-wrap sm:items-center">
           {events.length > 0 && (
             <Select value={selectedEventId ?? 'all'} onValueChange={handleEventChange}>
@@ -183,6 +208,12 @@ export function ParticipantsTable({
       </div>
 
       <QuickViewDrawer item={selected} onClose={() => setSelected(null)} />
+      <GenerateWithPrevemaDrawer
+        open={generateOpen}
+        onOpenChange={setGenerateOpen}
+        participantIds={selectedIds}
+        organizationId={organizationId}
+      />
     </>
   )
 }

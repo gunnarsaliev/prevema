@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react'
 import Link from 'next/link'
 import { ReactNode } from 'react'
 import { RainbowButton } from '@/components/ui/rainbow-button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface BreadcrumbItem {
   label: string
@@ -14,6 +15,8 @@ interface ActionButton {
   label: string
   href?: string
   onClick?: () => void
+  disabled?: boolean
+  tooltip?: string
 }
 
 interface PageHeaderProps {
@@ -41,6 +44,27 @@ export default function PageHeader({
 
   const renderActionButton = (action: ActionButton, isPrimary: boolean) => {
     if (isPrimary) {
+      if (action.disabled) {
+        const button = (
+          <RainbowButton disabled aria-disabled="true" onClick={(e) => e.preventDefault()}>
+            <Icon icon="mingcute:ai-fill" className="mr-2 size-4" />
+            {action.label}
+          </RainbowButton>
+        )
+        if (!action.tooltip) return button
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span tabIndex={0} className="inline-block">
+                  {button}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">{action.tooltip}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )
+      }
       if (action.href) {
         return (
           <RainbowButton asChild>
@@ -53,7 +77,7 @@ export default function PageHeader({
       }
       return (
         <RainbowButton onClick={action.onClick}>
-          <Icon icon="ix:ai" className="mr-2 size-4" />
+          <Icon icon="mingcute:ai-fill" className="mr-2 size-4" />
           {action.label}
         </RainbowButton>
       )
