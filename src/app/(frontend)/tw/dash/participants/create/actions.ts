@@ -52,6 +52,40 @@ export async function createParticipant(
   }
 }
 
+type QuickCreateParticipantRoleData = {
+  name: string
+  requiredFields?: string[]
+  showOptionalFields?: boolean
+  optionalFields?: string[]
+}
+
+export async function quickCreateParticipantRole(
+  data: QuickCreateParticipantRoleData,
+): Promise<
+  { success: true; item: { id: number; name: string } } | { success: false; message: string }
+> {
+  try {
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: configPromise })
+    const { user } = await payload.auth({ headers })
+    if (!user) return { success: false, message: 'Unauthorized. Please log in.' }
+
+    const doc = await payload.create({
+      collection: 'participant-roles',
+      data: data as any,
+      user,
+      overrideAccess: false,
+    })
+
+    return { success: true, item: { id: doc.id as number, name: doc.name } }
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to create role.',
+    }
+  }
+}
+
 export async function updateParticipant(
   participantId: string,
   data: ParticipantFormValues,

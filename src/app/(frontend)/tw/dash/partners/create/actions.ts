@@ -102,6 +102,40 @@ export async function updatePartner(
   }
 }
 
+type QuickCreatePartnerTypeData = {
+  name: string
+  requiredFields?: string[]
+  showOptionalFields?: boolean
+  optionalFields?: string[]
+}
+
+export async function quickCreatePartnerType(
+  data: QuickCreatePartnerTypeData,
+): Promise<
+  { success: true; item: { id: number; name: string } } | { success: false; message: string }
+> {
+  try {
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: configPromise })
+    const { user } = await payload.auth({ headers })
+    if (!user) return { success: false, message: 'Unauthorized. Please log in.' }
+
+    const doc = await payload.create({
+      collection: 'partner-types',
+      data: data as any,
+      user,
+      overrideAccess: false,
+    })
+
+    return { success: true, item: { id: doc.id as number, name: doc.name } }
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to create partner type.',
+    }
+  }
+}
+
 export async function deletePartner(
   partnerId: string,
 ): Promise<{ success: boolean; message?: string }> {

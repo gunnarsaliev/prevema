@@ -4,6 +4,12 @@ import Link from 'next/link'
 import { ReactNode } from 'react'
 import { RainbowButton } from '@/components/ui/rainbow-button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface BreadcrumbItem {
   label: string
@@ -157,6 +163,25 @@ export default function PageHeader({
               </span>
             )}
             {primaryAction && renderActionButton(primaryAction, true)}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="ml-2 inline-flex items-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+                  aria-label="More options"
+                >
+                  <Icon icon="heroicons:ellipsis-vertical" className="size-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href="/tw/dash/partner-types">Partner Types</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/tw/dash/participant-roles">Participant Roles</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
       </div>
