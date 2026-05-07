@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ChevronDown, Globe, DoorOpen } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -31,7 +32,9 @@ export function AvatarGroup({ guests, guestCount }: { guests: Guest[]; guestCoun
         {guests.slice(0, 4).map((a) => (
           <Avatar key={a.name} className="size-7 border-2 border-background ring-0">
             {a.avatar && <AvatarImage src={a.avatar} alt={a.name} />}
-            <AvatarFallback className="bg-muted text-[10px] font-medium">{a.initials}</AvatarFallback>
+            <AvatarFallback className="bg-muted text-[10px] font-medium">
+              {a.initials}
+            </AvatarFallback>
           </Avatar>
         ))}
       </div>
@@ -54,8 +57,19 @@ export function BookingCard({ booking }: { booking: Booking }) {
   )
 
   return (
-    <div className="rounded-lg border bg-card p-3 transition-colors hover:bg-muted/30">
-      <div className="flex items-start justify-between gap-3">
+    <div className="rounded-lg border bg-card overflow-hidden transition-colors hover:bg-muted/30">
+      {booking.image && (
+        <div className="relative h-28 w-full">
+          <Image
+            src={booking.image}
+            alt={booking.guestName}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 380px"
+          />
+        </div>
+      )}
+      <div className="flex items-start justify-between gap-3 p-3">
         <div className="min-w-0 flex-1 space-y-2.5">
           <div>
             {booking.href ? (
@@ -108,10 +122,9 @@ export function BookingCard({ booking }: { booking: Booking }) {
       </div>
 
       {expanded && booking.specialRequests && (
-        <div className="mt-3 space-y-1 border-t pt-3 text-xs text-muted-foreground">
+        <div className="space-y-1 border-t px-3 pb-3 pt-3 text-xs text-muted-foreground">
           <p>
-            <span className="font-medium text-foreground">Notes:</span>{' '}
-            {booking.specialRequests}
+            <span className="font-medium text-foreground">Notes:</span> {booking.specialRequests}
           </p>
           {booking.nights > 0 && (
             <p>

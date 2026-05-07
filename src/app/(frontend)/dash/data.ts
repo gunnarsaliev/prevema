@@ -212,7 +212,7 @@ export const getUpcomingEventsAsBookings = cache(
           collection: 'events',
           overrideAccess: true,
           where: where as any,
-          depth: 0,
+          depth: 1,
           limit,
           sort: 'startDate',
         })
@@ -236,6 +236,9 @@ export const getUpcomingEventsAsBookings = cache(
               })
             : '—'
 
+          const imageMedia = ev.image && typeof ev.image === 'object' ? (ev.image as Media) : null
+          const imageUrl = imageMedia?.thumbnailURL ?? imageMedia?.url ?? undefined
+
           return {
             id: String(ev.id),
             guestName: ev.name,
@@ -250,6 +253,7 @@ export const getUpcomingEventsAsBookings = cache(
             nights,
             specialRequests: ev.description ?? undefined,
             href: `/dash/events/${ev.id}`,
+            image: imageUrl,
           }
         })
       },

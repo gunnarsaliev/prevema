@@ -18,6 +18,7 @@ export type Booking = {
   nights: number
   specialRequests?: string
   href?: string
+  image?: string
 }
 
 export type RecentArrivalItem = {
