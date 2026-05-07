@@ -40,6 +40,8 @@ import {
   UserGroupIcon,
   BuildingOfficeIcon,
   AdjustmentsHorizontalIcon,
+  FolderIcon,
+  BookOpenIcon,
 } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/providers/Auth'
@@ -155,9 +157,9 @@ export function ApplicationLayout({
 
           <SidebarBody>
             <SidebarSection>
-              <SidebarItem href="/" current={pathname === '/'}>
+              <SidebarItem href="/tw/dash" current={pathname === '/tw/dash'}>
                 <HomeIcon />
-                <SidebarLabel>Home</SidebarLabel>
+                <SidebarLabel>Dashboard</SidebarLabel>
               </SidebarItem>
               <SidebarItem href="/tw/dash/events" current={pathname.startsWith('/tw/dash/events')}>
                 <Square2StackIcon />
@@ -176,6 +178,17 @@ export function ApplicationLayout({
               >
                 <BuildingOfficeIcon />
                 <SidebarLabel>Partners</SidebarLabel>
+              </SidebarItem>
+              <SidebarItem href="/tw/dash/assets" current={pathname.startsWith('/tw/dash/assets')}>
+                <FolderIcon />
+                <SidebarLabel>Assets</SidebarLabel>
+              </SidebarItem>
+              <SidebarItem
+                href="/tw/dash/library"
+                current={pathname.startsWith('/tw/dash/library')}
+              >
+                <BookOpenIcon />
+                <SidebarLabel>Library</SidebarLabel>
               </SidebarItem>
             </SidebarSection>
 

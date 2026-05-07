@@ -1,13 +1,19 @@
+import { headers as getHeaders } from 'next/headers'
+import { getPayload } from 'payload'
+import config from '@/payload.config'
 import { Stat } from '../stat'
 import { Heading, Subheading } from '@/components/catalyst/heading'
 import { Select } from '@/components/catalyst/select'
-import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 
 export default async function Home() {
+  const headers = await getHeaders()
+  const payload = await getPayload({ config: await config })
+  const { user } = await payload.auth({ headers })
+
+  const firstName = user?.name?.split(' ')[0] || 'there'
   return (
     <>
-      <DashBreadcrumb items={[]} />
-      <Heading>Good afternoon, Erica</Heading>
+      <Heading>Welcome, {firstName}</Heading>
       <div className="mt-8 flex items-end justify-between">
         <Subheading>Overview</Subheading>
         <div>

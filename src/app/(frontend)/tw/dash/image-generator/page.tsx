@@ -4,15 +4,15 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarHeader,
-} from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
-import { Palette, Settings, Paintbrush, Layers } from 'lucide-react'
+import {
+  Palette,
+  Settings,
+  Paintbrush,
+  Layers,
+  PanelRightClose,
+  PanelRightOpen,
+} from 'lucide-react'
 import CanvasEditor from './components/canvas-editor'
 import FormattingToolbar from './components/formatting-toolbar'
 import { Download, Save, Undo, Redo } from 'lucide-react'
@@ -80,6 +80,7 @@ export default function ImageTemplateGenerator() {
 
   // Active sidebar module state
   const [activeModuleId, setActiveModuleId] = useState('design-tools')
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
 
   // Edit mode: Check if we're editing an existing template
   const templateId = searchParams.get('templateId')
@@ -1155,47 +1156,33 @@ export default function ImageTemplateGenerator() {
       />
 
       <div className="flex h-full min-h-0 flex-1 overflow-hidden">
-        {/* Tool Sidebar - ApplicationShell8 style helper sidebar */}
-        <Sidebar collapsible="none" className="w-full shrink-0 border-r md:flex md:w-[320px]">
-          <SidebarHeader className="border-b p-2">
-            <div className="flex items-center gap-1">
-              {toolModules.map((module) => {
-                const Icon = module.icon
-                const isActive = activeModuleId === module.id
-                return (
-                  <button
-                    key={module.id}
-                    type="button"
-                    onClick={() => setActiveModuleId(module.id)}
-                    className={cn(
-                      'flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
-                      isActive && 'bg-accent text-accent-foreground',
-                    )}
-                    title={module.label}
-                  >
-                    <Icon className="size-5" />
-                  </button>
-                )
-              })}
-            </div>
-          </SidebarHeader>
-          <SidebarContent className="overflow-hidden">
-            <ScrollArea className="h-full">
-              <SidebarGroup className="p-0">
-                <SidebarGroupContent className="p-4">{customPanelContent}</SidebarGroupContent>
-              </SidebarGroup>
-            </ScrollArea>
-          </SidebarContent>
-        </Sidebar>
-
         {/* Canvas Area */}
         <div className="flex flex-1 flex-col overflow-hidden h-full">
           {/* Formatting Toolbar */}
-          <FormattingToolbar
-            selectedElement={selectedElement}
-            onElementUpdate={updateElement}
-            onDeleteElement={deleteElement}
-          />
+          <div className="flex items-center">
+            <div className="flex-1">
+              <FormattingToolbar
+                selectedElement={selectedElement}
+                onElementUpdate={updateElement}
+                onDeleteElement={deleteElement}
+              />
+            </div>
+            <div className="border-b border-border px-2 py-3 flex items-center">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setRightSidebarOpen((prev) => !prev)}
+                className="h-8 w-8 p-0"
+                title={rightSidebarOpen ? 'Close Settings' : 'Open Settings'}
+              >
+                {rightSidebarOpen ? (
+                  <PanelRightClose className="h-4 w-4" />
+                ) : (
+                  <PanelRightOpen className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
 
           {/* Canvas Container - Scrollable independently with ScrollArea */}
           <ScrollArea className="flex-1 h-full bg-muted/20 dark:bg-background">
@@ -1218,6 +1205,37 @@ export default function ImageTemplateGenerator() {
             </div>
           </ScrollArea>
         </div>
+
+        {/* Right Sidebar - Collapsible settings panel */}
+        {rightSidebarOpen && (
+          <div className="w-[320px] shrink-0 border-l border-border bg-background flex flex-col h-full">
+            <div className="border-b p-2">
+              <div className="flex items-center gap-1">
+                {toolModules.map((module) => {
+                  const Icon = module.icon
+                  const isActive = activeModuleId === module.id
+                  return (
+                    <button
+                      key={module.id}
+                      type="button"
+                      onClick={() => setActiveModuleId(module.id)}
+                      className={cn(
+                        'flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+                        isActive && 'bg-accent text-accent-foreground',
+                      )}
+                      title={module.label}
+                    >
+                      <Icon className="size-5" />
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            <ScrollArea className="flex-1 overflow-hidden">
+              <div className="p-4">{customPanelContent}</div>
+            </ScrollArea>
+          </div>
+        )}
       </div>
 
       {/* Save Template Dialog */}
