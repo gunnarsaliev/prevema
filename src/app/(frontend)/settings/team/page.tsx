@@ -1,5 +1,5 @@
-import { InviteUser2 } from '@/components/invite-user2'
+import { redirect } from 'next/navigation'
 
 export default function TeamPage() {
-  return <InviteUser2 />
+  redirect('/settings/members')
 }
