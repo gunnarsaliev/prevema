@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
     const formattedMembers = orgMembers.docs.map((member) => {
       const userObj = typeof member.user === 'object' ? member.user : null
       return {
-        id: member.id,
+        id: String(member.id),
         userId: userObj?.id ? String(userObj.id) : undefined,
         name: userObj?.name || userObj?.email || 'Unknown',
         email: userObj?.email || 'Unknown',
@@ -93,11 +93,12 @@ export async function GET(req: NextRequest) {
 
     // Format invitations data
     const formattedInvitations = invitations.docs.map((invitation) => ({
-      id: invitation.id,
-      name: invitation.email, // Show email as name for invitations
+      id: String(invitation.id),
+      name: invitation.email,
       email: invitation.email,
       role: invitation.role,
-      status: 'Invited',
+      status: 'invited',
+      isOwner: false,
       isInvitation: true,
       invitedAt: invitation.createdAt,
       expiresAt: invitation.expiresAt,
