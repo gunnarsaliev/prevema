@@ -253,7 +253,8 @@ export async function POST(req: NextRequest) {
             organization: organizationId,
             role,
             invitedBy: user.id,
-          },
+            // token, status, expiresAt are set by the beforeChange hook
+          } as any,
           draft: false,
         })
 
