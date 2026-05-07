@@ -283,3 +283,172 @@ export async function POST(req: NextRequest) {
     )
   }
 }
+
+/**
+ * PATCH /api/team/members
+ * Change a member's role
+ * Body: { memberId: string, role: 'admin' | 'editor' | 'viewer' }
+ */
+export async function PATCH(req: NextRequest) {
+  try {
+    const payload = await getPayload({ config: configPromise })
+    const authResult = await payload.auth({ headers: req.headers })
+    if (!authResult?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const user = authResult.user
+    const body = await req.json()
+    const { memberId, role } = body
+
+    if (!memberId || !role || !['admin', 'editor', 'viewer'].includes(role)) {
+      return NextResponse.json({ error: 'memberId and a valid role are required' }, { status: 400 })
+    }
+
+    const targetMember = await payload.findByID({
+      collection: 'members',
+      id: memberId,
+      depth: 1,
+    })
+
+    const orgId =
+      typeof targetMember.organization === 'object'
+        ? targetMember.organization.id
+        : targetMember.organization
+
+    const callerMembership = await payload.find({
+      collection: 'members',
+      where: {
+        and: [
+          { user: { equals: user.id } },
+          { organization: { equals: orgId } },
+          { or: [{ role: { equals: 'owner' } }, { role: { equals: 'admin' } }] },
+        ],
+      },
+      limit: 1,
+      depth: 0,
+    })
+    if (callerMembership.docs.length === 0) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+    }
+
+    const targetUserId =
+      typeof targetMember.user === 'object' ? targetMember.user.id : targetMember.user
+    if (String(targetUserId) === String(user.id)) {
+      return NextResponse.json({ error: 'Cannot change your own role' }, { status: 400 })
+    }
+
+    const updated = await payload.update({
+      collection: 'members',
+      id: memberId,
+      data: { role },
+    })
+
+    return NextResponse.json({ success: true, member: updated })
+  } catch (error: any) {
+    const message = error.message || 'Failed to update role'
+    const status = message.includes('Cannot change') ? 400 : 500
+    return NextResponse.json({ error: message }, { status })
+  }
+}
+
+/**
+ * DELETE /api/team/members
+ * Remove a member or cancel an invitation
+ * Body: { memberId: string, type: 'member' | 'invitation' }
+ */
+export async function DELETE(req: NextRequest) {
+  try {
+    const payload = await getPayload({ config: configPromise })
+    const authResult = await payload.auth({ headers: req.headers })
+    if (!authResult?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const user = authResult.user
+    const body = await req.json()
+    const { memberId, type } = body
+
+    if (!memberId || !['member', 'invitation'].includes(type)) {
+      return NextResponse.json(
+        { error: 'memberId and type (member|invitation) are required' },
+        { status: 400 },
+      )
+    }
+
+    if (type === 'member') {
+      const targetMember = await payload.findByID({
+        collection: 'members',
+        id: memberId,
+        depth: 1,
+      })
+
+      const orgId =
+        typeof targetMember.organization === 'object'
+          ? targetMember.organization.id
+          : targetMember.organization
+
+      const callerMembership = await payload.find({
+        collection: 'members',
+        where: {
+          and: [
+            { user: { equals: user.id } },
+            { organization: { equals: orgId } },
+            { or: [{ role: { equals: 'owner' } }, { role: { equals: 'admin' } }] },
+          ],
+        },
+        limit: 1,
+        depth: 0,
+      })
+      if (callerMembership.docs.length === 0) {
+        return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+      }
+
+      const targetUserId =
+        typeof targetMember.user === 'object' ? targetMember.user.id : targetMember.user
+      if (String(targetUserId) === String(user.id)) {
+        return NextResponse.json({ error: 'Cannot remove yourself from the team' }, { status: 403 })
+      }
+
+      await payload.delete({ collection: 'members', id: memberId })
+      return NextResponse.json({ success: true })
+    }
+
+    // type === 'invitation' — soft-expire it
+    const invitation = await payload.findByID({
+      collection: 'invitations',
+      id: memberId,
+      depth: 1,
+    })
+
+    const orgId =
+      typeof invitation.organization === 'object'
+        ? invitation.organization.id
+        : invitation.organization
+
+    const callerMembership = await payload.find({
+      collection: 'members',
+      where: {
+        and: [
+          { user: { equals: user.id } },
+          { organization: { equals: orgId } },
+          { or: [{ role: { equals: 'owner' } }, { role: { equals: 'admin' } }] },
+        ],
+      },
+      limit: 1,
+      depth: 0,
+    })
+    if (callerMembership.docs.length === 0) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+    }
+
+    await payload.update({
+      collection: 'invitations',
+      id: memberId,
+      data: { status: 'expired' },
+    })
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    const message = error.message || 'Failed to remove member'
+    const status = message.includes('Cannot') ? 400 : 500
+    return NextResponse.json({ error: message }, { status })
+  }
+}
