@@ -1,17 +1,25 @@
 'use client'
 
-import { Bell, Search, CalendarRange } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { DateRangePicker } from './date-range-picker'
 
 interface DashboardHeaderProps {
   name: string
   email?: string
   avatarUrl?: string
   greeting?: string
+  from?: string
+  to?: string
 }
 
-export function DashboardHeader({ name, email, avatarUrl, greeting }: DashboardHeaderProps) {
+export function DashboardHeader({
+  name,
+  email,
+  avatarUrl,
+  greeting,
+  from,
+  to,
+}: DashboardHeaderProps) {
   const firstName = name.split(' ')[0] ?? name
   const initials = name
     .split(' ')
@@ -33,16 +41,13 @@ export function DashboardHeader({ name, email, avatarUrl, greeting }: DashboardH
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <Button variant="outline" size="icon" className="size-8" aria-label="Search">
+        {/* <Button variant="outline" size="icon" className="size-8" aria-label="Search">
           <Search className="size-4" aria-hidden="true" />
-        </Button>
-        <Button variant="outline" size="icon" className="size-8" aria-label="Notifications">
+        </Button> */}
+        {/* <Button variant="outline" size="icon" className="size-8" aria-label="Notifications">
           <Bell className="size-4" aria-hidden="true" />
-        </Button>
-        <Button variant="outline" size="sm" className="hidden h-8 gap-1.5 text-xs sm:flex" aria-label="Date range">
-          <CalendarRange className="size-3.5" aria-hidden="true" />
-          {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-        </Button>
+        </Button> */}
+        <DateRangePicker from={from} to={to} />
       </div>
     </header>
   )

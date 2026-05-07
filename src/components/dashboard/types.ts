@@ -40,6 +40,19 @@ export type RecentPartnerItem = {
   href?: string
 }
 
+export type EmailLogItem = {
+  id: string | number
+  subject: string
+  toEmail: string
+  toName?: string
+  fromName?: string
+  templateName?: string
+  triggerEvent?: string | null
+  status: string
+  sentAt?: string | null
+  time: string
+}
+
 export type RegistrationDayData = {
   date: string
   participants: number

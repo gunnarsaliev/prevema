@@ -4,10 +4,12 @@ import { getPayload } from 'payload'
 import { formatDistanceToNow } from 'date-fns'
 
 import config from '@/payload.config'
-import type { Event, Media, Participant, Partner } from '@/payload-types'
+import type { EmailLog, Event, Media, Participant, Partner } from '@/payload-types'
 import { orgEventsTag, orgParticipantsTag, orgPartnersTag } from '@/lib/cached-queries'
+import { compileTemplate } from '@/utils/templateEngine'
 import type {
   Booking,
+  EmailLogItem,
   RecentArrivalItem,
   RecentPartnerItem,
   RegistrationDayData,
@@ -107,7 +109,7 @@ export const getRecentParticipants = cache(
               .slice(0, 2),
             avatar: avatarUrl,
             subtitle: eventName,
-            href: '/tw/dash/participants',
+            href: `/tw/dash/participants/${p.id}`,
           }
         })
       },
@@ -264,28 +266,51 @@ export const getUpcomingEventsAsBookings = cache(
  * over the last `days` days. Used by the registrations chart.
  */
 export const getRegistrationTimeline = cache(
-  async (userId: number, organizationIds: number[], days = 30): Promise<RegistrationDayData[]> => {
+  async (
+    userId: number,
+    organizationIds: number[],
+    days = 30,
+    fromDate?: string,
+    toDate?: string,
+  ): Promise<RegistrationDayData[]> => {
     const cacheKey =
       organizationIds
         .slice()
         .sort((a, b) => a - b)
-        .join(',') + `-${days}`
+        .join(',') + `-${fromDate ?? days}-${toDate ?? ''}`
     const tags = organizationIds.flatMap((id) => [orgParticipantsTag(id), orgPartnersTag(id)])
 
     const cachedFetch = unstable_cache(
       async () => {
         const payload = await getPayload({ config: await config })
         const now = new Date()
-        const since = new Date(now)
-        since.setDate(since.getDate() - days + 1)
+        now.setHours(23, 59, 59, 999)
+
+        const until = toDate ? new Date(toDate) : new Date(now)
+        until.setHours(23, 59, 59, 999)
+
+        const since = fromDate ? new Date(fromDate) : new Date()
+        if (!fromDate) {
+          since.setDate(since.getDate() - days + 1)
+        }
         since.setHours(0, 0, 0, 0)
+
+        const actualDays =
+          Math.round((until.getTime() - since.getTime()) / (1000 * 60 * 60 * 24)) + 1
+
         const sinceIso = since.toISOString()
 
         const orgWhere =
           organizationIds.length > 0 ? { organization: { in: organizationIds } } : undefined
 
+        const untilIso = until.toISOString()
         const makeWhere = (dateField: string) => {
-          const dateCond = { [dateField]: { greater_than_equal: sinceIso } }
+          const dateCond = {
+            and: [
+              { [dateField]: { greater_than_equal: sinceIso } },
+              { [dateField]: { less_than_equal: untilIso } },
+            ],
+          }
           return orgWhere ? { and: [orgWhere, dateCond] } : dateCond
         }
 
@@ -321,7 +346,7 @@ export const getRegistrationTimeline = cache(
         }
 
         // Pre-fill every day in range so gaps show as 0
-        for (let i = 0; i < days; i++) {
+        for (let i = 0; i < actualDays; i++) {
           const d = new Date(since)
           d.setDate(d.getDate() + i)
           addDay(d.toISOString().slice(0, 10))
@@ -339,6 +364,80 @@ export const getRegistrationTimeline = cache(
         return Object.values(buckets).sort((a, b) => a.date.localeCompare(b.date))
       },
       ['tw-dash-registration-timeline', userId.toString(), cacheKey],
+      { revalidate: 30, tags },
+    )
+
+    return cachedFetch()
+  },
+)
+
+/**
+ * Last N outbound emails sent to participants/partners in the org.
+ * Used by the email history widget on the dashboard.
+ */
+export const getRecentEmailLogs = cache(
+  async (userId: number, organizationIds: number[], limit = 8): Promise<EmailLogItem[]> => {
+    const cacheKey =
+      organizationIds
+        .slice()
+        .sort((a, b) => a - b)
+        .join(',') + `-${limit}`
+    const tags = organizationIds.map((id) => `org-${id}-email-logs`)
+
+    const cachedFetch = unstable_cache(
+      async () => {
+        const payload = await getPayload({ config: await config })
+        const where =
+          organizationIds.length > 0
+            ? {
+                and: [
+                  { organization: { in: organizationIds } },
+                  { direction: { equals: 'outbound' } },
+                ],
+              }
+            : { direction: { equals: 'outbound' } }
+
+        const { docs } = await payload.find({
+          collection: 'email-logs',
+          overrideAccess: true,
+          where: where as any,
+          depth: 0,
+          limit,
+          sort: '-sentAt',
+        })
+
+        return (docs as EmailLog[]).map((log): EmailLogItem => {
+          const dateStr =
+            log.sentAt ??
+            ((log as unknown as Record<string, unknown>).createdAt as string | undefined)
+
+          let vars: Record<string, string> = {}
+          if (log.variables) {
+            try {
+              vars = JSON.parse(log.variables)
+            } catch {
+              /* ignore */
+            }
+          }
+          const resolvedSubject = compileTemplate(log.subject, vars)
+            .replace(/\{\{\w+\}\}/g, '')
+            .trim()
+
+          return {
+            id: log.id,
+            subject: resolvedSubject || log.subject,
+            toEmail: log.toEmail,
+            toName: log.toName ?? undefined,
+            fromName: log.fromName ?? undefined,
+            templateName: log.templateName ?? undefined,
+            triggerEvent: log.triggerEvent ?? null,
+            status: log.status,
+            sentAt: log.sentAt ?? null,
+            time: dateStr ? formatDistanceToNow(new Date(dateStr), { addSuffix: true }) : '—',
+          }
+        })
+      },
+      ['tw-dash-recent-email-logs', userId.toString(), cacheKey],
       { revalidate: 30, tags },
     )
 
