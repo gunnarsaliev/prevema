@@ -380,7 +380,7 @@ export async function DELETE(req: NextRequest) {
 
     if (!id || !['member', 'invitation'].includes(type)) {
       return NextResponse.json(
-        { error: 'memberId and type (member|invitation) are required' },
+        { error: 'id and type (member|invitation) are required' },
         { status: 400 },
       )
     }
