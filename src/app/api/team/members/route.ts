@@ -81,6 +81,7 @@ export async function GET(req: NextRequest) {
       const userObj = typeof member.user === 'object' ? member.user : null
       return {
         id: member.id,
+        userId: userObj?.id ? String(userObj.id) : undefined,
         name: userObj?.name || userObj?.email || 'Unknown',
         email: userObj?.email || 'Unknown',
         role: member.role,

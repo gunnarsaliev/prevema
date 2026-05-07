@@ -161,27 +161,32 @@ export function MembersClient({ initialMembers, organization, currentUserId }: M
   }
 
   const handleInvite = async (email: string, role: string): Promise<boolean> => {
-    const res = await fetch('/api/team/members', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ emails: [email], role }),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      toast.error(data.error || 'Failed to send invitation')
+    try {
+      const res = await fetch('/api/team/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emails: [email], role }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || 'Failed to send invitation')
+        return false
+      }
+      if (data.errors?.length > 0) {
+        data.errors.forEach((e: { email: string; error: string }) =>
+          toast.error(`${e.email}: ${e.error}`),
+        )
+      }
+      if (data.success) {
+        toast.success(data.message)
+        await refresh()
+        return true
+      }
+      return false
+    } catch {
+      toast.error('Failed to send invitation')
       return false
     }
-    if (data.errors?.length > 0) {
-      data.errors.forEach((e: { email: string; error: string }) =>
-        toast.error(`${e.email}: ${e.error}`),
-      )
-    }
-    if (data.success) {
-      toast.success(data.message)
-      await refresh()
-      return true
-    }
-    return false
   }
 
   return (
@@ -278,26 +283,33 @@ function MemberCard({
       </div>
 
       <div className="flex items-center justify-between gap-3 sm:flex-1/3">
-        {member.isInvitation ? (
-          <StatusBadge status="invited" />
-        ) : canEditRole ? (
-          <Select
-            value={member.role}
-            onValueChange={(val) => onRoleChange(val, member.role)}
-            disabled={isLoading}
-          >
-            <SelectTrigger className="min-w-24">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="editor">Editor</SelectItem>
-              <SelectItem value="viewer">Viewer</SelectItem>
-            </SelectContent>
-          </Select>
-        ) : (
-          <span className="text-sm capitalize text-muted-foreground">{member.role}</span>
-        )}
+        <div className="flex items-center gap-2">
+          {member.isInvitation ? (
+            <StatusBadge status="invited" />
+          ) : (
+            <>
+              <StatusBadge status={member.status} />
+              {canEditRole ? (
+                <Select
+                  value={member.role}
+                  onValueChange={(val) => onRoleChange(val, member.role)}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger className="min-w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <span className="text-sm capitalize text-muted-foreground">{member.role}</span>
+              )}
+            </>
+          )}
+        </div>
 
         {showDropdown ? (
           <DropdownMenu>
