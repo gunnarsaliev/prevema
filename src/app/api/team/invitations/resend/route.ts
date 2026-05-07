@@ -22,15 +22,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'invitationId is required' }, { status: 400 })
     }
 
-    let invitation
+    let invitation: any
     try {
       invitation = await payload.findByID({
         collection: 'invitations',
         id: invitationId,
         depth: 1,
       })
-    } catch {
-      return NextResponse.json({ error: 'Invitation not found' }, { status: 404 })
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message.toLowerCase() : ''
+      if (message.includes('not found') || message.includes('no invitation')) {
+        return NextResponse.json({ error: 'Invitation not found' }, { status: 404 })
+      }
+      throw err // re-throw real errors (DB failures etc.) so outer catch returns 500
     }
 
     if (invitation.status !== 'pending') {
@@ -73,8 +77,8 @@ export async function POST(req: NextRequest) {
     })
 
     const orgName =
-      typeof invitation.organization === 'object' && 'name' in invitation.organization
-        ? (invitation.organization as any).name
+      typeof invitation.organization === 'object'
+        ? invitation.organization.name
         : 'your organization'
 
     const inviteUrl = `${process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}/accept-invitation?token=${invitation.token}`
