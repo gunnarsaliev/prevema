@@ -61,6 +61,10 @@ function AccountDropdownMenu({ anchor }: { anchor: 'top start' | 'bottom end' })
         <Cog8ToothIcon />
         <DropdownLabel>Organization</DropdownLabel>
       </DropdownItem>
+      <DropdownItem href="/settings/team">
+        <UserGroupIcon />
+        <DropdownLabel>Team</DropdownLabel>
+      </DropdownItem>
       <DropdownItem href="/settings/billing">
         <CreditCardIcon />
         <DropdownLabel>Billing</DropdownLabel>

@@ -4,6 +4,7 @@ import { organizationOwnerFieldAccess } from '@/access/organizationOwnerFieldAcc
 import { checkRole, getUserOrganizationIds } from '@/access/utilities'
 import { validateEmailConfig } from '@/services/emailValidation'
 import { formatSlugHook } from '@/utils/formatSlug'
+import { createOwnerMember } from './hooks/createOwnerMember'
 
 export const Organizations: CollectionConfig = {
   slug: 'organizations',
@@ -96,7 +97,9 @@ export const Organizations: CollectionConfig = {
       }
 
       // Combine organization IDs from both sources
-      const allOwnedOrganizationIds = [...new Set([...ownedOrganizationIds, ...directlyOwnedOrganizations])]
+      const allOwnedOrganizationIds = [
+        ...new Set([...ownedOrganizationIds, ...directlyOwnedOrganizations]),
+      ]
 
       if (allOwnedOrganizationIds.length > 0) {
         return {
@@ -158,6 +161,7 @@ export const Organizations: CollectionConfig = {
         return data
       },
     ],
+    afterChange: [createOwnerMember],
     beforeDelete: [
       async ({ req, id }) => {
         const { payload } = req
@@ -215,7 +219,9 @@ export const Organizations: CollectionConfig = {
               console.log(`  ✅ Deleted ${members.docs.length} members`)
             }
           } catch (err) {
-            console.error(`  ❌ Error deleting members: ${err instanceof Error ? err.message : 'Unknown error'}`)
+            console.error(
+              `  ❌ Error deleting members: ${err instanceof Error ? err.message : 'Unknown error'}`,
+            )
             throw err // Re-throw to abort the entire deletion
           }
 
@@ -240,7 +246,9 @@ export const Organizations: CollectionConfig = {
               console.log(`  ✅ Deleted subscription`)
             }
           } catch (err) {
-            console.error(`  ❌ Error deleting subscription: ${err instanceof Error ? err.message : 'Unknown error'}`)
+            console.error(
+              `  ❌ Error deleting subscription: ${err instanceof Error ? err.message : 'Unknown error'}`,
+            )
             throw err // Re-throw to abort the entire deletion
           }
 
@@ -270,7 +278,9 @@ export const Organizations: CollectionConfig = {
               console.log(`  ✅ Expired ${invitations.docs.length} invitations`)
             }
           } catch (err) {
-            console.error(`  ❌ Error expiring invitations: ${err instanceof Error ? err.message : 'Unknown error'}`)
+            console.error(
+              `  ❌ Error expiring invitations: ${err instanceof Error ? err.message : 'Unknown error'}`,
+            )
             throw err // Re-throw to abort the entire deletion
           }
 
@@ -303,7 +313,9 @@ export const Organizations: CollectionConfig = {
                 console.log(`  ⏭️  Skipping ${label} - collection does not exist`)
               } else {
                 // Re-throw all other errors (including transaction errors)
-                console.error(`  ❌ Error deleting ${label}: ${err instanceof Error ? err.message : 'Unknown error'}`)
+                console.error(
+                  `  ❌ Error deleting ${label}: ${err instanceof Error ? err.message : 'Unknown error'}`,
+                )
                 throw err
               }
             }
