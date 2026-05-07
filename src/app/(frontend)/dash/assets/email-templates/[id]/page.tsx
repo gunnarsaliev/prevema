@@ -64,7 +64,7 @@ export default async function EmailTemplateDetailPage({
     <div className="px-6 py-8">
       <div className="mb-6">
         <Button variant="ghost" size="sm" asChild className="mb-4">
-          <Link href="/dash/assets">
+          <Link href="/tw/assets">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to assets
           </Link>

@@ -108,7 +108,7 @@ export function EmailHistoryWidget({
             {items.map((item) => (
               <Link
                 key={item.id}
-                href={`/tw/dash/email-logs/${item.id}`}
+                href={`/dash/email-logs/${item.id}`}
                 className="flex min-w-0 items-start gap-3 rounded-lg border bg-background px-3 py-2.5 transition-colors hover:bg-muted/40"
               >
                 <div className="mt-0.5">

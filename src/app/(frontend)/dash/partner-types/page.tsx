@@ -1,17 +1,14 @@
-import { Suspense } from 'react'
 import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import { getUserOrganizationIds } from '@/access/utilities'
-import { getCachedPartnerTypes } from '@/lib/cached-queries'
-import { PartnerTypesList } from './components/PartnerTypesList'
-import { PartnerTypesListSkeleton } from './components/PartnerTypesListSkeleton'
+import { getCachedUserOrgIds, getCachedPartnerTypes } from '@/lib/cached-queries'
+import { PartnerTypesTable } from './PartnerTypesTable'
+import type { Metadata } from 'next'
+import type { PartnerType } from '@/payload-types'
 
-async function PartnerTypesData({ organizationIds }: { organizationIds: number[] }) {
-  const partnerTypes = await getCachedPartnerTypes(organizationIds)
-
-  return <PartnerTypesList partnerTypes={partnerTypes as any} />
+export const metadata: Metadata = {
+  title: 'Partner Types',
 }
 
 export default async function PartnerTypesPage() {
@@ -21,14 +18,10 @@ export default async function PartnerTypesPage() {
 
   if (!user) redirect('/admin/login')
 
-  const rawOrgIds = await getUserOrganizationIds(payload, user)
-  const organizationIds = rawOrgIds.map(Number)
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const organizationIds = await getCachedUserOrgIds(userId)
 
-  return (
-    <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <Suspense fallback={<PartnerTypesListSkeleton />}>
-        <PartnerTypesData organizationIds={organizationIds} />
-      </Suspense>
-    </div>
-  )
+  const partnerTypes = await getCachedPartnerTypes(organizationIds)
+
+  return <PartnerTypesTable partnerTypes={partnerTypes as PartnerType[]} />
 }

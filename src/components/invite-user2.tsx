@@ -31,7 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { getOrganizationMembers, createInvitation } from '@/app/(frontend)/dash/settings/actions'
+import { getOrganizationMembers, createInvitation } from '@/app/(frontend)/settings/actions'
 
 interface InviteUser2Props {
   heading?: string
@@ -96,7 +96,10 @@ const InviteUser2 = ({ heading = 'Invite Users', className }: InviteUser2Props) 
           setMessage(null)
         }, 1500)
       } else {
-        setMessage({ type: 'error', text: result.error })
+        setMessage({
+          type: 'error',
+          text: result.error ?? result.message ?? 'Something went wrong',
+        })
       }
     })
   }

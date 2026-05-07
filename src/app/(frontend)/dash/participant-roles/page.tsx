@@ -1,17 +1,14 @@
-import { Suspense } from 'react'
 import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import { getUserOrganizationIds } from '@/access/utilities'
-import { getCachedParticipantRoles } from '@/lib/cached-queries'
-import { ParticipantRolesList } from './components/ParticipantRolesList'
-import { ParticipantRolesListSkeleton } from './components/ParticipantRolesListSkeleton'
+import { getCachedUserOrgIds, getCachedParticipantRoles } from '@/lib/cached-queries'
+import { ParticipantRolesTable } from './ParticipantRolesTable'
+import type { Metadata } from 'next'
+import type { ParticipantRole } from '@/payload-types'
 
-async function ParticipantRolesData({ organizationIds }: { organizationIds: number[] }) {
-  const participantRoles = await getCachedParticipantRoles(organizationIds)
-
-  return <ParticipantRolesList participantRoles={participantRoles as any} />
+export const metadata: Metadata = {
+  title: 'Participant Roles',
 }
 
 export default async function ParticipantRolesPage() {
@@ -21,14 +18,10 @@ export default async function ParticipantRolesPage() {
 
   if (!user) redirect('/admin/login')
 
-  const rawOrgIds = await getUserOrganizationIds(payload, user)
-  const organizationIds = rawOrgIds.map(Number)
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const organizationIds = await getCachedUserOrgIds(userId)
 
-  return (
-    <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <Suspense fallback={<ParticipantRolesListSkeleton />}>
-        <ParticipantRolesData organizationIds={organizationIds} />
-      </Suspense>
-    </div>
-  )
+  const participantRoles = await getCachedParticipantRoles(organizationIds)
+
+  return <ParticipantRolesTable participantRoles={participantRoles as ParticipantRole[]} />
 }

@@ -32,7 +32,7 @@ export default async function CreateEmailTemplatePage({
     })
 
     if (!event) {
-      redirect('/dash/assets')
+      redirect('/tw/assets')
     }
 
     // Get organization ID from event
@@ -43,7 +43,7 @@ export default async function CreateEmailTemplatePage({
     const organizationIds = await getUserOrganizationIds(payload, user)
 
     if (organizationIds.length === 0) {
-      redirect('/dash')
+      redirect('/tw/dash')
     }
 
     // Use first organization

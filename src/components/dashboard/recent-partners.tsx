@@ -22,7 +22,7 @@ interface RecentPartnersWidgetProps {
 export function RecentPartnersWidget({
   items,
   title = 'Recent Partners',
-  viewAllHref = '/tw/dash/partners',
+  viewAllHref = '/dash/partners',
 }: RecentPartnersWidgetProps) {
   return (
     <div className="flex h-full w-full flex-col rounded-xl border bg-card p-4 sm:p-5">

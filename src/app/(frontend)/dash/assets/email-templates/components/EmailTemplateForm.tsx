@@ -187,7 +187,7 @@ export function EmailTemplateForm(props: Props) {
 
       // Only redirect if not disabled
       if (!props.disableRedirect) {
-        router.push('/dash/assets')
+        router.push('/tw/assets')
         router.refresh()
       }
     } catch (err) {
@@ -678,7 +678,7 @@ export function EmailTemplateForm(props: Props) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push('/dash/assets')}
+            onClick={() => router.push('/tw/assets')}
             disabled={isSubmitting}
           >
             Cancel

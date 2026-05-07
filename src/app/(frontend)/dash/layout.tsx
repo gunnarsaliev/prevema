@@ -2,37 +2,20 @@ import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import { DashClientLayout } from './client-layout'
-import { getUserOrganizationIds } from '@/access/utilities'
-import { getCachedLayoutData } from '@/lib/cached-queries'
+import { getCachedLayoutData, getCachedUserOrgIds } from '@/lib/cached-queries'
+import { ApplicationLayout } from './application-layout'
 
-/**
- * Server-side layout for /dash routes.
- * Authenticates the user, then uses a cached query to fetch events and
- * permissions — eliminating a blocking DB round-trip on every navigation.
- */
-export default async function DashLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const headers = await getHeaders()
-  const payloadConfig = await config
-  const payload = await getPayload({ config: payloadConfig })
-
+  const payload = await getPayload({ config: await config })
   const { user } = await payload.auth({ headers })
 
-  if (!user) {
-    redirect('/admin/login')
-  }
+  if (!user) redirect('/admin/login')
 
-  const rawOrgIds = await getUserOrganizationIds(payload, user)
-  const organizationIds = rawOrgIds.map(Number)
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const organizationIds = await getCachedUserOrgIds(userId)
 
-  const { events: initialEvents, permissions } = await getCachedLayoutData(
-    Number(user.id),
-    organizationIds,
-  )
+  const { events } = await getCachedLayoutData(userId, organizationIds)
 
-  return (
-    <DashClientLayout initialEvents={initialEvents} permissions={permissions}>
-      {children}
-    </DashClientLayout>
-  )
+  return <ApplicationLayout events={events}>{children}</ApplicationLayout>
 }

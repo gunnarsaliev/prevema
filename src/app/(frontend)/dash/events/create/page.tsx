@@ -3,8 +3,13 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
+import { EventForm } from './EventForm'
+import type { Metadata } from 'next'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
 
-import { EventForm } from '../components/EventForm'
+export const metadata: Metadata = {
+  title: 'Create Event',
+}
 
 export default async function CreateEventPage() {
   const headers = await getHeaders()
@@ -13,10 +18,8 @@ export default async function CreateEventPage() {
 
   if (!user) redirect('/admin/login')
 
-  // Get all organization IDs where user is a member (including as owner)
   const organizationIds = await getUserOrganizationIds(payload, user)
 
-  // Fetch the organizations
   const { docs: orgs } = await payload.find({
     collection: 'organizations',
     where: {
@@ -32,12 +35,11 @@ export default async function CreateEventPage() {
   const organizations = orgs.map((o) => ({ id: o.id, name: o.name }))
 
   return (
-    <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
-        <div className="px-8 py-8">
-          <EventForm mode="create" organizations={organizations} />
-        </div>
+    <>
+      <DashBreadcrumb items={[{ label: 'Events', href: '/dash/events' }, { label: 'Create' }]} />
+      <div className="px-8 py-8">
+        <EventForm mode="create" organizations={organizations} />
       </div>
-    </div>
+    </>
   )
 }

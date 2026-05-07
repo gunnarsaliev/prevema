@@ -1,99 +1,43 @@
-import { Suspense } from 'react'
 import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import { getUserOrganizationIds } from '@/access/utilities'
-import { PartnersListClient } from './components/PartnersListClient'
-import { PartnersListSkeleton } from './components/PartnersListSkeleton'
-import { EmptyEventState } from '@/components/EmptyEventState'
-import { EmptyPartnerTypeState } from '@/components/EmptyPartnerTypeState'
+import { getCachedUserOrgIds } from '@/lib/cached-queries'
+import { getTwDashPartners } from './data'
+import { getTwDashEvents } from '../events/data'
+import { PartnersTable } from './PartnersTable'
+import type { Metadata } from 'next'
 
-async function PartnersData({ eventId }: { eventId?: string }) {
-  const headers = await getHeaders()
-  const payload = await getPayload({ config: await config })
-  const { user } = await payload.auth({ headers })
-
-  if (!user) return null
-
-  const organizationIds = await getUserOrganizationIds(payload, user)
-
-  const [{ docs: partners }, { docs: eventDocs }, { docs: partnerTypes }, { docs: orgDocs }] =
-    await Promise.all([
-      payload.find({
-        collection: 'partners',
-        overrideAccess: false,
-        user,
-        depth: 1,
-        limit: 500,
-        sort: 'companyName',
-        where: eventId ? { event: { equals: Number(eventId) } } : { event: { exists: true } },
-      }),
-      payload.find({
-        collection: 'events',
-        overrideAccess: false,
-        user,
-        depth: 0,
-        limit: 200,
-        sort: 'name',
-        select: { name: true },
-        where: { status: { not_equals: 'archived' } },
-      }),
-      payload.find({
-        collection: 'partner-types',
-        overrideAccess: false,
-        user,
-        depth: 0,
-        limit: 100,
-        sort: 'name',
-      }),
-      payload.find({
-        collection: 'organizations',
-        where: { id: { in: organizationIds } },
-        depth: 0,
-        limit: 100,
-        select: { name: true },
-      }),
-    ])
-
-  const events = eventDocs.map((e) => ({ id: e.id, name: e.name }))
-  const organizations = orgDocs.map((o) => ({ id: o.id, name: o.name }))
-  const types = partnerTypes.map((t) => ({ id: t.id, name: t.name }))
-
-  if (events.length === 0) return <EmptyEventState />
-  if (partnerTypes.length === 0) return <EmptyPartnerTypeState />
-
-  const createHref = eventId ? `/dash/partners/create?eventId=${eventId}` : '/dash/partners/create'
-
-  return (
-    <PartnersListClient
-      partners={partners}
-      events={events}
-      organizations={organizations}
-      types={types}
-      eventId={eventId}
-      createHref={createHref}
-    />
-  )
+export const metadata: Metadata = {
+  title: 'All Partners',
 }
 
-export default async function PartnersPage({
+export default async function AllPartnersPage({
   searchParams,
 }: {
   searchParams: Promise<{ eventId?: string }>
 }) {
   const { eventId } = await searchParams
+
   const headers = await getHeaders()
   const payload = await getPayload({ config: await config })
   const { user } = await payload.auth({ headers })
 
   if (!user) redirect('/admin/login')
 
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const organizationIds = await getCachedUserOrgIds(userId)
+
+  const [partners, events] = await Promise.all([
+    getTwDashPartners(userId, organizationIds, eventId),
+    getTwDashEvents(userId, organizationIds),
+  ])
+
   return (
-    <div className="flex flex-1 flex-col">
-      <Suspense fallback={<PartnersListSkeleton />}>
-        <PartnersData eventId={eventId} />
-      </Suspense>
-    </div>
+    <PartnersTable
+      partners={partners}
+      events={events.map((e) => ({ id: String(e.id), name: e.name }))}
+      selectedEventId={eventId}
+    />
   )
 }

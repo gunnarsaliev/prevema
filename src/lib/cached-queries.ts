@@ -203,7 +203,7 @@ export function getCachedLayoutData(userId: number, organizationIds: number[]) {
       const events = eventsResult.docs.map((doc) => ({
         id: String(doc.id),
         name: doc.name,
-        url: `/tw/dash/events/${doc.id}`,
+        url: `/dash/events/${doc.id}`,
       }))
 
       const rawRole = (membershipResult.docs[0]?.role as string | undefined) ?? null

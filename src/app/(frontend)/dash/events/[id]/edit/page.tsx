@@ -2,12 +2,38 @@ import { headers as getHeaders } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-
-import { EventForm } from '../../components/EventForm'
+import { getCachedUserOrgIds } from '@/lib/cached-queries'
+import { EventForm } from '../../create/EventForm'
 import type { EventFormValues } from '@/lib/schemas/event'
+import type { Metadata } from 'next'
+import { DashBreadcrumb } from '@/components/dash-breadcrumb'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const headers = await getHeaders()
+  const payload = await getPayload({ config: await config })
+  const { user } = await payload.auth({ headers })
+  if (!user) return {}
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const event = await payload
+    .findByID({
+      collection: 'events',
+      id: Number(id),
+      overrideAccess: true,
+      user,
+      depth: 0,
+    })
+    .catch(() => null)
+  return { title: event?.name ?? 'Edit Event' }
+}
 
 export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+
   const headers = await getHeaders()
   const payload = await getPayload({ config: await config })
   const { user } = await payload.auth({ headers })
@@ -20,16 +46,22 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
       id: Number(id),
       overrideAccess: false,
       user,
-      depth: 1, // Fetch image data
+      depth: 1,
     })
     .catch(() => null)
 
   if (!event) notFound()
 
-  // Resolve organization to a number (depth: 1 returns objects for relationships)
-  const orgId = typeof event.organization === 'object' ? event.organization.id : event.organization
+  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const organizationIds = await getCachedUserOrgIds(userId)
 
-  // Extract image URL if it exists
+  const orgId =
+    typeof event.organization === 'object' && event.organization !== null
+      ? event.organization.id
+      : event.organization
+
+  if (!organizationIds.includes(Number(orgId))) notFound()
+
   const imageUrl =
     event.image && typeof event.image === 'object' && 'url' in event.image
       ? (event.image.url as string)
@@ -53,18 +85,22 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
   }
 
   return (
-    <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <div className="flex-1 overflow-auto bg-muted/20 dark:bg-background">
-        <div className="px-8 py-8">
-          {/* organizations not passed on edit — org is locked to the event's existing value */}
-          <EventForm
-            mode="edit"
-            eventId={String(event.id)}
-            defaultValues={defaultValues}
-            existingImageUrl={imageUrl}
-          />
-        </div>
+    <>
+      <DashBreadcrumb
+        items={[
+          { label: 'Events', href: '/dash/events' },
+          { label: event.name, href: `/dash/events/${id}` },
+          { label: 'Edit' },
+        ]}
+      />
+      <div className="px-8 py-8">
+        <EventForm
+          mode="edit"
+          eventId={id}
+          defaultValues={defaultValues}
+          existingImageUrl={imageUrl}
+        />
       </div>
-    </div>
+    </>
   )
 }

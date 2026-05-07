@@ -1,55 +1,118 @@
-import { Suspense } from 'react'
 import { headers as getHeaders } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
+
 import config from '@/payload.config'
 import { getUserOrganizationIds } from '@/access/utilities'
-import { getEvents } from './events/data'
+import type { Media } from '@/payload-types'
 import {
-  DashboardStats,
-  UpcomingEventSection,
-  QuickStartSection,
-} from './components/DashboardSections'
+  DashboardHeader,
+  EmailHistoryWidget,
+  RegistrationsChart,
+  RecentArrivalsWidget,
+  RecentPartnersWidget,
+  SchedulePanel,
+  StatsCards,
+} from '@/components/dashboard'
 import {
-  StatsCardsSkeleton,
-  UpcomingEventSkeleton,
-  QuickStartSkeleton,
-} from './components/DashboardSkeletons'
+  buildDashboardStats,
+  getDashboardSummary,
+  getRecentEmailLogs,
+  getRecentParticipants,
+  getRecentPartners,
+  getRegistrationTimeline,
+  getUpcomingEventsAsBookings,
+} from './data'
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string }>
+}) {
+  const { from, to } = await searchParams
+
   const headers = await getHeaders()
   const payload = await getPayload({ config: await config })
   const { user } = await payload.auth({ headers })
 
-  if (!user) redirect('/admin/login')
+  const fullUser = user
+    ? await payload.findByID({ collection: 'users', id: user.id, depth: 1 })
+    : null
+  const profileImage = fullUser?.profileImage
+  const avatarUrl =
+    profileImage && typeof profileImage === 'object'
+      ? ((profileImage as Media).thumbnailURL ?? (profileImage as Media).url ?? undefined)
+      : undefined
 
-  const rawOrgIds = await getUserOrganizationIds(payload, user)
-  const organizationIds: number[] = rawOrgIds.map(Number)
-  const userId = typeof user.id === 'number' ? user.id : Number(user.id)
+  const rawOrgIds = user ? await getUserOrganizationIds(payload, user) : []
+  const organizationIds = rawOrgIds.map(Number).filter((n) => !isNaN(n))
 
-  // Prefetch events data to warm the cache for when user navigates to /dash/events
-  // This uses React cache() which will deduplicate if the events page is also rendered
-  // The promise runs in parallel with rendering and doesn't block the page
-  getEvents(userId, organizationIds).catch(() => {
-    // Silently fail - this is just a performance optimization
-  })
+  const userId = user?.id ?? 0
+
+  const [
+    summary,
+    recentParticipants,
+    recentPartners,
+    upcomingBookings,
+    registrationTimeline,
+    recentEmailLogs,
+  ] = await Promise.all([
+    getDashboardSummary(userId, organizationIds),
+    getRecentParticipants(userId, organizationIds),
+    getRecentPartners(userId, organizationIds),
+    getUpcomingEventsAsBookings(userId, organizationIds),
+    getRegistrationTimeline(userId, organizationIds, 30, from, to),
+    getRecentEmailLogs(userId, organizationIds),
+  ])
+
+  const stats = buildDashboardStats(summary)
 
   return (
-    <div className="flex flex-1 flex-col h-full overflow-hidden">
-      <div className="flex-1 overflow-auto">
-        <div className="p-6 md:p-8 space-y-8">
-          <Suspense fallback={<StatsCardsSkeleton />}>
-            <DashboardStats organizationIds={organizationIds} />
-          </Suspense>
+    <div className="flex flex-col gap-6 pb-8">
+      <DashboardHeader
+        name={user?.name ?? 'there'}
+        email={user?.email}
+        avatarUrl={avatarUrl}
+        from={from}
+        to={to}
+      />
 
-          <Suspense fallback={<UpcomingEventSkeleton />}>
-            <UpcomingEventSection organizationIds={organizationIds} />
-          </Suspense>
+      <div className="px-4 sm:px-6">
+        <StatsCards stats={stats} />
+      </div>
 
-          <Suspense fallback={<QuickStartSkeleton />}>
-            <QuickStartSection organizationIds={organizationIds} />
-          </Suspense>
+      <div className="grid gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_380px] lg:items-stretch">
+        <div className="flex flex-col gap-6">
+          <RegistrationsChart data={registrationTimeline} />
         </div>
+
+        <div className="flex flex-col rounded-xl border bg-card">
+          <SchedulePanel
+            bookings={upcomingBookings}
+            title="Upcoming Events"
+            viewAllHref="/dash/events"
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-6 px-4 sm:px-6 lg:grid-cols-2">
+        <RecentArrivalsWidget
+          items={recentParticipants}
+          title="Recent Participants"
+          viewAllHref="/dash/participants"
+        />
+        <RecentPartnersWidget
+          items={recentPartners}
+          title="Recent Partners"
+          viewAllHref="/dash/partners"
+        />
+      </div>
+
+      <div className="px-4 sm:px-6">
+        <EmailHistoryWidget
+          items={recentEmailLogs}
+          title="Email History"
+          viewAllHref="/dash/email-logs"
+        />
       </div>
     </div>
   )
