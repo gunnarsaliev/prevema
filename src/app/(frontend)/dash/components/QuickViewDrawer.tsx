@@ -141,15 +141,15 @@ export function QuickViewDrawer({ item, onClose }: QuickViewDrawerProps) {
                           </button>
                         </div>
 
-                        {/* Cover image */}
+                        {/* Logo */}
                         {displayItem.imageUrl && (
-                          <div className="relative w-full shrink-0 overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                          <div className="relative flex h-32 w-full shrink-0 items-center justify-center overflow-hidden border-b border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-800/50">
                             {!imageLoaded && <Skeleton className="absolute inset-0" />}
                             <img
                               src={displayItem.imageUrl}
                               alt=""
                               onLoad={() => setImageLoaded(true)}
-                              className={`h-full w-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                              className={`max-h-full max-w-full object-contain transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                             />
                           </div>
                         )}

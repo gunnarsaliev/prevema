@@ -138,11 +138,11 @@ export function makeColumns(onQuickView: (item: QuickViewItem) => void): ColumnD
             className="flex items-center gap-3 hover:underline"
           >
             {logoUrl ? (
-              <div className="size-8 flex-none overflow-hidden rounded-full">
+              <div className="size-8 flex-none overflow-hidden rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
                 <img
                   src={logoUrl}
                   alt=""
-                  className="aspect-square h-full w-full object-cover bg-gray-50 dark:bg-gray-800"
+                  className="h-full w-full object-contain p-0.5"
                 />
               </div>
             ) : (
