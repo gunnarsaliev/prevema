@@ -523,27 +523,30 @@ export class ClientImageGenerationService {
       return null
     }
 
-    const value = entity[fieldName as keyof ImageEntity]
-
-    // Handle null/undefined values
-    if (value === null || value === undefined) {
-      return null
+    // For COMPANY_LOGO on partners: try companyLogo (Media upload) if companyLogoUrl (string) is absent
+    const valuesToTry: unknown[] = [entity[fieldName as keyof ImageEntity]]
+    if (variableType === 'COMPANY_LOGO' && 'companyLogo' in entity) {
+      valuesToTry.push((entity as Partner).companyLogo)
     }
 
     let url: string | null = null
 
-    // If it's a Media object, extract the URL
-    if (typeof value === 'object' && 'url' in value) {
-      const media = value as Media
-      url = media.url || null
-    }
-    // If it's already a string (direct URL), use it
-    else if (typeof value === 'string') {
-      url = value
+    for (const value of valuesToTry) {
+      if (value === null || value === undefined) continue
+
+      if (typeof value === 'object' && 'url' in (value as object)) {
+        url = (value as Media).url || null
+      } else if (typeof value === 'string' && value.length > 0) {
+        url = value
+      }
+
+      if (url) break
     }
 
+    if (!url) return null
+
     // Convert relative URLs to absolute URLs
-    if (url && url.startsWith('/')) {
+    if (url.startsWith('/')) {
       const baseUrl = window.location.origin
       return `${baseUrl}${url}`
     }

@@ -12,6 +12,7 @@ import {
   Layers,
   PanelRightClose,
   PanelRightOpen,
+  ChevronLeft,
 } from 'lucide-react'
 import CanvasEditor from './components/canvas-editor'
 import FormattingToolbar from './components/formatting-toolbar'
@@ -1154,6 +1155,89 @@ export default function ImageTemplateGenerator() {
           if (file) handleBackgroundUpload(file)
         }}
       />
+
+      {/* Top Header Bar */}
+      <div className="flex items-center gap-2 border-b border-border bg-background px-3 py-2 shrink-0">
+        {/* Back button */}
+        <Button size="sm" variant="ghost" onClick={handleBack} className="h-8 gap-1.5 text-sm">
+          <ChevronLeft className="w-4 h-4" />
+          <span className="hidden sm:inline">Back</span>
+        </Button>
+
+        <div className="w-px h-5 bg-border" />
+
+        {/* Editable template name */}
+        <input
+          type="text"
+          value={editMode.mode === 'edit' ? (editMode.templateName ?? '') : saveTemplateName}
+          onChange={(e) => {
+            if (editMode.mode === 'edit') {
+              editMode.templateName = e.target.value
+            } else {
+              setSaveTemplateName(e.target.value)
+            }
+          }}
+          placeholder="Enter template name..."
+          className="h-8 px-2 text-sm border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring w-48"
+        />
+
+        {/* Canvas size selector */}
+        <select
+          value={selectedTemplate.id}
+          onChange={(e) => handleTemplateChange(e.target.value)}
+          className="h-8 px-2 text-sm border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          {templates.map((template) => (
+            <option key={template.id} value={template.id}>
+              {template.name}
+            </option>
+          ))}
+        </select>
+
+        <div className="flex-1" />
+
+        {/* Undo/Redo */}
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={handleUndo}
+          disabled={!canUndo}
+          className="h-8 w-8 p-0"
+          title="Undo (Ctrl+Z)"
+        >
+          <Undo className="w-4 h-4" />
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={handleRedo}
+          disabled={!canRedo}
+          className="h-8 w-8 p-0"
+          title="Redo (Ctrl+Shift+Z)"
+        >
+          <Redo className="w-4 h-4" />
+        </Button>
+
+        <div className="w-px h-5 bg-border" />
+
+        {/* Export */}
+        <Button size="sm" variant="outline" onClick={handleExportImage} className="h-8 gap-1.5">
+          <Download className="w-4 h-4" />
+          <span>Export</span>
+        </Button>
+
+        {/* Save */}
+        <Button
+          size="sm"
+          variant="default"
+          onClick={handleSaveTemplate}
+          disabled={isSaving}
+          className="h-8 gap-1.5"
+        >
+          <Save className="w-4 h-4" />
+          <span>{isSaving ? 'Saving...' : editMode.mode === 'edit' ? 'Update' : 'Save'}</span>
+        </Button>
+      </div>
 
       <div className="flex h-full min-h-0 flex-1 overflow-hidden">
         {/* Canvas Area */}
