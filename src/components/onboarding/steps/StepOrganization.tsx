@@ -126,9 +126,8 @@ export const StepOrganization = ({
 
         // Auto-advance to next step after showing success message
         setTimeout(() => {
-          console.log('[StepOrganization] Calling onNext to advance...', { onNext })
           onNext?.()
-        }, 1500)
+        }, 800)
       } else {
         console.error('[StepOrganization] Operation failed:', result.message)
       }
@@ -169,7 +168,8 @@ export const StepOrganization = ({
         {state?.success && (
           <div className="rounded-md bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 p-3">
             <p className="text-sm text-green-800 dark:text-green-200">
-              Organization "{state.data?.name}" {hasOrganization ? 'updated' : 'created'} successfully!
+              Organization "{state.data?.name}" {hasOrganization ? 'updated' : 'created'}{' '}
+              successfully!
             </p>
           </div>
         )}
@@ -238,7 +238,10 @@ export const StepOrganization = ({
                       onCheckedChange={(checked) => setEmailConfigIsActive(checked === true)}
                       value={emailConfigIsActive ? 'true' : 'false'}
                     />
-                    <Label htmlFor="emailConfigIsActive" className="text-sm text-foreground cursor-pointer">
+                    <Label
+                      htmlFor="emailConfigIsActive"
+                      className="text-sm text-foreground cursor-pointer"
+                    >
                       Enable email sending
                     </Label>
                   </div>
@@ -305,7 +308,9 @@ export const StepOrganization = ({
                       aria-invalid={!!state?.errors?.['emailConfig.fromEmail']}
                     />
                     {state?.errors?.['emailConfig.fromEmail'] && (
-                      <p className="text-sm text-destructive">{state.errors['emailConfig.fromEmail'][0]}</p>
+                      <p className="text-sm text-destructive">
+                        {state.errors['emailConfig.fromEmail'][0]}
+                      </p>
                     )}
                   </div>
 
@@ -326,7 +331,9 @@ export const StepOrganization = ({
                       aria-invalid={!!state?.errors?.['emailConfig.replyToEmail']}
                     />
                     {state?.errors?.['emailConfig.replyToEmail'] && (
-                      <p className="text-sm text-destructive">{state.errors['emailConfig.replyToEmail'][0]}</p>
+                      <p className="text-sm text-destructive">
+                        {state.errors['emailConfig.replyToEmail'][0]}
+                      </p>
                     )}
                   </div>
                 </AccordionContent>

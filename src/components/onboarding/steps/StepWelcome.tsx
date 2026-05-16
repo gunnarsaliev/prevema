@@ -29,7 +29,7 @@ export const StepWelcome = ({ onNext }: StepWelcomeProps) => {
     } catch {
       // Continue to redirect even if org creation fails
     }
-    router.push('/dash/events')
+    router.push('/dash')
   }
 
   return (

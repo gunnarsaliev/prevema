@@ -444,49 +444,70 @@ export const StepGuests = ({
       </div>
 
       {/* Created Types */}
-      {(isInitialLoading ||
-        participantRoles.length > 0 ||
+      {isInitialLoading ? (
+        <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+          <Skeleton className="h-4 w-24" />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-6 w-16 rounded-full" />
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-6 w-16 rounded-full" />
+            </div>
+          </div>
+        </div>
+      ) : participantRoles.length > 0 ||
         partnerTypes.length > 0 ||
         participantLoading ||
-        partnerLoading) && (
-        <div className="shadow-lg p-4">
+        partnerLoading ? (
+        <div className="rounded-xl border border-border bg-card p-4 space-y-4">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Created types
+          </p>
+
           {/* Participant roles list */}
           {(participantRoles.length > 0 || participantLoading) && (
-            <div className="space-y-2 mb-4">
-              <Label className="text-xs text-muted-foreground">Participants</Label>
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Users className="h-3 w-3" />
+                Participant Roles
+              </p>
               {participantRoles.map((type) => (
                 <div
                   key={type.id}
-                  className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20"
+                  className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/30 transition-colors"
                 >
                   <span className="text-sm font-medium truncate flex-1">{type.name}</span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5 ml-2 shrink-0">
                     {type.publicFormLink && (
                       <a
                         href={type.publicFormLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary hover:text-primary/80"
-                        title="View public form"
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 border border-primary/30 rounded-full px-2 py-0.5 hover:bg-primary/5 transition-colors"
+                        title="Open registration form"
                       >
                         <ExternalLink className="h-3 w-3" />
+                        Form
                       </a>
                     )}
                     <button
                       type="button"
                       onClick={() => removeParticipantRole(type.id)}
-                      className="text-muted-foreground hover:text-destructive"
+                      className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                       aria-label="Remove"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
               ))}
               {participantLoading && (
-                <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
+                <div className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background">
                   <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-6 w-14 rounded-full" />
                 </div>
               )}
             </div>
@@ -495,74 +516,50 @@ export const StepGuests = ({
           {/* Partner types list */}
           {(partnerTypes.length > 0 || partnerLoading) && (
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Partners</Label>
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Users className="h-3 w-3" />
+                Partner Types
+              </p>
               {partnerTypes.map((type) => (
                 <div
                   key={type.id}
-                  className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20"
+                  className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/30 transition-colors"
                 >
                   <span className="text-sm font-medium truncate flex-1">{type.name}</span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5 ml-2 shrink-0">
                     {type.publicFormLink && (
                       <a
                         href={type.publicFormLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary hover:text-primary/80"
-                        title="View public form"
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 border border-primary/30 rounded-full px-2 py-0.5 hover:bg-primary/5 transition-colors"
+                        title="Open registration form"
                       >
                         <ExternalLink className="h-3 w-3" />
+                        Form
                       </a>
                     )}
                     <button
                       type="button"
                       onClick={() => removePartnerType(type.id)}
-                      className="text-muted-foreground hover:text-destructive"
+                      className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                       aria-label="Remove"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
               ))}
               {partnerLoading && (
-                <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
+                <div className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background">
                   <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-6 w-14 rounded-full" />
                 </div>
               )}
             </div>
           )}
-
-          {/* Initial loading state */}
-          {isInitialLoading && (
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-24 mb-2" />
-              <div className="space-y-2">
-                <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-4 w-4" />
-                </div>
-                <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 dark:bg-muted/20">
-                  <Skeleton className="h-4 w-28" />
-                  <Skeleton className="h-4 w-4" />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Empty state */}
-          {!isInitialLoading &&
-            participantRoles.length === 0 &&
-            partnerTypes.length === 0 &&
-            !participantLoading &&
-            !partnerLoading && (
-              <p className="text-xs text-muted-foreground text-center py-4">
-                No types created yet. Add participant or partner types to see them here.
-              </p>
-            )}
         </div>
-      )}
+      ) : null}
 
       {/* Skip/Continue button - always visible */}
       <div className="flex justify-center">

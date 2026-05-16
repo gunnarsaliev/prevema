@@ -1108,20 +1108,13 @@ export async function getParticipantRolesAction(
       }
     }
 
-    // Fetch participant roles for this event (event-specific + org-level shared)
+    // Fetch participant roles for this organization
     const participantRoles = await payload.find({
       collection: 'participant-roles',
       where: {
-        and: [
-          {
-            organization: {
-              equals: organizationId,
-            },
-          },
-          {
-            or: [{ event: { equals: eventId } }, { event: { exists: false } }],
-          },
-        ],
+        organization: {
+          equals: organizationId,
+        },
       },
       user,
       overrideAccess: true,
@@ -1197,20 +1190,13 @@ export async function getPartnerTypesAction(
       }
     }
 
-    // Fetch partner types for this event (event-specific + org-level shared)
+    // Fetch partner types for this organization
     const partnerTypes = await payload.find({
       collection: 'partner-types',
       where: {
-        and: [
-          {
-            organization: {
-              equals: organizationId,
-            },
-          },
-          {
-            or: [{ event: { equals: eventId } }, { event: { exists: false } }],
-          },
-        ],
+        organization: {
+          equals: organizationId,
+        },
       },
       user,
       overrideAccess: true,

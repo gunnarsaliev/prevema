@@ -97,9 +97,13 @@ export const StepSocialPost = ({
         const result = await saveOnboardingImageTemplateAction(organizationId, uploadedImage)
 
         if (result.success) {
-          console.log('Image template created:', result.data)
-          // Redirect to dashboard after successful upload
-          router.push('/dash')
+          // Redirect to image generator with the created template so user can customize it
+          const templateId = result.data?.id
+          if (templateId) {
+            router.push(`/dash/image-generator?templateId=${templateId}`)
+          } else {
+            router.push('/dash/image-generator')
+          }
         } else {
           console.error('Failed to save image template:', result.message)
           alert(result.message || 'Failed to save image template. Please try again.')

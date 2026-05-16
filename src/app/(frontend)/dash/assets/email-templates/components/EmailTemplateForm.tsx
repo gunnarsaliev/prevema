@@ -352,7 +352,7 @@ export function EmailTemplateForm(props: Props) {
               name="subject"
               control={control}
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
+                <Field data-invalid={fieldState.invalid && fieldState.isTouched}>
                   <FieldLabel htmlFor={field.name}>Email subject *</FieldLabel>
                   <p className="text-xs text-muted-foreground -mt-1">
                     Use {'{'}
@@ -361,11 +361,13 @@ export function EmailTemplateForm(props: Props) {
                   <Input
                     {...field}
                     id={field.name}
-                    aria-invalid={fieldState.invalid}
+                    aria-invalid={fieldState.invalid && fieldState.isTouched}
                     className="bg-background"
                     placeholder="Welcome to {{eventName}}"
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && fieldState.isTouched && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
@@ -461,16 +463,18 @@ export function EmailTemplateForm(props: Props) {
             name="subject"
             control={control}
             render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
+              <Field data-invalid={fieldState.invalid && fieldState.isTouched}>
                 <FieldLabel htmlFor={field.name}>Subject *</FieldLabel>
                 <Input
                   {...field}
                   id={field.name}
-                  aria-invalid={fieldState.invalid}
+                  aria-invalid={fieldState.invalid && fieldState.isTouched}
                   className="bg-background"
                   placeholder="Welcome to our event!"
                 />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                {fieldState.invalid && fieldState.isTouched && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
               </Field>
             )}
           />

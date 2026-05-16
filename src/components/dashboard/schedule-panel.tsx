@@ -34,9 +34,28 @@ export function SchedulePanel({
       <div className="min-h-0 flex-1 overflow-hidden px-4 pb-4">
         <ScrollArea className="h-full">
           {bookings.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <CalendarRange className="mb-2 size-8 opacity-40" />
-              <p className="text-sm">No upcoming events</p>
+            <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+              <CalendarRange className="size-8 text-muted-foreground opacity-40" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">No upcoming events</p>
+                <p className="text-xs text-muted-foreground">
+                  Create your first event to get started
+                </p>
+              </div>
+              <Link
+                href="/dash/events/create"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+              >
+                Create first event
+                <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
             </div>
           ) : (
             <div className="space-y-3">

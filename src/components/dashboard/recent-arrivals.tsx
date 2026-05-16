@@ -42,8 +42,42 @@ export function RecentArrivalsWidget({
 
       <div className="-mx-4 min-h-0 flex-1 overflow-hidden border-y sm:-mx-5">
         {items.length === 0 ? (
-          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-            No participants yet
+          <div className="flex flex-col items-center justify-center gap-3 py-10 text-center px-4">
+            <div className="rounded-full bg-muted p-3">
+              <svg
+                className="size-5 text-muted-foreground"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">No participants yet</p>
+              <p className="text-xs text-muted-foreground">
+                Create your first event to start adding participants
+              </p>
+            </div>
+            <Link
+              href="/dash/events/create"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+            >
+              Create your first event
+              <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </Link>
           </div>
         ) : (
           <Table className="w-full table-fixed">

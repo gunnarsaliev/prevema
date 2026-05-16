@@ -68,9 +68,8 @@ export const StepEvent = ({
 
         // Auto-advance to next step after showing success message
         setTimeout(() => {
-          console.log('[StepEvent] Calling onNext to advance...', { onNext })
           onNext?.()
-        }, 1500)
+        }, 800)
       } else {
         console.error('[StepEvent] Operation failed:', result.message)
       }
@@ -141,47 +140,56 @@ export const StepEvent = ({
                 maxFiles={1}
                 maxSize={5 * 1024 * 1024}
               >
-                <FileUploadDropzone className="bg-background">
-                  <div className="flex flex-col items-center justify-center gap-2 py-6">
-                    <div className="rounded-full bg-muted p-3">
-                      <svg
-                        className="h-5 w-5 text-muted-foreground"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xs font-medium">Drop image or click to browse</p>
-                      <p className="text-xs text-muted-foreground mt-1">PNG, JPG (max 5MB)</p>
-                    </div>
-                  </div>
-                </FileUploadDropzone>
-                <FileUploadList>
-                  {imageFiles.map((file, index) => (
-                    <FileUploadItem key={index} value={file} className="bg-background">
-                      <FileUploadItemPreview />
-                      <FileUploadItemMetadata />
-                      <FileUploadItemDelete className="ml-auto">
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {imageFiles.length === 0 && (
+                  <FileUploadDropzone className="bg-background">
+                    <div className="flex flex-col items-center justify-center gap-2 py-6">
+                      <div className="rounded-full bg-muted p-3">
+                        <svg
+                          className="h-5 w-5 text-muted-foreground"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                           />
                         </svg>
-                      </FileUploadItemDelete>
-                    </FileUploadItem>
-                  ))}
-                </FileUploadList>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs font-medium">Drop image or click to browse</p>
+                        <p className="text-xs text-muted-foreground mt-1">PNG, JPG (max 5MB)</p>
+                      </div>
+                    </div>
+                  </FileUploadDropzone>
+                )}
+                {imageFiles.length > 0 && (
+                  <FileUploadList>
+                    {imageFiles.map((file, index) => (
+                      <FileUploadItem key={index} value={file} className="bg-background">
+                        <FileUploadItemPreview />
+                        <FileUploadItemMetadata />
+                        <FileUploadItemDelete className="ml-auto">
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </FileUploadItemDelete>
+                      </FileUploadItem>
+                    ))}
+                  </FileUploadList>
+                )}
               </FileUpload>
             </div>
 
@@ -194,7 +202,7 @@ export const StepEvent = ({
                 id="name"
                 name="name"
                 type="text"
-                placeholder="Tech Conference 2024"
+                placeholder="Tech Conference"
                 value={eventName}
                 onChange={handleNameChange}
                 required
@@ -293,7 +301,9 @@ export const StepEvent = ({
                 rows={2}
                 disabled={isPending}
               />
-              <p className="text-xs text-muted-foreground">The purpose and motivation behind your event</p>
+              <p className="text-xs text-muted-foreground">
+                The purpose and motivation behind your event
+              </p>
             </div>
 
             {/* What */}

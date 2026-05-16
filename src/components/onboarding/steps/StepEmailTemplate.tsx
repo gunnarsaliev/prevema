@@ -32,9 +32,8 @@ export const StepEmailTemplate = ({
 
     // Auto-advance to next step after showing success message
     setTimeout(() => {
-      console.log('[StepEmailTemplate] Calling onNext to advance...', { onNext })
       onNext?.()
-    }, 1500)
+    }, 800)
   }
 
   return (

@@ -98,9 +98,23 @@ export function EmailHistoryWidget({
       </div>
 
       {items.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-10 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-lg border border-dashed py-10 text-center px-4">
           <Mail className="size-7 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">No emails sent yet</p>
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-foreground">No emails sent yet</p>
+            <p className="text-xs text-muted-foreground">
+              Set up email templates to automate communications
+            </p>
+          </div>
+          <Link
+            href="/dash/assets/email-templates/create"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+          >
+            Create email template
+            <svg className="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
         </div>
       ) : (
         <ScrollArea className="flex-1">

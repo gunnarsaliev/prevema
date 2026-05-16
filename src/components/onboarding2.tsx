@@ -300,7 +300,10 @@ const StepThreeComponent = ({ stepIndex, onValidationChange }: StepComponentProp
   ])
 
   const addParticipant = () => {
-    setParticipants([...participants, { name: '', email: '', companyName: '', companyPosition: '' }])
+    setParticipants([
+      ...participants,
+      { name: '', email: '', companyName: '', companyPosition: '' },
+    ])
   }
 
   const removeParticipant = (index: number) => {
@@ -345,7 +348,10 @@ const StepThreeComponent = ({ stepIndex, onValidationChange }: StepComponentProp
           </Button>
         </div>
         {participants.map((participant, index) => (
-          <div key={`participant-${index}`} className="space-y-3 rounded-lg border border-border p-4">
+          <div
+            key={`participant-${index}`}
+            className="space-y-3 rounded-lg border border-border p-4"
+          >
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Participant {index + 1}</span>
               {participants.length > 1 && (
@@ -418,7 +424,12 @@ const StepThreeComponent = ({ stepIndex, onValidationChange }: StepComponentProp
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Partner {index + 1}</span>
               {partners.length > 1 && (
-                <Button type="button" variant="ghost" size="sm" onClick={() => removePartner(index)}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removePartner(index)}
+                >
                   Remove
                 </Button>
               )}
@@ -681,7 +692,17 @@ const Onboarding2 = ({
                     Back
                   </Button>
                 </FadeContainer>
-                <StepDescriptionCard title={step.title} description={step.description} />
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`title-${currentStep}`}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <StepDescriptionCard title={step.title} description={step.description} />
+                  </motion.div>
+                </AnimatePresence>
               </div>
 
               <div className="space-y-4 md:space-y-6">
@@ -705,17 +726,26 @@ const Onboarding2 = ({
               </div>
             </div>
 
-            <div className={cn('h-full w-full flex-[55%]', step.className || 'bg-foreground/30')}>
-              <ScrollArea className="h-full w-full">
-                <div className="flex min-h-full w-full items-center justify-center p-6 lg:p-12">
-                  <step.component
-                    stepIndex={currentStep}
-                    onValidationChange={handleStepValidChange}
-                    onNext={handleNext}
-                  />
-                </div>
-              </ScrollArea>
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`step-${currentStep}`}
+                initial={{ opacity: 0, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, filter: 'blur(4px)' }}
+                transition={{ duration: 0.2 }}
+                className={cn('h-full w-full flex-[55%]', step.className || 'bg-foreground/30')}
+              >
+                <ScrollArea className="h-full w-full">
+                  <div className="flex min-h-full w-full items-center justify-center p-6 lg:p-12">
+                    <step.component
+                      stepIndex={currentStep}
+                      onValidationChange={handleStepValidChange}
+                      onNext={handleNext}
+                    />
+                  </div>
+                </ScrollArea>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </DialogContent>
       </Dialog>
