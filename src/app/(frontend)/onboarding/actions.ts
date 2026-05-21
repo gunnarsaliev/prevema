@@ -588,6 +588,253 @@ export async function createEventAction(
 }
 
 /**
+ * Update event during onboarding
+ */
+export async function updateEventAction(
+  eventId: number,
+  organizationId: number,
+  prevState: OnboardingActionState | undefined,
+  formData: FormData,
+): Promise<OnboardingActionState<{ id: number; name: string }>> {
+  try {
+    const rawFormData = {
+      organization: organizationId,
+      name: formData.get('name'),
+      status: 'planning',
+      startDate: formData.get('startDate'),
+      endDate: formData.get('endDate') || null,
+      eventType: formData.get('eventType') || 'online',
+      address: formData.get('address') || null,
+      description: formData.get('description') || null,
+      theme: formData.get('theme') || null,
+      why: formData.get('why') || null,
+      what: formData.get('what') || null,
+      where: formData.get('where') || null,
+      who: formData.get('who') || null,
+    }
+
+    // Validate
+    const validatedFields = eventSchema.safeParse(rawFormData)
+
+    if (!validatedFields.success) {
+      return {
+        success: false,
+        errors: validatedFields.error.flatten().fieldErrors,
+      }
+    }
+
+    // Get authenticated user
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: await config })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'Unauthorized. Please log in to continue.',
+      }
+    }
+
+    // Verify user owns the organization
+    const organization = await payload.findByID({
+      collection: 'organizations',
+      id: organizationId,
+      user,
+      overrideAccess: true,
+    })
+
+    if (!organization) {
+      return {
+        success: false,
+        message: 'Organization not found.',
+      }
+    }
+
+    const ownerId =
+      typeof organization.owner === 'object' ? organization.owner.id : organization.owner
+    if (ownerId !== user.id) {
+      return {
+        success: false,
+        message: 'You do not have permission to update events in this organization.',
+      }
+    }
+
+    // Verify the event belongs to this organization
+    const existingEvent = await payload.findByID({
+      collection: 'events',
+      id: eventId,
+      user,
+      overrideAccess: true,
+    })
+
+    if (!existingEvent) {
+      return {
+        success: false,
+        message: 'Event not found.',
+      }
+    }
+
+    const eventOrgId =
+      typeof existingEvent.organization === 'object'
+        ? existingEvent.organization?.id
+        : existingEvent.organization
+    if (eventOrgId !== organizationId) {
+      return {
+        success: false,
+        message: 'You do not have permission to update this event.',
+      }
+    }
+
+    // Handle image upload if provided
+    const imageFile = formData.get('image') as File | null
+    let imageId: number | undefined
+
+    if (imageFile && imageFile.size > 0) {
+      try {
+        const imageResult = await payload.create({
+          collection: 'media',
+          data: {
+            alt: `Event image for ${validatedFields.data.name}`,
+          },
+          file: {
+            data: Buffer.from(await imageFile.arrayBuffer()),
+            name: imageFile.name,
+            mimetype: imageFile.type,
+            size: imageFile.size,
+          },
+          user,
+          overrideAccess: false,
+        })
+
+        imageId = typeof imageResult.id === 'number' ? imageResult.id : Number(imageResult.id)
+      } catch (imageError) {
+        console.error('[updateEventAction] Error uploading image:', imageError)
+      }
+    }
+
+    const updateData: any = {
+      ...validatedFields.data,
+    }
+
+    if (imageId) {
+      updateData.image = imageId
+    }
+
+    const event = await payload.update({
+      collection: 'events',
+      id: eventId,
+      data: updateData,
+      overrideAccess: true,
+    })
+
+    const updatedEventId = typeof event.id === 'number' ? event.id : Number(event.id)
+
+    revalidatePath('/dash/events')
+
+    return {
+      success: true,
+      message: 'Event updated successfully',
+      data: {
+        id: updatedEventId,
+        name: event.name,
+      },
+    }
+  } catch (error) {
+    console.error('[updateEventAction] Error:', error)
+
+    if (error && typeof error === 'object' && 'message' in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      }
+    }
+
+    return {
+      success: false,
+      message: 'Failed to update event. Please try again.',
+    }
+  }
+}
+
+/**
+ * Fetch a single event during onboarding for prefilling the form
+ */
+export async function getOnboardingEventAction(eventId: number): Promise<
+  OnboardingActionState<{
+    id: number
+    name: string
+    startDate: string
+    endDate: string | null
+    eventType: 'online' | 'physical'
+    address: string | null
+    description: string | null
+    theme: string | null
+    why: string | null
+    what: string | null
+    where: string | null
+    who: string | null
+  }>
+> {
+  try {
+    const headers = await getHeaders()
+    const payload = await getPayload({ config: await config })
+    const { user } = await payload.auth({ headers })
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'Unauthorized. Please log in to continue.',
+      }
+    }
+
+    const event = await payload.findByID({
+      collection: 'events',
+      id: eventId,
+      user,
+    })
+
+    if (!event) {
+      return {
+        success: false,
+        message: 'Event not found.',
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        id: typeof event.id === 'number' ? event.id : Number(event.id),
+        name: event.name,
+        startDate: event.startDate,
+        endDate: event.endDate ?? null,
+        eventType: (event.eventType as 'online' | 'physical') ?? 'online',
+        address: event.address ?? null,
+        description: event.description ?? null,
+        theme: event.theme ?? null,
+        why: event.why ?? null,
+        what: event.what ?? null,
+        where: event.where ?? null,
+        who: event.who ?? null,
+      },
+    }
+  } catch (error) {
+    console.error('[getOnboardingEventAction] Error:', error)
+
+    if (error && typeof error === 'object' && 'message' in error) {
+      return {
+        success: false,
+        message: error.message as string,
+      }
+    }
+
+    return {
+      success: false,
+      message: 'Failed to fetch event. Please try again.',
+    }
+  }
+}
+
+/**
  * Create participant role during onboarding
  */
 export async function createParticipantRoleAction(

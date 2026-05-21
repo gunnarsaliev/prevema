@@ -635,48 +635,56 @@ export default function ImageTemplateGenerator() {
 
   // Load template if in edit mode
   useEffect(() => {
-    if (editMode.mode === 'edit' && editMode.templateId) {
-      const loadTemplate = async () => {
-        try {
-          const response = await fetch('/api/load-image-templates', {
-            credentials: 'include',
-          })
+    if (editMode.mode !== 'edit' || !editMode.templateId) return
 
-          if (!response.ok) {
-            throw new Error('Failed to load templates')
-          }
+    const controller = new AbortController()
 
-          const result = (await response.json()) as { templates: any[] }
-          const template = result.templates?.find((t) => String(t.id) === editMode.templateId)
+    const loadTemplate = async () => {
+      try {
+        const response = await fetch('/api/load-image-templates', {
+          credentials: 'include',
+          signal: controller.signal,
+        })
 
-          if (template) {
-            console.log('Loading template for editing:', template.name)
+        if (!response.ok) {
+          throw new Error('Failed to load templates')
+        }
 
-            // Store original IDs for relationships before loading
-            editMode.templateName = template.name
-            editMode.originalBackgroundImageId = template.backgroundImageId
-            editMode.originalPreviewImageId = template.previewImageId
+        const result = (await response.json()) as { templates: any[] }
+        const template = result.templates?.find((t) => String(t.id) === editMode.templateId)
 
-            await handleApplyTemplate(template)
-          } else {
-            toast({
-              title: 'Template Not Found',
-              description: 'The template you are trying to edit could not be found.',
-              variant: 'destructive',
-            })
-            router.push('/dash/assets')
-          }
-        } catch (error) {
-          console.error('Failed to load template:', error)
+        if (template) {
+          console.log('Loading template for editing:', template.name)
+
+          // Store original IDs for relationships before loading
+          editMode.templateName = template.name
+          editMode.originalBackgroundImageId = template.backgroundImageId
+          editMode.originalPreviewImageId = template.previewImageId
+
+          await handleApplyTemplate(template)
+        } else {
           toast({
-            title: 'Load Failed',
-            description: 'Failed to load template for editing.',
+            title: 'Template Not Found',
+            description: 'The template you are trying to edit could not be found.',
             variant: 'destructive',
           })
+          router.push('/dash/assets')
         }
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') return
+        console.error('Failed to load template:', error)
+        toast({
+          title: 'Load Failed',
+          description: 'Failed to load template for editing.',
+          variant: 'destructive',
+        })
       }
+    }
 
-      loadTemplate()
+    loadTemplate()
+
+    return () => {
+      controller.abort()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editMode.mode, editMode.templateId])

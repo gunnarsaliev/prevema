@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Image as ImageIcon, Palette } from 'lucide-react'
+import { Image as ImageIcon, Palette, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ImageDropzone } from '@/components/ImageDropzone'
 import {
   recordSocialPostPreferenceAction,
   saveOnboardingImageTemplateAction,
 } from '@/app/(frontend)/onboarding/actions'
+import { ONBOARDING_KEYS, useSessionState } from '../useOnboardingPersistence'
 
 interface StepSocialPostProps {
   stepIndex: number
@@ -16,6 +17,7 @@ interface StepSocialPostProps {
   organizationId: number
   onPreferenceSelected?: (preference: 'own' | 'create') => void
   onNext?: () => void
+  onComplete?: () => void
 }
 
 export const StepSocialPost = ({
@@ -23,52 +25,54 @@ export const StepSocialPost = ({
   onValidationChange,
   organizationId,
   onPreferenceSelected,
-  onNext,
+  onComplete,
 }: StepSocialPostProps) => {
   const router = useRouter()
-  const [selectedOption, setSelectedOption] = useState<'own' | 'create' | null>('create')
+  const [selectedOption, setSelectedOption] = useSessionState<'own' | 'create' | null>(
+    ONBOARDING_KEYS.social.option,
+    null,
+  )
   const [uploadedImage, setUploadedImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSelectOption = (option: 'own' | 'create') => {
     setSelectedOption(option)
-    // Reset uploaded image when switching options
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl)
     }
     setUploadedImage(null)
     setPreviewUrl(null)
-    // For 'own' option, validation requires image upload
-    // For 'create' option, no image upload needed
-    if (option === 'create') {
-      onValidationChange(stepIndex, true)
-    } else {
-      // For 'own', wait for image upload
-      onValidationChange(stepIndex, false)
-    }
+    // 'create' is always valid; 'own' becomes valid once an image is uploaded
+    onValidationChange(stepIndex, option === 'create')
   }
 
   const handleImageUpload = async (file: File) => {
-    // Revoke old preview URL if it exists
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl)
     }
-
-    // Create new preview URL
     const url = URL.createObjectURL(file)
     setPreviewUrl(url)
     setUploadedImage(file)
-
-    // Mark step as valid once image is uploaded
     onValidationChange(stepIndex, true)
     return { success: true }
   }
 
-  // Set initial validation state on mount
+  const clearImage = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+    }
+    setPreviewUrl(null)
+    setUploadedImage(null)
+    onValidationChange(stepIndex, false)
+  }
+
+  // Initial validation state on mount (depends on persisted selection)
   useEffect(() => {
     if (selectedOption === 'create') {
       onValidationChange(stepIndex, true)
+    } else {
+      onValidationChange(stepIndex, false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -82,38 +86,32 @@ export const StepSocialPost = ({
     }
   }, [previewUrl])
 
-  const handleNext = async () => {
-    if (!selectedOption) return
+  const completeAndRedirect = (path: string) => {
+    onComplete?.()
+    router.push(path)
+  }
 
+  const handlePrimary = async () => {
+    if (!selectedOption) return
     setIsSubmitting(true)
     try {
       await recordSocialPostPreferenceAction(organizationId, selectedOption)
-      if (onPreferenceSelected) {
-        onPreferenceSelected(selectedOption)
-      }
+      onPreferenceSelected?.(selectedOption)
 
-      // Handle image upload for "own" option - save as ImageTemplate
       if (selectedOption === 'own' && uploadedImage) {
         const result = await saveOnboardingImageTemplateAction(organizationId, uploadedImage)
-
         if (result.success) {
-          // Redirect to image generator with the created template so user can customize it
-          const templateId = result.data?.id
-          if (templateId) {
-            router.push(`/dash/image-generator?templateId=${templateId}`)
-          } else {
-            router.push('/dash/image-generator')
-          }
+          completeAndRedirect('/dash')
         } else {
           console.error('Failed to save image template:', result.message)
           alert(result.message || 'Failed to save image template. Please try again.')
           setIsSubmitting(false)
         }
       } else if (selectedOption === 'create') {
-        // Redirect to image generator if "create" option was selected
-        router.push('/dash/image-generator')
+        completeAndRedirect('/dash/image-generator')
       } else {
-        onNext?.()
+        // No selection / fallthrough
+        setIsSubmitting(false)
       }
     } catch (error) {
       console.error('Error saving preference:', error)
@@ -123,8 +121,21 @@ export const StepSocialPost = ({
   }
 
   const handleSkip = () => {
-    onNext?.()
+    completeAndRedirect('/dash')
   }
+
+  const canSubmit =
+    !!selectedOption &&
+    (selectedOption === 'create' || (selectedOption === 'own' && !!uploadedImage))
+
+  const primaryLabel =
+    selectedOption === 'create'
+      ? isSubmitting
+        ? 'Redirecting…'
+        : 'Go to Image Generator'
+      : isSubmitting
+        ? 'Saving…'
+        : 'Go to Dashboard'
 
   return (
     <div className="flex w-full flex-col items-center justify-center">
@@ -150,7 +161,6 @@ export const StepSocialPost = ({
                 : 'border-border/30 bg-card/30 hover:border-border/50 hover:bg-card/50'
             }`}
           >
-            {/* Radio button indicator - top right */}
             <div className="absolute top-6 right-6">
               <div
                 className={`w-6 h-6 rounded-full border-2 transition-all ${
@@ -187,7 +197,6 @@ export const StepSocialPost = ({
               </div>
             </div>
 
-            {/* Bottom indicator line */}
             {selectedOption === 'own' && (
               <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-primary rounded-t-full" />
             )}
@@ -203,7 +212,6 @@ export const StepSocialPost = ({
                 : 'border-border/30 bg-card/30 hover:border-border/50 hover:bg-card/50'
             }`}
           >
-            {/* Radio button indicator - top right */}
             <div className="absolute top-6 right-6">
               <div
                 className={`w-6 h-6 rounded-full border-2 transition-all ${
@@ -240,25 +248,29 @@ export const StepSocialPost = ({
               </div>
             </div>
 
-            {/* Bottom indicator line */}
             {selectedOption === 'create' && (
               <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-primary rounded-t-full" />
             )}
           </button>
         </div>
 
-        {/* Show dropzone when "own" option is selected */}
+        {/* Custom templates dropzone / preview */}
         {selectedOption === 'own' && (
           <div className="mt-6">
-            <p className="text-sm text-muted-foreground mb-4 text-center">
-              Upload your custom design image to save as a template background
-            </p>
-            <div className="flex justify-center">
-              <ImageDropzone onUpload={handleImageUpload} maxSizeMB={10} />
-            </div>
-            {uploadedImage && previewUrl && (
-              <div className="mt-6 space-y-4">
-                {/* Image Preview */}
+            {!uploadedImage || !previewUrl ? (
+              <>
+                <p className="text-sm text-muted-foreground mb-4 text-center">
+                  Upload your custom design image to save as a template background
+                </p>
+                <div className="flex justify-center">
+                  <ImageDropzone onUpload={handleImageUpload} maxSizeMB={10} />
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground text-center">
+                  Your image will be saved as a template background
+                </p>
                 <div className="flex justify-center">
                   <div className="relative rounded-lg overflow-hidden border-2 border-border shadow-lg max-w-md w-full">
                     <img
@@ -266,23 +278,29 @@ export const StepSocialPost = ({
                       alt="Preview of uploaded background"
                       className="w-full h-auto object-contain max-h-80"
                     />
-                    <div className="absolute top-2 right-2 bg-black/60 text-white px-2 py-1 rounded text-xs">
-                      Preview
-                    </div>
+                    <button
+                      type="button"
+                      onClick={clearImage}
+                      className="absolute top-2 right-2 inline-flex items-center justify-center w-8 h-8 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+                      aria-label="Remove image"
+                      title="Remove image"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
 
-                {/* Image Info */}
-                <div className="p-4 rounded-md bg-muted/50 border border-border">
+                <div className="p-4 rounded-md bg-muted/50 border border-border max-w-md mx-auto">
                   <div className="flex items-start gap-3">
                     <div className="rounded-full bg-primary/10 p-2 mt-0.5">
                       <ImageIcon className="h-4 w-4 text-primary" />
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-foreground">{uploadedImage.name}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {uploadedImage.name}
+                      </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {(uploadedImage.size / 1024 / 1024).toFixed(2)} MB • This image will be
-                        saved as a template background
+                        {(uploadedImage.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
                   </div>
@@ -295,35 +313,32 @@ export const StepSocialPost = ({
         {selectedOption === 'create' && (
           <div className="mt-6 p-4 rounded-md bg-muted/50 border border-border">
             <p className="text-sm text-foreground">
-              Excellent choice! After completing onboarding, you'll be redirected to the image
+              Excellent choice! After completing onboarding, you&apos;ll be redirected to the image
               generator tool to create your template.
             </p>
           </div>
         )}
 
-        {!selectedOption && (
-          <>
-            <p className="text-xs text-center text-muted-foreground">
-              You can change this later from your event settings
-            </p>
-
-            <div className="flex justify-center mt-4">
-              <Button type="button" variant="outline" onClick={handleSkip} disabled={isSubmitting}>
-                Skip this step
-              </Button>
-            </div>
-          </>
+        {/* Primary CTA */}
+        {canSubmit && (
+          <div className="flex justify-center mt-4">
+            <Button type="button" onClick={handlePrimary} disabled={isSubmitting}>
+              {primaryLabel}
+            </Button>
+          </div>
         )}
 
-        {/* Show Complete Setup button when valid */}
-        {selectedOption &&
-          (selectedOption === 'create' || (selectedOption === 'own' && uploadedImage)) && (
-            <div className="flex justify-center mt-4">
-              <Button type="button" onClick={handleNext} disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : 'Complete Setup'}
-              </Button>
-            </div>
-          )}
+        {/* Skip link (always visible) */}
+        <div className="flex justify-center mt-2">
+          <button
+            type="button"
+            onClick={handleSkip}
+            disabled={isSubmitting}
+            className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 disabled:opacity-50"
+          >
+            Skip this step and take me to the dashboard
+          </button>
+        </div>
       </div>
     </div>
   )

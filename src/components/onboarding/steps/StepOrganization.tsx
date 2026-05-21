@@ -5,18 +5,12 @@ import { Building2, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
 import {
   createOrganizationAction,
   updateOrganizationAction,
   getUserOrganizationAction,
 } from '@/app/(frontend)/onboarding/actions'
+import { ONBOARDING_KEYS, useSessionState } from '../useOnboardingPersistence'
 
 interface StepOrganizationProps {
   stepIndex: number
@@ -34,12 +28,7 @@ export const StepOrganization = ({
   const [isLoading, setIsLoading] = useState(true)
   const [hasOrganization, setHasOrganization] = useState(false)
   const [organizationId, setOrganizationId] = useState<number | null>(null)
-  const [organizationName, setOrganizationName] = useState('')
-  const [emailConfigIsActive, setEmailConfigIsActive] = useState(false)
-  const [senderName, setSenderName] = useState('')
-  const [fromEmail, setFromEmail] = useState('')
-  const [replyToEmail, setReplyToEmail] = useState('')
-  const [resendApiKey, setResendApiKey] = useState('')
+  const [organizationName, setOrganizationName] = useSessionState(ONBOARDING_KEYS.org.name, '')
   const [isPending, setIsPending] = useState(false)
   const [state, setState] = useState<any>(undefined)
 
@@ -56,16 +45,8 @@ export const StepOrganization = ({
 
           setHasOrganization(true)
           setOrganizationId(org.id)
-          setOrganizationName(org.name || '')
-
-          // Pre-populate email config if it exists
-          if (org.emailConfig) {
-            setEmailConfigIsActive(org.emailConfig.isActive || false)
-            setSenderName(org.emailConfig.senderName || '')
-            setFromEmail(org.emailConfig.fromEmail || '')
-            setReplyToEmail(org.emailConfig.replyToEmail || '')
-            setResendApiKey(org.emailConfig.resendApiKey || '')
-          }
+          // Only overwrite the session-persisted name if we don't already have one
+          setOrganizationName((prev) => (prev && prev.trim().length > 0 ? prev : org.name || ''))
 
           // Mark as valid if name exists
           const isValid = (org.name || '').trim().length >= 3
@@ -217,128 +198,6 @@ export const StepOrganization = ({
                 This will be the name of your organization or company
               </p>
             </div>
-
-            {/* Collapsible Email Configuration */}
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="email-config" className="border-border">
-                <AccordionTrigger className="text-sm font-medium text-foreground hover:no-underline">
-                  Email Configuration (Optional)
-                </AccordionTrigger>
-                <AccordionContent className="space-y-4 pt-4">
-                  <p className="text-xs text-muted-foreground">
-                    Configure Resend integration to send automated emails to your participants
-                  </p>
-
-                  {/* Email Active Toggle */}
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="emailConfigIsActive"
-                      name="emailConfigIsActive"
-                      checked={emailConfigIsActive}
-                      onCheckedChange={(checked) => setEmailConfigIsActive(checked === true)}
-                      value={emailConfigIsActive ? 'true' : 'false'}
-                    />
-                    <Label
-                      htmlFor="emailConfigIsActive"
-                      className="text-sm text-foreground cursor-pointer"
-                    >
-                      Enable email sending
-                    </Label>
-                  </div>
-
-                  {/* Resend API Key */}
-                  <div className="space-y-2">
-                    <Label htmlFor="resendApiKey" className="text-sm text-foreground">
-                      Resend API Key
-                    </Label>
-                    <Input
-                      id="resendApiKey"
-                      name="resendApiKey"
-                      type="password"
-                      placeholder="re_..."
-                      value={resendApiKey}
-                      onChange={(e) => setResendApiKey(e.target.value)}
-                      className="bg-background"
-                      disabled={isPending}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Get your API key from{' '}
-                      <a
-                        href="https://resend.com/api-keys"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        resend.com/api-keys
-                      </a>
-                    </p>
-                  </div>
-
-                  {/* Sender Name */}
-                  <div className="space-y-2">
-                    <Label htmlFor="senderName" className="text-sm text-foreground">
-                      Sender Name
-                    </Label>
-                    <Input
-                      id="senderName"
-                      name="senderName"
-                      type="text"
-                      placeholder="Acme Events"
-                      value={senderName}
-                      onChange={(e) => setSenderName(e.target.value)}
-                      className="bg-background"
-                      disabled={isPending}
-                    />
-                  </div>
-
-                  {/* From Email */}
-                  <div className="space-y-2">
-                    <Label htmlFor="fromEmail" className="text-sm text-foreground">
-                      From Email
-                    </Label>
-                    <Input
-                      id="fromEmail"
-                      name="fromEmail"
-                      type="email"
-                      placeholder="noreply@yourdomain.com"
-                      value={fromEmail}
-                      onChange={(e) => setFromEmail(e.target.value)}
-                      className="bg-background"
-                      disabled={isPending}
-                      aria-invalid={!!state?.errors?.['emailConfig.fromEmail']}
-                    />
-                    {state?.errors?.['emailConfig.fromEmail'] && (
-                      <p className="text-sm text-destructive">
-                        {state.errors['emailConfig.fromEmail'][0]}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Reply-To Email */}
-                  <div className="space-y-2">
-                    <Label htmlFor="replyToEmail" className="text-sm text-foreground">
-                      Reply-To Email
-                    </Label>
-                    <Input
-                      id="replyToEmail"
-                      name="replyToEmail"
-                      type="email"
-                      placeholder="support@yourdomain.com"
-                      value={replyToEmail}
-                      onChange={(e) => setReplyToEmail(e.target.value)}
-                      className="bg-background"
-                      disabled={isPending}
-                      aria-invalid={!!state?.errors?.['emailConfig.replyToEmail']}
-                    />
-                    {state?.errors?.['emailConfig.replyToEmail'] && (
-                      <p className="text-sm text-destructive">
-                        {state.errors['emailConfig.replyToEmail'][0]}
-                      </p>
-                    )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
 
             <Button
               type="submit"

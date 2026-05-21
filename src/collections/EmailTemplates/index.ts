@@ -206,7 +206,8 @@ export const EmailTemplates: CollectionConfig = {
     {
       name: 'slug',
       type: 'text',
-      unique: true,
+      required: false,
+      unique: false,
       hooks: {
         beforeValidate: [formatSlugHook('name')],
       },

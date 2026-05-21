@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Calendar } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Calendar, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { createEventAction } from '@/app/(frontend)/onboarding/actions'
+import {
+  createEventAction,
+  updateEventAction,
+  getOnboardingEventAction,
+} from '@/app/(frontend)/onboarding/actions'
 import {
   FileUpload,
   FileUploadDropzone,
@@ -17,37 +20,103 @@ import {
   FileUploadItemPreview,
   FileUploadList,
 } from '@/components/ui/file-upload'
+import { ONBOARDING_KEYS, useSessionState } from '../useOnboardingPersistence'
 
 interface StepEventProps {
   stepIndex: number
   onValidationChange: (stepIndex: number, isValid: boolean) => void
   organizationId: number
+  eventId?: number
   onEventCreated?: (eventId: number, eventName: string) => void
   onNext?: () => void
+}
+
+// Helper: convert ISO date to value expected by <input type="datetime-local"> (YYYY-MM-DDTHH:mm)
+function toLocalDateTimeValue(iso: string | null | undefined): string {
+  if (!iso) return ''
+  try {
+    const d = new Date(iso)
+    if (Number.isNaN(d.getTime())) return ''
+    const pad = (n: number) => `${n}`.padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  } catch {
+    return ''
+  }
 }
 
 export const StepEvent = ({
   stepIndex,
   onValidationChange,
   organizationId,
+  eventId,
   onEventCreated,
   onNext,
 }: StepEventProps) => {
-  const router = useRouter()
-  const [eventName, setEventName] = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [eventType, setEventType] = useState('online')
+  // Persisted fields
+  const [eventName, setEventName] = useSessionState(ONBOARDING_KEYS.event.name, '')
+  const [startDate, setStartDate] = useSessionState(ONBOARDING_KEYS.event.startDate, '')
+  const [endDate, setEndDate] = useSessionState(ONBOARDING_KEYS.event.endDate, '')
+  const [eventType, setEventType] = useSessionState(ONBOARDING_KEYS.event.eventType, 'online')
+  const [address, setAddress] = useSessionState(ONBOARDING_KEYS.event.address, '')
+  const [theme, setTheme] = useSessionState(ONBOARDING_KEYS.event.theme, '')
+  const [why, setWhy] = useSessionState(ONBOARDING_KEYS.event.why, '')
+  const [what, setWhat] = useSessionState(ONBOARDING_KEYS.event.what, '')
+  const [who, setWho] = useSessionState(ONBOARDING_KEYS.event.who, '')
+  const [description, setDescription] = useSessionState(ONBOARDING_KEYS.event.description, '')
+  const [where, setWhere] = useSessionState(ONBOARDING_KEYS.event.where, '')
+
+  // Non-persisted state (File objects aren't serializable)
   const [imageFiles, setImageFiles] = useState<File[]>([])
   const [showOptional, setShowOptional] = useState(false)
   const [isPending, setIsPending] = useState(false)
   const [state, setState] = useState<any>(undefined)
+  const [isPrefilling, setIsPrefilling] = useState(false)
+  const [prefilled, setPrefilled] = useState(false)
+
+  // If we already created an event, fetch it and prefill the form (only if user hasn't entered data yet)
+  useEffect(() => {
+    if (!eventId || prefilled) return
+    let cancelled = false
+    setIsPrefilling(true)
+    ;(async () => {
+      const res = await getOnboardingEventAction(eventId)
+      if (cancelled) return
+      if (res.success && res.data) {
+        const d = res.data
+        // Only overwrite empty session values; preserve any user edits
+        setEventName((prev) => (prev && prev.trim().length > 0 ? prev : d.name || ''))
+        setStartDate((prev) => (prev ? prev : toLocalDateTimeValue(d.startDate)))
+        setEndDate((prev) => (prev ? prev : toLocalDateTimeValue(d.endDate)))
+        setEventType((prev) => (prev && prev.length > 0 ? prev : d.eventType || 'online'))
+        setAddress((prev) => (prev ? prev : d.address || ''))
+        setTheme((prev) => (prev ? prev : d.theme || ''))
+        setWhy((prev) => (prev ? prev : d.why || ''))
+        setWhat((prev) => (prev ? prev : d.what || ''))
+        setWho((prev) => (prev ? prev : d.who || ''))
+        setDescription((prev) => (prev ? prev : d.description || ''))
+        setWhere((prev) => (prev ? prev : d.where || ''))
+      }
+      setIsPrefilling(false)
+      setPrefilled(true)
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId])
+
+  // Keep validity flag in sync with required fields
+  useEffect(() => {
+    const isValid = eventName.trim().length >= 3 && startDate.trim().length > 0
+    onValidationChange(stepIndex, isValid)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventName, startDate])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = e.currentTarget
     const formData = new FormData(form)
 
-    // Add image file if selected
     if (imageFiles.length > 0) {
       formData.set('image', imageFiles[0])
     }
@@ -55,18 +124,17 @@ export const StepEvent = ({
     setIsPending(true)
 
     try {
-      const result = await createEventAction(organizationId, state, formData)
-      console.log('[StepEvent] Event creation result:', result)
+      const result = eventId
+        ? await updateEventAction(eventId, organizationId, state, formData)
+        : await createEventAction(organizationId, state, formData)
+      console.log('[StepEvent] Save result:', result)
 
       setState(result)
 
       if (result.success && result.data) {
-        // Notify parent of event creation
         if (onEventCreated) {
           onEventCreated(result.data.id, result.data.name)
         }
-
-        // Auto-advance to next step after showing success message
         setTimeout(() => {
           onNext?.()
         }, 800)
@@ -84,21 +152,24 @@ export const StepEvent = ({
     }
   }
 
-  // Update validation when required fields change
-  const updateValidation = () => {
-    const isValid = eventName.trim().length >= 3 && startDate.trim().length > 0
-    onValidationChange(stepIndex, isValid)
+  if (isPrefilling) {
+    return (
+      <div className="flex min-h-[40.5dvh] w-full flex-col items-center justify-center">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <p className="text-sm">Loading event…</p>
+        </div>
+      </div>
+    )
   }
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEventName(e.target.value)
-    updateValidation()
-  }
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStartDate(e.target.value)
-    updateValidation()
-  }
+  const submitLabel = eventId
+    ? isPending
+      ? 'Updating…'
+      : 'Update Event'
+    : isPending
+      ? 'Creating…'
+      : 'Create Event'
 
   return (
     <div className="flex w-full flex-col items-center justify-center">
@@ -107,7 +178,7 @@ export const StepEvent = ({
         {state?.success && (
           <div className="rounded-md bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 p-3">
             <p className="text-sm text-green-800 dark:text-green-200">
-              Event "{state.data?.name}" created successfully!
+              Event &quot;{state.data?.name}&quot; saved successfully!
             </p>
           </div>
         )}
@@ -126,7 +197,7 @@ export const StepEvent = ({
                 <Calendar className="h-8 w-8 text-primary" />
               </div>
               <p className="text-sm text-muted-foreground text-center">
-                Now let's create your first event
+                {eventId ? "Update your event's details" : "Now let's create your first event"}
               </p>
             </div>
 
@@ -204,7 +275,7 @@ export const StepEvent = ({
                 type="text"
                 placeholder="Tech Conference"
                 value={eventName}
-                onChange={handleNameChange}
+                onChange={(e) => setEventName(e.target.value)}
                 required
                 minLength={3}
                 className="bg-background"
@@ -216,7 +287,7 @@ export const StepEvent = ({
               )}
             </div>
 
-            {/* Start Date & Event Type */}
+            {/* Start Date & End Date side-by-side */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="startDate" className="text-foreground">
@@ -227,7 +298,7 @@ export const StepEvent = ({
                   name="startDate"
                   type="datetime-local"
                   value={startDate}
-                  onChange={handleDateChange}
+                  onChange={(e) => setStartDate(e.target.value)}
                   required
                   className="bg-background"
                   disabled={isPending}
@@ -239,21 +310,41 @@ export const StepEvent = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="eventType" className="text-foreground">
-                  Event type
+                <Label htmlFor="endDate" className="text-foreground">
+                  End date
                 </Label>
-                <select
-                  id="eventType"
-                  name="eventType"
-                  value={eventType}
-                  onChange={(e) => setEventType(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                <Input
+                  id="endDate"
+                  name="endDate"
+                  type="datetime-local"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="bg-background"
                   disabled={isPending}
-                >
-                  <option value="online">Online</option>
-                  <option value="physical">Physical</option>
-                </select>
+                  aria-invalid={!!state?.errors?.endDate}
+                />
+                {state?.errors?.endDate && (
+                  <p className="text-sm text-destructive">{state.errors.endDate[0]}</p>
+                )}
               </div>
+            </div>
+
+            {/* Event Type */}
+            <div className="space-y-2">
+              <Label htmlFor="eventType" className="text-foreground">
+                Event type
+              </Label>
+              <select
+                id="eventType"
+                name="eventType"
+                value={eventType}
+                onChange={(e) => setEventType(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={isPending}
+              >
+                <option value="online">Online</option>
+                <option value="physical">Physical</option>
+              </select>
             </div>
 
             {/* Address (conditional) */}
@@ -267,6 +358,8 @@ export const StepEvent = ({
                   name="address"
                   type="text"
                   placeholder="123 Main St, City"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
                   className="bg-background"
                   disabled={isPending}
                 />
@@ -283,6 +376,8 @@ export const StepEvent = ({
                 name="theme"
                 type="text"
                 placeholder="Inspiring the future of tech"
+                value={theme}
+                onChange={(e) => setTheme(e.target.value)}
                 className="bg-background"
                 disabled={isPending}
               />
@@ -297,6 +392,8 @@ export const StepEvent = ({
                 id="why"
                 name="why"
                 placeholder="Why this event is happening..."
+                value={why}
+                onChange={(e) => setWhy(e.target.value)}
                 className="bg-background"
                 rows={2}
                 disabled={isPending}
@@ -315,6 +412,8 @@ export const StepEvent = ({
                 id="what"
                 name="what"
                 placeholder="What the event is about..."
+                value={what}
+                onChange={(e) => setWhat(e.target.value)}
                 className="bg-background"
                 rows={2}
                 disabled={isPending}
@@ -331,6 +430,8 @@ export const StepEvent = ({
                 id="who"
                 name="who"
                 placeholder="Who should attend..."
+                value={who}
+                onChange={(e) => setWho(e.target.value)}
                 className="bg-background"
                 rows={2}
                 disabled={isPending}
@@ -362,21 +463,10 @@ export const StepEvent = ({
                     id="description"
                     name="description"
                     placeholder="Brief overview of the event"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     className="bg-background"
                     rows={2}
-                    disabled={isPending}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="endDate" className="text-foreground">
-                    End date
-                  </Label>
-                  <Input
-                    id="endDate"
-                    name="endDate"
-                    type="datetime-local"
-                    className="bg-background"
                     disabled={isPending}
                   />
                 </div>
@@ -390,6 +480,8 @@ export const StepEvent = ({
                     name="where"
                     type="text"
                     placeholder="Venue name, city, or platform..."
+                    value={where}
+                    onChange={(e) => setWhere(e.target.value)}
                     className="bg-background"
                     disabled={isPending}
                   />
@@ -402,17 +494,17 @@ export const StepEvent = ({
               className="w-full"
               disabled={isPending || eventName.trim().length < 3 || !startDate}
             >
-              {isPending ? 'Creating...' : 'Create Event'}
+              {submitLabel}
             </Button>
 
             <Button
               type="button"
               variant="ghost"
               className="w-full"
-              onClick={() => router.push('/dash')}
+              onClick={() => onNext?.()}
               disabled={isPending}
             >
-              Take me to the dashboard
+              Skip this step
             </Button>
           </>
         )}

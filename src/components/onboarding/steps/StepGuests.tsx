@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Users, X, ExternalLink, ChevronDown } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Users, X, ExternalLink, ChevronDown, Copy, Check } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -16,6 +16,7 @@ import {
   deleteParticipantRoleAction,
   deletePartnerTypeAction,
 } from '@/app/(frontend)/onboarding/actions'
+import { ONBOARDING_KEYS, useSessionState } from '../useOnboardingPersistence'
 
 interface GuestType {
   id: number
@@ -40,7 +41,6 @@ const participantBasicFields = [
   { label: 'Company Position', value: 'companyPosition' },
 ]
 
-// Advanced participant fields (in collapsible)
 const participantAdvancedFields = [
   { label: 'Country', value: 'country' },
   { label: 'Phone Number', value: 'phoneNumber' },
@@ -52,14 +52,12 @@ const participantAdvancedFields = [
   { label: 'Technical Requirements', value: 'technicalRequirements' },
 ]
 
-// Basic partner fields (shown by default)
 const partnerBasicFields = [
   { label: 'Company Logo', value: 'companyLogo' },
   { label: 'Company Description', value: 'companyDescription' },
   { label: 'Company Website URL', value: 'companyWebsiteUrl' },
 ]
 
-// Advanced partner fields (in collapsible)
 const partnerAdvancedFields = [
   { label: 'Company Logo URL', value: 'companyLogoUrl' },
   { label: 'Company Banner', value: 'companyBanner' },
@@ -70,6 +68,84 @@ const partnerAdvancedFields = [
   { label: 'Additional Notes', value: 'additionalNotes' },
 ]
 
+interface GuestTypeRowProps {
+  type: GuestType
+  pendingDeletion: boolean
+  onRemove: (id: number) => void
+}
+
+const GuestTypeRow = ({ type, pendingDeletion, onRemove }: GuestTypeRowProps) => {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    if (!type.publicFormLink) return
+    try {
+      const absolute = type.publicFormLink.startsWith('http')
+        ? type.publicFormLink
+        : typeof window !== 'undefined'
+          ? `${window.location.origin}${type.publicFormLink}`
+          : type.publicFormLink
+      await navigator.clipboard.writeText(absolute)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (pendingDeletion) {
+    return (
+      <div className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background">
+        <Skeleton className="h-4 w-40" />
+        <div className="flex items-center gap-1.5">
+          <Skeleton className="h-6 w-14 rounded-full" />
+          <Skeleton className="h-6 w-6 rounded-md" />
+          <Skeleton className="h-6 w-6 rounded-md" />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/30 transition-colors">
+      <span className="text-sm font-medium truncate flex-1">{type.name}</span>
+      <div className="flex items-center gap-1.5 ml-2 shrink-0">
+        {type.publicFormLink && (
+          <a
+            href={type.publicFormLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 border border-primary/30 rounded-full px-2 py-0.5 hover:bg-primary/5 transition-colors"
+            title="Open registration form"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Form
+          </a>
+        )}
+        {type.publicFormLink && (
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            aria-label="Copy link"
+            title={copied ? 'Copied!' : 'Copy link'}
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => onRemove(type.id)}
+          className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          aria-label="Remove"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export const StepGuests = ({
   stepIndex,
   onValidationChange,
@@ -78,65 +154,78 @@ export const StepGuests = ({
   onGuestsConfigured,
   onNext,
 }: StepGuestsProps) => {
-  // Participant state
-  const [participantName, setParticipantName] = useState('')
-  const [participantFields, setParticipantFields] = useState<string[]>([
-    'imageUrl',
-    'biography',
-    'companyName',
-  ])
+  // Persisted input state
+  const [participantName, setParticipantName] = useSessionState(
+    ONBOARDING_KEYS.guests.participantName,
+    '',
+  )
+  const [participantFields, setParticipantFields] = useSessionState<string[]>(
+    ONBOARDING_KEYS.guests.participantFields,
+    ['imageUrl', 'biography', 'companyName'],
+  )
+  const [partnerName, setPartnerName] = useSessionState(ONBOARDING_KEYS.guests.partnerName, '')
+  const [partnerFields, setPartnerFields] = useSessionState<string[]>(
+    ONBOARDING_KEYS.guests.partnerFields,
+    ['companyLogo', 'companyDescription'],
+  )
+
+  // Server-side data + busy flags
   const [participantRoles, setParticipantRoles] = useState<GuestType[]>([])
-  const [participantLoading, setParticipantLoading] = useState(false)
-
-  // Partner state
-  const [partnerName, setPartnerName] = useState('')
-  const [partnerFields, setPartnerFields] = useState<string[]>([
-    'companyLogo',
-    'companyDescription',
-  ])
   const [partnerTypes, setPartnerTypes] = useState<GuestType[]>([])
-  const [partnerLoading, setPartnerLoading] = useState(false)
+  const [participantBusy, setParticipantBusy] = useState(false)
+  const [partnerBusy, setPartnerBusy] = useState(false)
+  const [pendingDeleteParticipant, setPendingDeleteParticipant] = useState<number | null>(null)
+  const [pendingDeletePartner, setPendingDeletePartner] = useState<number | null>(null)
 
-  // Error states
   const [participantError, setParticipantError] = useState('')
   const [partnerError, setPartnerError] = useState('')
   const [isInitialLoading, setIsInitialLoading] = useState(true)
 
-  // Collapsible states for advanced options
   const [participantAdvancedOpen, setParticipantAdvancedOpen] = useState(false)
   const [partnerAdvancedOpen, setPartnerAdvancedOpen] = useState(false)
 
   // Fetch existing types on mount
   useEffect(() => {
+    let cancelled = false
     const fetchTypes = async () => {
       setIsInitialLoading(true)
       const [participantResult, partnerResult] = await Promise.all([
         getParticipantRolesAction(organizationId, eventId),
         getPartnerTypesAction(organizationId, eventId),
       ])
+      if (cancelled) return
 
       if (participantResult.success && participantResult.data) {
         setParticipantRoles(participantResult.data)
       }
-
       if (partnerResult.success && partnerResult.data) {
         setPartnerTypes(partnerResult.data)
       }
-
       setIsInitialLoading(false)
     }
 
     fetchTypes()
+    return () => {
+      cancelled = true
+    }
   }, [organizationId, eventId])
 
-  // Add participant role
+  // Notify parent of changes
+  useEffect(() => {
+    onGuestsConfigured?.(
+      participantRoles.map((r) => r.id),
+      partnerTypes.map((p) => p.id),
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [participantRoles, partnerTypes])
+
   const handleAddParticipantRole = async () => {
     if (!participantName.trim()) {
       setParticipantError('Please enter a name')
       return
     }
 
-    setParticipantLoading(true)
+    setParticipantBusy(true)
     setParticipantError('')
 
     const formData = new FormData()
@@ -153,17 +242,16 @@ export const StepGuests = ({
       setParticipantError(result.message || 'Failed to create participant role')
     }
 
-    setParticipantLoading(false)
+    setParticipantBusy(false)
   }
 
-  // Add partner type
   const handleAddPartnerType = async () => {
     if (!partnerName.trim()) {
       setPartnerError('Please enter a name')
       return
     }
 
-    setPartnerLoading(true)
+    setPartnerBusy(true)
     setPartnerError('')
 
     const formData = new FormData()
@@ -180,51 +268,41 @@ export const StepGuests = ({
       setPartnerError(result.message || 'Failed to create partner type')
     }
 
-    setPartnerLoading(false)
+    setPartnerBusy(false)
   }
 
-  // Remove participant role
   const removeParticipantRole = async (id: number) => {
-    // Capture the item before deletion for potential revert
-    const itemToDelete = participantRoles.find((type) => type.id === id)
-
-    // Optimistically remove from UI
-    setParticipantRoles((prev) => prev.filter((type) => type.id !== id))
-
-    // Delete from database in the background
+    setPendingDeleteParticipant(id)
     const result = await deleteParticipantRoleAction(organizationId, id)
-
-    if (!result.success) {
-      // If deletion fails, revert by re-adding the item
+    if (result.success) {
+      setParticipantRoles((prev) => prev.filter((type) => type.id !== id))
+    } else {
       console.error('Failed to delete participant role:', result.message)
-      if (itemToDelete) {
-        setParticipantRoles((prev) => [...prev, itemToDelete])
-      }
     }
+    setPendingDeleteParticipant(null)
   }
 
-  // Remove partner type
   const removePartnerType = async (id: number) => {
-    // Capture the item before deletion for potential revert
-    const itemToDelete = partnerTypes.find((type) => type.id === id)
-
-    // Optimistically remove from UI
-    setPartnerTypes((prev) => prev.filter((type) => type.id !== id))
-
-    // Delete from database in the background
+    setPendingDeletePartner(id)
     const result = await deletePartnerTypeAction(organizationId, id)
-
-    if (!result.success) {
-      // If deletion fails, revert by re-adding the item
+    if (result.success) {
+      setPartnerTypes((prev) => prev.filter((type) => type.id !== id))
+    } else {
       console.error('Failed to delete partner type:', result.message)
-      if (itemToDelete) {
-        setPartnerTypes((prev) => [...prev, itemToDelete])
-      }
     }
+    setPendingDeletePartner(null)
   }
+
+  const hasItems = participantRoles.length > 0 || partnerTypes.length > 0
+  const isAnythingBusy =
+    isInitialLoading ||
+    participantBusy ||
+    partnerBusy ||
+    pendingDeleteParticipant !== null ||
+    pendingDeletePartner !== null
 
   return (
-    <div className="space-y-6 mb-6">
+    <div className="space-y-6 mb-6 w-full max-w-lg mx-auto">
       <div className="flex flex-col items-center gap-3">
         <div className="rounded-full bg-primary/10 dark:bg-primary/20 p-4">
           <Users className="h-8 w-8 text-primary" />
@@ -233,17 +311,26 @@ export const StepGuests = ({
           Set up guest types for your event
         </p>
         <p className="text-xs text-muted-foreground text-center max-w-md">
-          You can skip this step and add guest types later, or add them now to get shareable
-          registration links
+          Add participant roles and partner types to get shareable registration links you can send
+          to your audience.
         </p>
       </div>
 
       {/* Forms to add new types */}
       <div className="space-y-4">
         {/* Participant Roles */}
-        <div className="space-y-4 shadow-lg bg-white dark:bg-gray-950 rounded-md p-4">
-          <h3 className="font-semibold text-foreground">Participant Roles</h3>
-          <p className="text-xs text-muted-foreground">Speakers, attendees, presenters, etc.</p>
+        <div className="space-y-4 shadow-sm border border-border bg-card rounded-xl p-5">
+          <div className="flex items-center gap-2">
+            <div className="rounded-md bg-primary/10 p-1.5">
+              <Users className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground text-sm">Participant Roles</h3>
+              <p className="text-xs text-muted-foreground">
+                Speakers, attendees, presenters, etc.
+              </p>
+            </div>
+          </div>
 
           <div className="space-y-3">
             <div className="space-y-2">
@@ -257,12 +344,11 @@ export const StepGuests = ({
                 value={participantName}
                 onChange={(e) => setParticipantName(e.target.value)}
                 className="bg-background"
-                disabled={participantLoading}
+                disabled={participantBusy}
               />
             </div>
 
             <div className="space-y-2">
-              {/* Advanced options collapsible */}
               <Collapsible open={participantAdvancedOpen} onOpenChange={setParticipantAdvancedOpen}>
                 <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
                   <ChevronDown
@@ -273,34 +359,7 @@ export const StepGuests = ({
                 <CollapsibleContent className="mt-2">
                   <Label className="text-sm mb-2 block">Customize form fields</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    {/* Basic fields */}
-                    {participantBasicFields.map((option) => (
-                      <div key={option.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`participant-${option.value}`}
-                          checked={participantFields.includes(option.value)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setParticipantFields([...participantFields, option.value])
-                            } else {
-                              setParticipantFields(
-                                participantFields.filter((f) => f !== option.value),
-                              )
-                            }
-                          }}
-                          className="bg-background"
-                        />
-                        <label
-                          htmlFor={`participant-${option.value}`}
-                          className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {option.label}
-                        </label>
-                      </div>
-                    ))}
-
-                    {/* Advanced fields */}
-                    {participantAdvancedFields.map((option) => (
+                    {[...participantBasicFields, ...participantAdvancedFields].map((option) => (
                       <div key={option.value} className="flex items-center space-x-2">
                         <Checkbox
                           id={`participant-${option.value}`}
@@ -336,17 +395,26 @@ export const StepGuests = ({
               onClick={handleAddParticipantRole}
               size="sm"
               className="w-full"
-              disabled={participantLoading || !participantName.trim()}
+              disabled={participantBusy || !participantName.trim()}
             >
-              {participantLoading ? 'Adding...' : '+ Add Participant Role'}
+              {participantBusy ? 'Adding...' : '+ Add Participant Role'}
             </Button>
           </div>
         </div>
 
         {/* Partner Types */}
-        <div className="space-y-4 shadow-lg bg-white dark:bg-gray-950 rounded-md p-4">
-          <h3 className="font-semibold text-foreground">Partner Types</h3>
-          <p className="text-xs text-muted-foreground">Sponsors, exhibitors, vendors, etc.</p>
+        <div className="space-y-4 shadow-sm border border-border bg-card rounded-xl p-5">
+          <div className="flex items-center gap-2">
+            <div className="rounded-md bg-primary/10 p-1.5">
+              <Users className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground text-sm">Partner Types</h3>
+              <p className="text-xs text-muted-foreground">
+                Sponsors, exhibitors, vendors, etc.
+              </p>
+            </div>
+          </div>
 
           <div className="space-y-3">
             <div className="space-y-2">
@@ -360,12 +428,11 @@ export const StepGuests = ({
                 value={partnerName}
                 onChange={(e) => setPartnerName(e.target.value)}
                 className="bg-background"
-                disabled={partnerLoading}
+                disabled={partnerBusy}
               />
             </div>
 
             <div className="space-y-2">
-              {/* Advanced options collapsible */}
               <Collapsible open={partnerAdvancedOpen} onOpenChange={setPartnerAdvancedOpen}>
                 <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
                   <ChevronDown
@@ -376,32 +443,7 @@ export const StepGuests = ({
                 <CollapsibleContent className="mt-2">
                   <Label className="text-sm mb-2 block">Customize form fields</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    {/* Basic fields */}
-                    {partnerBasicFields.map((option) => (
-                      <div key={option.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`partner-${option.value}`}
-                          checked={partnerFields.includes(option.value)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setPartnerFields([...partnerFields, option.value])
-                            } else {
-                              setPartnerFields(partnerFields.filter((f) => f !== option.value))
-                            }
-                          }}
-                          className="bg-background"
-                        />
-                        <label
-                          htmlFor={`partner-${option.value}`}
-                          className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {option.label}
-                        </label>
-                      </div>
-                    ))}
-
-                    {/* Advanced fields */}
-                    {partnerAdvancedFields.map((option) => (
+                    {[...partnerBasicFields, ...partnerAdvancedFields].map((option) => (
                       <div key={option.value} className="flex items-center space-x-2">
                         <Checkbox
                           id={`partner-${option.value}`}
@@ -435,9 +477,9 @@ export const StepGuests = ({
               onClick={handleAddPartnerType}
               size="sm"
               className="w-full"
-              disabled={partnerLoading || !partnerName.trim()}
+              disabled={partnerBusy || !partnerName.trim()}
             >
-              {partnerLoading ? 'Adding...' : '+ Add Partner Type'}
+              {partnerBusy ? 'Adding...' : '+ Add Partner Type'}
             </Button>
           </div>
         </div>
@@ -458,102 +500,61 @@ export const StepGuests = ({
             </div>
           </div>
         </div>
-      ) : participantRoles.length > 0 ||
-        partnerTypes.length > 0 ||
-        participantLoading ||
-        partnerLoading ? (
+      ) : hasItems || participantBusy || partnerBusy ? (
         <div className="rounded-xl border border-border bg-card p-4 space-y-4">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Created types
           </p>
 
-          {/* Participant roles list */}
-          {(participantRoles.length > 0 || participantLoading) && (
+          {(participantRoles.length > 0 || participantBusy) && (
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <Users className="h-3 w-3" />
                 Participant Roles
               </p>
               {participantRoles.map((type) => (
-                <div
+                <GuestTypeRow
                   key={type.id}
-                  className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/30 transition-colors"
-                >
-                  <span className="text-sm font-medium truncate flex-1">{type.name}</span>
-                  <div className="flex items-center gap-1.5 ml-2 shrink-0">
-                    {type.publicFormLink && (
-                      <a
-                        href={type.publicFormLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 border border-primary/30 rounded-full px-2 py-0.5 hover:bg-primary/5 transition-colors"
-                        title="Open registration form"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        Form
-                      </a>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => removeParticipantRole(type.id)}
-                      className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      aria-label="Remove"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
+                  type={type}
+                  pendingDeletion={pendingDeleteParticipant === type.id}
+                  onRemove={removeParticipantRole}
+                />
               ))}
-              {participantLoading && (
+              {participantBusy && (
                 <div className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background">
                   <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-6 w-14 rounded-full" />
+                  <div className="flex items-center gap-1.5">
+                    <Skeleton className="h-6 w-14 rounded-full" />
+                    <Skeleton className="h-6 w-6 rounded-md" />
+                    <Skeleton className="h-6 w-6 rounded-md" />
+                  </div>
                 </div>
               )}
             </div>
           )}
 
-          {/* Partner types list */}
-          {(partnerTypes.length > 0 || partnerLoading) && (
+          {(partnerTypes.length > 0 || partnerBusy) && (
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <Users className="h-3 w-3" />
                 Partner Types
               </p>
               {partnerTypes.map((type) => (
-                <div
+                <GuestTypeRow
                   key={type.id}
-                  className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted/30 transition-colors"
-                >
-                  <span className="text-sm font-medium truncate flex-1">{type.name}</span>
-                  <div className="flex items-center gap-1.5 ml-2 shrink-0">
-                    {type.publicFormLink && (
-                      <a
-                        href={type.publicFormLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 border border-primary/30 rounded-full px-2 py-0.5 hover:bg-primary/5 transition-colors"
-                        title="Open registration form"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        Form
-                      </a>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => removePartnerType(type.id)}
-                      className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      aria-label="Remove"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
+                  type={type}
+                  pendingDeletion={pendingDeletePartner === type.id}
+                  onRemove={removePartnerType}
+                />
               ))}
-              {partnerLoading && (
+              {partnerBusy && (
                 <div className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background">
                   <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-6 w-14 rounded-full" />
+                  <div className="flex items-center gap-1.5">
+                    <Skeleton className="h-6 w-14 rounded-full" />
+                    <Skeleton className="h-6 w-6 rounded-md" />
+                    <Skeleton className="h-6 w-6 rounded-md" />
+                  </div>
                 </div>
               )}
             </div>
@@ -561,17 +562,26 @@ export const StepGuests = ({
         </div>
       ) : null}
 
-      {/* Skip/Continue button - always visible */}
-      <div className="flex justify-center">
-        <Button
+      {/* Continue / Skip as a link */}
+      <div className="flex flex-col items-center gap-3 pt-2">
+        {hasItems && (
+          <Button
+            type="button"
+            onClick={onNext}
+            className="min-w-[200px]"
+            disabled={isAnythingBusy}
+          >
+            Continue
+          </Button>
+        )}
+        <button
           type="button"
-          variant="outline"
           onClick={onNext}
-          className="min-w-[200px]"
-          disabled={isInitialLoading}
+          disabled={isAnythingBusy}
+          className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 disabled:opacity-50"
         >
-          {participantRoles.length > 0 || partnerTypes.length > 0 ? 'Continue' : 'Skip this step'}
-        </Button>
+          {hasItems ? 'Skip and continue later' : 'Skip this step'}
+        </button>
       </div>
     </div>
   )

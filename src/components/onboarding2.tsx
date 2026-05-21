@@ -590,6 +590,9 @@ const StepFiveCta = ({ onClick, disabled }: StepCtaProps) => {
 interface Onboarding2Props {
   steps?: StepDef[]
   className?: string
+  currentStep?: number
+  onStepChange?: (step: number) => void
+  initialStep?: number
 }
 
 const Onboarding2 = ({
@@ -631,8 +634,19 @@ const Onboarding2 = ({
     },
   ],
   className,
+  currentStep: controlledStep,
+  onStepChange,
+  initialStep = 0,
 }: Onboarding2Props) => {
-  const [currentStep, setCurrentStep] = useState(0)
+  const [internalStep, setInternalStep] = useState(initialStep)
+  const isControlled = controlledStep !== undefined
+  const currentStep = isControlled ? (controlledStep as number) : internalStep
+  const setCurrentStep = (next: number) => {
+    if (!isControlled) {
+      setInternalStep(next)
+    }
+    onStepChange?.(next)
+  }
   const [stepValidation, setStepValidation] = useState<Record<number, boolean>>({})
 
   const handleStepValidChange = (stepIndex: number, isValid: boolean) => {
