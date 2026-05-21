@@ -960,14 +960,14 @@ export default function ImageTemplateGenerator() {
 
     // 1. Restore canvas dimensions and background
     // Requirements: 5.1, 5.2, 5.3, 5.4
-    const finalBackgroundImage = template.backgroundColor || template.backgroundImage || ''
+    // backgroundImage holds actual image URLs; backgroundColor holds hex/gradient strings.
+    // Image URL takes priority — fall back to color only when no image is present.
+    const finalBackgroundImage = template.backgroundImage || template.backgroundColor || ''
     console.log('📥 Final backgroundImage to apply:', finalBackgroundImage)
 
     setSelectedTemplate({
       id: `loaded-${template.id}`,
       name: template.name,
-      // Prioritize backgroundColor (for colors/gradients) over backgroundImage (for actual images)
-      // backgroundImage from DB will be a URL, backgroundColor will be hex or gradient string
       backgroundImage: finalBackgroundImage,
       width: template.width,
       height: template.height,

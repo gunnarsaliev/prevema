@@ -1274,7 +1274,6 @@ export async function saveOnboardingImageTemplateAction(
         width,
         height,
         backgroundImage: mediaId,
-        backgroundColor: '#ffffff',
         elements: [], // Empty elements array
         isActive: true,
         previewImage: mediaId, // Use same image as preview
