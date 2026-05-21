@@ -107,7 +107,10 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
     if (!isClient) return
 
     // Check if backgroundImage is a color, gradient, or an image URL
-    if (selectedTemplate.backgroundImage.startsWith('#') || selectedTemplate.backgroundImage.startsWith('linear-gradient')) {
+    if (
+      selectedTemplate.backgroundImage.startsWith('#') ||
+      selectedTemplate.backgroundImage.startsWith('linear-gradient')
+    ) {
       // It's a color or gradient, not an image
       setBackgroundImage(null)
     } else {
@@ -177,15 +180,15 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
       const match = gradientString.match(/linear-gradient\(([^)]+)\)/)
       if (!match) return false
 
-      const parts = match[1].split(',').map(s => s.trim())
+      const parts = match[1].split(',').map((s) => s.trim())
       const angle = parts[0].includes('deg') ? parseInt(parts[0]) : 135
 
       // Convert angle to radians and calculate gradient line
       const angleRad = (angle - 90) * (Math.PI / 180)
-      const x1 = width / 2 - Math.cos(angleRad) * width / 2
-      const y1 = height / 2 - Math.sin(angleRad) * height / 2
-      const x2 = width / 2 + Math.cos(angleRad) * width / 2
-      const y2 = height / 2 + Math.sin(angleRad) * height / 2
+      const x1 = width / 2 - (Math.cos(angleRad) * width) / 2
+      const y1 = height / 2 - (Math.sin(angleRad) * height) / 2
+      const x2 = width / 2 + (Math.cos(angleRad) * width) / 2
+      const y2 = height / 2 + (Math.sin(angleRad) * height) / 2
 
       const gradient = ctx.createLinearGradient(x1, y1, x2, y2)
 
@@ -518,7 +521,14 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
 
   // Calculate required height for text with wrapping
   const calculateTextHeight = useCallback(
-    (text: string, width: number, fontSize: number, fontFamily: string, fontWeight: string, fontStyle: string): number => {
+    (
+      text: string,
+      width: number,
+      fontSize: number,
+      fontFamily: string,
+      fontWeight: string,
+      fontStyle: string,
+    ): number => {
       const canvas = document.createElement('canvas')
       const ctx = canvas.getContext('2d')
       if (!ctx) return fontSize * 1.2
@@ -564,75 +574,72 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
   )
 
   // Helper function to draw shapes
-  const drawShape = useCallback(
-    (ctx: CanvasRenderingContext2D, element: CanvasElement) => {
-      const x = element.x
-      const y = element.y
-      const width = element.width || 100
-      const height = element.height || 100
-      const fillColor = element.fill || '#3b82f6'
-      const strokeColor = element.stroke || '#1e40af'
-      const strokeWidth = element.strokeWidth || 2
+  const drawShape = useCallback((ctx: CanvasRenderingContext2D, element: CanvasElement) => {
+    const x = element.x
+    const y = element.y
+    const width = element.width || 100
+    const height = element.height || 100
+    const fillColor = element.fill || '#3b82f6'
+    const strokeColor = element.stroke || '#1e40af'
+    const strokeWidth = element.strokeWidth || 2
 
-      ctx.fillStyle = fillColor
-      ctx.strokeStyle = strokeColor
-      ctx.lineWidth = strokeWidth
+    ctx.fillStyle = fillColor
+    ctx.strokeStyle = strokeColor
+    ctx.lineWidth = strokeWidth
 
-      switch (element.shapeType) {
-        case 'square':
-          ctx.fillRect(x, y, width, height)
-          ctx.strokeRect(x, y, width, height)
-          break
+    switch (element.shapeType) {
+      case 'square':
+        ctx.fillRect(x, y, width, height)
+        ctx.strokeRect(x, y, width, height)
+        break
 
-        case 'circle':
-          ctx.beginPath()
-          const centerX = x + width / 2
-          const centerY = y + height / 2
-          const radius = Math.min(width, height) / 2
-          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
-          ctx.fill()
-          ctx.stroke()
-          break
+      case 'circle':
+        ctx.beginPath()
+        const centerX = x + width / 2
+        const centerY = y + height / 2
+        const radius = Math.min(width, height) / 2
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.stroke()
+        break
 
-        case 'triangle':
-          ctx.beginPath()
-          ctx.moveTo(x + width / 2, y) // Top point
-          ctx.lineTo(x + width, y + height) // Bottom right
-          ctx.lineTo(x, y + height) // Bottom left
-          ctx.closePath()
-          ctx.fill()
-          ctx.stroke()
-          break
+      case 'triangle':
+        ctx.beginPath()
+        ctx.moveTo(x + width / 2, y) // Top point
+        ctx.lineTo(x + width, y + height) // Bottom right
+        ctx.lineTo(x, y + height) // Bottom left
+        ctx.closePath()
+        ctx.fill()
+        ctx.stroke()
+        break
 
-        case 'star':
-          ctx.beginPath()
-          const cx = x + width / 2
-          const cy = y + height / 2
-          const outerRadius = Math.min(width, height) / 2
-          const innerRadius = outerRadius * 0.4
-          const points = 5
+      case 'star':
+        ctx.beginPath()
+        const cx = x + width / 2
+        const cy = y + height / 2
+        const outerRadius = Math.min(width, height) / 2
+        const innerRadius = outerRadius * 0.4
+        const points = 5
 
-          for (let i = 0; i < points * 2; i++) {
-            const radius = i % 2 === 0 ? outerRadius : innerRadius
-            const angle = (Math.PI * i) / points - Math.PI / 2
-            const px = cx + Math.cos(angle) * radius
-            const py = cy + Math.sin(angle) * radius
+        for (let i = 0; i < points * 2; i++) {
+          const radius = i % 2 === 0 ? outerRadius : innerRadius
+          const angle = (Math.PI * i) / points - Math.PI / 2
+          const px = cx + Math.cos(angle) * radius
+          const py = cy + Math.sin(angle) * radius
 
-            if (i === 0) {
-              ctx.moveTo(px, py)
-            } else {
-              ctx.lineTo(px, py)
-            }
+          if (i === 0) {
+            ctx.moveTo(px, py)
+          } else {
+            ctx.lineTo(px, py)
           }
+        }
 
-          ctx.closePath()
-          ctx.fill()
-          ctx.stroke()
-          break
-      }
-    },
-    [],
-  )
+        ctx.closePath()
+        ctx.fill()
+        ctx.stroke()
+        break
+    }
+  }, [])
 
   // Optimized selection handles drawing
   const drawSelectionHandles = useCallback(
@@ -726,7 +733,12 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
         : '#f3f4f6'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
     }
-  }, [backgroundImage, selectedTemplate.backgroundImage, drawBackgroundCover, drawGradientBackground])
+  }, [
+    backgroundImage,
+    selectedTemplate.backgroundImage,
+    drawBackgroundCover,
+    drawGradientBackground,
+  ])
 
   // Draw content layer (elements)
   const drawContentLayer = useCallback(() => {
@@ -1049,7 +1061,10 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
 
       // Only update state if alignment changed (prevent unnecessary re-renders)
       setAlignmentGuides((prev) => {
-        if (prev.showVertical !== alignment.showVertical || prev.showHorizontal !== alignment.showHorizontal) {
+        if (
+          prev.showVertical !== alignment.showVertical ||
+          prev.showHorizontal !== alignment.showHorizontal
+        ) {
           return alignment
         }
         return prev
@@ -1114,11 +1129,17 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
             if (element.aspectRatio && !isTextElement) {
               updates.height = Math.min(MAX_HEIGHT, updates.width / element.aspectRatio)
             } else {
-              updates.height = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, (element.height || 0) + deltaY))
+              updates.height = Math.max(
+                MIN_HEIGHT,
+                Math.min(MAX_HEIGHT, (element.height || 0) + deltaY),
+              )
             }
             break
           case 'sw':
-            const newWidthSW = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, (element.width || 0) - deltaX))
+            const newWidthSW = Math.max(
+              MIN_WIDTH,
+              Math.min(MAX_WIDTH, (element.width || 0) - deltaX),
+            )
             updates.width = newWidthSW
             // Only update x if width actually changed (prevents disappearing)
             if (newWidthSW > MIN_WIDTH) {
@@ -1127,12 +1148,18 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
             if (element.aspectRatio && !isTextElement) {
               updates.height = Math.min(MAX_HEIGHT, updates.width / element.aspectRatio)
             } else {
-              updates.height = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, (element.height || 0) + deltaY))
+              updates.height = Math.max(
+                MIN_HEIGHT,
+                Math.min(MAX_HEIGHT, (element.height || 0) + deltaY),
+              )
             }
             break
           case 'ne':
             updates.width = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, (element.width || 0) + deltaX))
-            const newHeightNE = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, (element.height || 0) - deltaY))
+            const newHeightNE = Math.max(
+              MIN_HEIGHT,
+              Math.min(MAX_HEIGHT, (element.height || 0) - deltaY),
+            )
             updates.height = newHeightNE
             // Only update y if height actually changed (prevents disappearing)
             if (newHeightNE > MIN_HEIGHT) {
@@ -1144,8 +1171,14 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
             }
             break
           case 'nw':
-            const newWidthNW = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, (element.width || 0) - deltaX))
-            const newHeightNW = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, (element.height || 0) - deltaY))
+            const newWidthNW = Math.max(
+              MIN_WIDTH,
+              Math.min(MAX_WIDTH, (element.width || 0) - deltaX),
+            )
+            const newHeightNW = Math.max(
+              MIN_HEIGHT,
+              Math.min(MAX_HEIGHT, (element.height || 0) - deltaY),
+            )
             updates.width = newWidthNW
             updates.height = newHeightNW
             // Only update position if size actually changed (prevents disappearing)
@@ -1167,7 +1200,10 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
             }
             break
           case 'w':
-            const newWidthW = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, (element.width || 0) - deltaX))
+            const newWidthW = Math.max(
+              MIN_WIDTH,
+              Math.min(MAX_WIDTH, (element.width || 0) - deltaX),
+            )
             updates.width = newWidthW
             // Only update x if width actually changed (prevents disappearing)
             if (newWidthW > MIN_WIDTH) {
@@ -1178,7 +1214,10 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
             }
             break
           case 'n':
-            const newHeightN = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, (element.height || 0) - deltaY))
+            const newHeightN = Math.max(
+              MIN_HEIGHT,
+              Math.min(MAX_HEIGHT, (element.height || 0) - deltaY),
+            )
             updates.height = newHeightN
             // Only update y if height actually changed (prevents disappearing)
             if (newHeightN > MIN_HEIGHT) {
@@ -1186,7 +1225,10 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
             }
             break
           case 's':
-            updates.height = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, (element.height || 0) + deltaY))
+            updates.height = Math.max(
+              MIN_HEIGHT,
+              Math.min(MAX_HEIGHT, (element.height || 0) + deltaY),
+            )
             break
         }
 
@@ -1209,7 +1251,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
             newFontSize,
             fontFamily,
             fontWeight,
-            fontStyle
+            fontStyle,
           )
 
           // Auto-adjust height to fit wrapped text
@@ -1225,8 +1267,10 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
 
         // Validate updates before applying - crucial to prevent disappearing elements
         const hasValidUpdates =
-          (updates.width === undefined || (updates.width >= MIN_WIDTH && updates.width <= MAX_WIDTH)) &&
-          (updates.height === undefined || (updates.height >= MIN_HEIGHT && updates.height <= MAX_HEIGHT)) &&
+          (updates.width === undefined ||
+            (updates.width >= MIN_WIDTH && updates.width <= MAX_WIDTH)) &&
+          (updates.height === undefined ||
+            (updates.height >= MIN_HEIGHT && updates.height <= MAX_HEIGHT)) &&
           (updates.x === undefined || (!isNaN(updates.x) && isFinite(updates.x))) &&
           (updates.y === undefined || (!isNaN(updates.y) && isFinite(updates.y)))
 
@@ -1234,11 +1278,15 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
           console.error('❌ Invalid resize updates detected - blocking update:', {
             updates,
             validations: {
-              width: updates.width === undefined || (updates.width >= MIN_WIDTH && updates.width <= MAX_WIDTH),
-              height: updates.height === undefined || (updates.height >= MIN_HEIGHT && updates.height <= MAX_HEIGHT),
+              width:
+                updates.width === undefined ||
+                (updates.width >= MIN_WIDTH && updates.width <= MAX_WIDTH),
+              height:
+                updates.height === undefined ||
+                (updates.height >= MIN_HEIGHT && updates.height <= MAX_HEIGHT),
               x: updates.x === undefined || (!isNaN(updates.x) && isFinite(updates.x)),
               y: updates.y === undefined || (!isNaN(updates.y) && isFinite(updates.y)),
-            }
+            },
           })
           return
         }
@@ -1376,7 +1424,9 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
           onElementDragEnd(selectedElementId, finalElement)
         } else if (initialElementState) {
           // Element not found - use initial state as fallback to prevent disappearance
-          console.warn('⚠️ Element not found in current elements array, using initial state as fallback')
+          console.warn(
+            '⚠️ Element not found in current elements array, using initial state as fallback',
+          )
           const finalElement = {
             ...initialElementState,
             ...pendingUpdates,
@@ -1525,9 +1575,9 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
   return (
     <div className="space-y-4">
       <div className="flex justify-center">
-        <div className="border-4 border-border/30 rounded-2xl overflow-hidden shadow-2xl bg-white dark:bg-gray-900 ring-1 ring-black/5">
+        <div className="border-4 border-border/30 rounded-2xl overflow-hidden shadow-2xl bg-white dark:bg-gray-900 ring-1 ring-black/5 leading-[0]">
           <ContextMenu>
-            <ContextMenuTrigger>
+            <ContextMenuTrigger className="block">
               {/* Multi-layer canvas stack for optimal performance */}
               <div className="relative inline-block">
                 {/* Layer 1: Background (static) */}
@@ -1551,7 +1601,7 @@ const CanvasEditor: React.FC<CanvasEditorProps> = memo(function CanvasEditor({
                   ref={interactionCanvasRef}
                   width={selectedTemplate.width}
                   height={selectedTemplate.height}
-                  className="cursor-pointer relative"
+                  className="cursor-pointer relative block"
                   onMouseDown={handleMouseDown}
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}

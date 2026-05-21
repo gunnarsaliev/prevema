@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Calendar, Loader2 } from 'lucide-react'
+import { Calendar, HelpCircle, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -20,6 +20,8 @@ import {
   FileUploadItemPreview,
   FileUploadList,
 } from '@/components/ui/file-upload'
+import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { ONBOARDING_KEYS, useSessionState } from '../useOnboardingPersistence'
 
 interface StepEventProps {
@@ -368,9 +370,28 @@ export const StepEvent = ({
 
             {/* Theme */}
             <div className="space-y-2">
-              <Label htmlFor="theme" className="text-foreground">
-                Theme / tagline
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="theme" className="text-foreground">
+                  Theme / tagline
+                </Label>
+                <Badge
+                  variant="outline"
+                  className="border-amber-400 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-700"
+                >
+                  Highly recommended
+                </Badge>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 shrink-0 cursor-pointer text-muted-foreground hover:text-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      A strong tagline is used across all participant communications and social
+                      media posts — it makes your event instantly recognisable and memorable.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Input
                 id="theme"
                 name="theme"
@@ -388,6 +409,10 @@ export const StepEvent = ({
               <Label htmlFor="why" className="text-foreground">
                 Why
               </Label>
+              <p className="text-xs text-muted-foreground -mt-1">
+                The purpose and mission behind this event — why it exists and what problem it
+                solves.
+              </p>
               <Textarea
                 id="why"
                 name="why"
@@ -398,9 +423,6 @@ export const StepEvent = ({
                 rows={2}
                 disabled={isPending}
               />
-              <p className="text-xs text-muted-foreground">
-                The purpose and motivation behind your event
-              </p>
             </div>
 
             {/* What */}
@@ -408,6 +430,9 @@ export const StepEvent = ({
               <Label htmlFor="what" className="text-foreground">
                 What
               </Label>
+              <p className="text-xs text-muted-foreground -mt-1">
+                The sessions, activities, or content attendees can expect to experience.
+              </p>
               <Textarea
                 id="what"
                 name="what"
@@ -418,7 +443,6 @@ export const StepEvent = ({
                 rows={2}
                 disabled={isPending}
               />
-              <p className="text-xs text-muted-foreground">The main topics and activities</p>
             </div>
 
             {/* Who */}
@@ -426,6 +450,10 @@ export const StepEvent = ({
               <Label htmlFor="who" className="text-foreground">
                 Who
               </Label>
+              <p className="text-xs text-muted-foreground -mt-1">
+                The people this event is designed for — industry, role, experience level, or
+                community.
+              </p>
               <Textarea
                 id="who"
                 name="who"
@@ -436,7 +464,6 @@ export const StepEvent = ({
                 rows={2}
                 disabled={isPending}
               />
-              <p className="text-xs text-muted-foreground">Your target audience</p>
             </div>
 
             {/* Optional fields toggle */}

@@ -39,36 +39,22 @@ const toolModules = [
 
 const templates: Template[] = [
   {
-    id: 'linkedin-post',
-    name: 'LinkedIn Post',
-    backgroundImage: '#ffffff',
-    width: 600,
-    height: 600,
-  },
-  {
-    id: 'facebook-post-square',
-    name: 'Facebook Post Square',
+    id: 'social-media-square',
+    name: '1:1 Social media image',
     backgroundImage: '#ffffff',
     width: 540,
     height: 540,
   },
   {
-    id: 'facebook-post-landscape',
-    name: 'Facebook Post Landscape',
+    id: 'story-16-9',
+    name: '16:9 - Story image',
     backgroundImage: '#ffffff',
-    width: 600,
-    height: 315,
-  },
-  {
-    id: 'instagram-post-square',
-    name: 'Instagram Post Square',
-    backgroundImage: '#ffffff',
-    width: 540,
+    width: 960,
     height: 540,
   },
   {
-    id: 'story',
-    name: 'Instagram/Facebook/TikTok Story',
+    id: 'social-publication-9-16',
+    name: '9:16 - Social media publication',
     backgroundImage: '#ffffff',
     width: 540,
     height: 960,
